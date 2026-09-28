@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass
 
+import pytest
 import torch
 from torch import nn
 
@@ -16,6 +17,7 @@ class TestConfig(ModelConfig):
     input_size: int = 4
     hidden_size: int = 8
     output_size: int = 2
+    architectures: list[str] | None = None
 
 
 class TestModel(Model):
@@ -40,6 +42,7 @@ def test_config_from_dict():
         "input_size": 4,
         "hidden_size": 8,
         "output_size": 2,
+        "architectures": ["test_arch"],
     })
 
     assert config.model_type == "test"
@@ -60,6 +63,7 @@ def test_model_from_pretrained(tmp_path):
             "input_size": 4,
             "hidden_size": 8,
             "output_size": 2,
+            "architectures": ["test_arch"],
         }),
         encoding="utf-8",
     )
@@ -94,6 +98,7 @@ def test_model_produces_same_output(tmp_path):
             "input_size": 4,
             "hidden_size": 8,
             "output_size": 2,
+            "architectures": ["test_arch"],
         }),
         encoding="utf-8",
     )
@@ -127,6 +132,7 @@ def test_model_from_pretrained_safetensors(tmp_path):
             "input_size": 4,
             "hidden_size": 8,
             "output_size": 2,
+            "architectures": ["test_arch"],
         }),
         encoding="utf-8",
     )
@@ -164,6 +170,7 @@ def test_config_from_pretrained_real_qwen():
     pprint(config)
     pprint("="*20)
 
+@pytest.mark.manual
 def test_model_from_pretrained_real_mms():
     mms_repo = "facebook/mms-1b-all"
     model = Model.from_pretrained(mms_repo)

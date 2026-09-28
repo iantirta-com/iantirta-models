@@ -3,13 +3,14 @@
 
 from __future__ import annotations
 
-import tempfile
-from pathlib import Path
-import uuid
 import errno
+import hashlib
+import tempfile
+import uuid
+from pathlib import Path
 from urllib.parse import quote
 from urllib.request import Request, urlopen
-import hashlib
+
 from tqdm import tqdm
 
 HF_HUB_ENDPOINT = "https://huggingface.co"
