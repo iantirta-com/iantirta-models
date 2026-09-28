@@ -1,0 +1,80 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "iantirta-models"
+version = "0.1.0a1"
+
+authors = [
+    { name = "Iantirta.com", email = "ian@iantirta.com" },
+]
+maintainers = [
+    { name = "Iantirta.com", email = "ian@iantirta.com" }
+]
+
+description = " utilities for Python"
+readme = "README.md"
+
+requires-python = ">=3.10"
+
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+
+keywords = [
+    "audio",
+    "speech",
+    "asr",
+    "audio-processing",
+    "machine-learning",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    "numpy",
+]
+
+
+[project.optional-dependencies]
+separation = ["torch",]
+asr = ["torch",]
+
+all = ["iantirta-models[separation, asr]",]
+
+docs = ["mkdocs-material"]
+test = ["pytest"]
+dev = ["iantirta-models[test, all]"]
+
+
+[project.urls]
+Homepage = "https://iantirta.com"
+Documentation = "https://readthedocs.org"
+Repository = "https://github.com/iantirta-com/iantirta-models"
+"Bug Tracker" = "https://github.com/iantirta-com/iantirta-models/issues"
+Changelog = "https://github.com/iantirta-com/iantirta-models/blob/main/CHANGELOG.md"
+
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["-ra"]
