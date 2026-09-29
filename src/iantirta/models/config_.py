@@ -100,168 +100,12 @@ def remap_legacy_layer_types(
                 config.mtp_layer_types = remapped
 
 
-# copied from huggingface_hub.dataclasses.strict when `accept_kwargs=True`
-def wrap_init_to_accept_kwargs(cls: dataclass):
-    # Get the original dataclass-generated __init__
-    original_init = cls.__init__
-
-    @wraps(original_init)
-    def __init__(self, *args, **kwargs: Any) -> None:
-        # Extract only the fields that are part of the dataclass
-        dataclass_fields = {f.name for f in fields(cls)}
-        standard_kwargs = {k: v for k, v in kwargs.items() if k in dataclass_fields}
-
-        # We need to call bare `__init__` without `__post_init__` but the `original_init` of
-        # any dataclas contains a call to post-init at the end (without kwargs)
-        if len(args) > 0:
-            raise ValueError(
-                f"{cls.__name__} accepts only keyword arguments, but found `{len(args)}` positional args."
-            )
-
-        for f in fields(cls):  # type: ignore
-            if f.name in standard_kwargs:
-                setattr(self, f.name, standard_kwargs[f.name])
-            elif f.default is not MISSING:
-                setattr(self, f.name, f.default)
-            elif f.default_factory is not MISSING:
-                setattr(self, f.name, f.default_factory())
-            else:
-                raise TypeError(f"Missing required field - '{f.name}'")
-
-        # Pass any additional kwargs to `__post_init__` and let the object
-        # decide whether to set the attr or use for different purposes (e.g. BC checks)
-        additional_kwargs = {}
-        for name, value in kwargs.items():
-            if name not in dataclass_fields:
-                additional_kwargs[name] = value
-
-        self.__post_init__(**additional_kwargs)
-
-    cls.__init__ = __init__
-    return cls
-
-
-@dataclass(slots=True)
-class PretrainedOptions:
-    cache_dir: str | Path | None = None
-    force_download: bool = False
-    local_files_only: bool = False
-    token: str | bool | None = None
-    revision: str = "main"
-
-    proxies: str | None = None
-    trust_remote_code: bool | None = None
-    subfolder: str | None = None
-
-    gguf_file: str | None = None
-    _configuration_file: str = "config.json"
-
-    model_type: str | None = None
-
-    @classmethod
-    def from_dict(cls, options: dict) -> PretrainedOptions:
-        return cls(**options)
 
 
 @dataclass_transform(kw_only_default=True)
 @strict(accept_kwargs=True)
 @dataclass(repr=False)
 class ModelConfig:
-    # no-format
-    r"""
-    Base class for all configuration classes. Handles a few parameters common to all models' configurations as well as
-    methods for loading/downloading/saving configurations.
-
-    <Tip>
-
-    A configuration file can be loaded and saved to disk. Loading the configuration file and using this file to
-    initialize a model does **not** load the model weights. It only affects the model's configuration.
-
-    </Tip>
-
-    Class attributes (overridden by derived classes):
-
-    - **model_type** (`str`) -- An identifier for the model type, serialized into the JSON file, and used to recreate
-      the correct object in [`~transformers.AutoConfig`].
-    - **has_no_defaults_at_init** (`bool`) -- Whether the config class can be initialized without providing input arguments.
-      Some configurations requires inputs to be defined at init and have no default values, usually these are composite configs,
-      (but not necessarily) such as [`~transformers.EncoderDecoderConfig`] or [`~RagConfig`]. They have to be initialized from
-      two or more configs of type [`~transformers.PreTrainedConfig`].
-    - **keys_to_ignore_at_inference** (`list[str]`) -- A list of keys to ignore by default when looking at dictionary
-      outputs of the model during inference.
-    - **attribute_map** (`dict[str, str]`) -- A dict that maps model specific attribute names to the standardized
-      naming of attributes.
-    - **base_model_tp_plan** (`dict[str, Any]`) -- A dict that maps sub-modules FQNs of a base model to a tensor
-      parallel plan applied to the sub-module when `model.tensor_parallel` is called.
-    - **base_model_fsdp_plan** (`dict[Any, str]`) -- A dict that maps sub-modules of a base model to an FSDP2
-      sharding strategy (e.g. `"free_full_weight"` / `"keep_full_weight"`). Keys can be wildcard module paths
-      (e.g. `"layers.*"`) or tuples of paths (grouped into a single `fully_shard` call).
-    - **base_model_pp_plan** (`dict[str, tuple[list[str]]]`) -- A dict that maps child-modules of a base model to a
-      pipeline parallel plan that enables users to place the child-module on the appropriate device.
-
-    Common attributes (present in all subclasses):
-
-    - **vocab_size** (`int`) -- The number of tokens in the vocabulary, which is also the first dimension of the
-      embeddings matrix (this attribute may be missing for models that don't have a text modality like ViT).
-    - **hidden_size** (`int`) -- The hidden size of the model.
-    - **num_attention_heads** (`int`) -- The number of attention heads used in the multi-head attention layers of the
-      model.
-    - **num_hidden_layers** (`int`) -- The number of blocks in the model.
-
-    <Tip warning={true}>
-
-    Setting parameters for sequence generation in the model config is deprecated. For backward compatibility, loading
-    some of them will still be possible, but attempting to overwrite them will throw an exception -- you should set
-    them in a [~transformers.GenerationConfig]. Check the documentation of [~transformers.GenerationConfig] for more
-    information about the individual parameters.
-
-    </Tip>
-
-    Arg:
-        name_or_path (`str`, *optional*, defaults to `""`):
-            Store the string that was passed to [`PreTrainedModel.from_pretrained`] as `pretrained_model_name_or_path`
-            if the configuration was created with such a method.
-        output_hidden_states (`bool`, *optional*, defaults to `False`):
-            Whether or not the model should return all hidden-states.
-        output_attentions (`bool`, *optional*, defaults to `False`):
-            Whether or not the model should returns all attentions.
-        return_dict (`bool`, *optional*, defaults to `True`):
-            Whether or not the model should return a [`~transformers.utils.ModelOutput`] instead of a plain tuple.
-        is_encoder_decoder (`bool`, *optional*, defaults to `False`):
-            Whether the model is used as an encoder/decoder or not.
-        chunk_size_feed_forward (`int`, *optional*, defaults to `0`):
-            The chunk size of all feed forward layers in the residual attention blocks. A chunk size of `0` means that
-            the feed forward layer is not chunked. A chunk size of n means that the feed forward layer processes `n` <
-            sequence_length embeddings at a time. For more information on feed forward chunking, see [How does Feed
-            Forward Chunking work?](../glossary.html#feed-forward-chunking).
-        per_layer_config (`dict[int | str, dict[str, Any]]`, *optional*):
-            A sparse mapping from layer indices to configuration attribute overrides. Each key is a layer index, and each value contains the attributes that differ from the global config for that layer.
-        tie_last_hidden_states (`bool`, *optional*):
-            Whether `hidden_states[-1]` should be the post-final-norm `last_hidden_state` rather than the pre-final-norm
-            hidden state. If unset, the model's built-in default is used.
-
-        > Parameters for fine-tuning tasks
-
-        architectures (`list[str]`, *optional*):
-            Model architectures that can be used with the model pretrained weights.
-        id2label (`dict[int, str]`, *optional*):
-            A map from index (for instance prediction index, or target index) to label.
-        label2id (`dict[str, int]`, *optional*):
-            A map from label to index for the model.
-        num_labels (`int`, *optional*):
-            Number of labels to use in the last layer added to the model, typically for a classification task.
-        problem_type (`str`, *optional*):
-            Problem type for `XxxForSequenceClassification` models. Can be one of `"regression"`,
-            `"single_label_classification"` or `"multi_label_classification"`.
-
-        > PyTorch specific parameters
-
-        dtype (`str`, *optional*):
-            The `dtype` of the weights. This attribute can be used to initialize the model to a non-default `dtype`
-            (which is normally `float32`) and thus allow for optimal storage allocation. For example, if the saved
-            model is `float16`, ideally we want to load it back using the minimal amount of memory needed to load
-            `float16` weights.
-    """
 
     # Class attributes that we don't want to save or have in `self.__dict__`
     # They are not supposed to be set/changed by users. Each field is set when
@@ -270,11 +114,6 @@ class ModelConfig:
     sub_configs: ClassVar[dict[str, type[ModelConfig]]] = {}
 
     attribute_map: ClassVar[dict[str, str]] = {}
-
-    # Attributes set internally when saving and used to infer model
-    # class for `Auto` mapping
-    model_type: ClassVar[str] = ""
-    architectures: list[str] | None = None
 
     # Common attributes for all models
     dtype: str | torch.dtype | None = None
@@ -880,6 +719,4 @@ class ModelConfig:
 
     #endregion
 
-# For transformers vendor
-PretrainedConfig = ModelConfig
-PreTrainedConfig = PretrainedConfig
+

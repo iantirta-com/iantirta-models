@@ -4,15 +4,16 @@
 # Partial code of huggingface_hub, improved by iantirta.com
 from __future__ import annotations
 
-from .auto import AutoModel
-from .model import Model
+from .auto import AutoConfig
+from .config import ModelConfig
 
 # For transformers vendor
-PretrainedModel = Model
-PreTrainedModel = PretrainedModel
+PretrainedConfig = ModelConfig
+PreTrainedConfig = PretrainedConfig
+
 
 __all__ = [
-    "AutoModel",
-    "PreTrainedModel",
-    "PretrainedModel",
+    "AutoConfig",
+    "PretrainedConfig",
+    "PreTrainedConfig",
 ]
