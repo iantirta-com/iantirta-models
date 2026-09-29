@@ -5,12 +5,14 @@
 from __future__ import annotations
 
 import importlib
-from pathlib import Path
 import logging
+from pathlib import Path
+
+from typing_extensions import Self
+
+from ..exceptions import YetToImplement
 from .config import ModelConfig
 from .mixin import PretrainedOptions
-from ..exceptions import YetToImplement
-from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +20,23 @@ logger = logging.getLogger(__name__)
 __all__ = [
     "AutoConfig",
 ]
+
+def get_auto_config(
+        *,
+        config: ModelConfig | None = None,
+        config_dict: dict | None = None
+) -> type[ModelConfig]:
+    if (config_dict is None) ^ (config is not None):
+        raise ValueError("This function must take exactly one of `config_dict` or `config`")
+    from ..model.auto import get_auto_model
+    if config is not None:
+        model_class = get_auto_model(config=config)
+    elif config_dict is not None:
+        model_class = get_auto_model(config_dict=config_dict)
+    try:
+        return model_class.config_class
+    except Exception:  # noqa: TRY203
+        raise
 
 
 class AutoConfig:
@@ -49,36 +68,7 @@ class AutoConfig:
         if "model_type" in config_dict:
             if config_dict["model_type"] == "mistral":
                 raise YetToImplement("mistral model is not supported")
-
-            try:
-                module_path = (
-                    "iantirta.models.vendor.transformers."
-                    + config_dict["model_type"]
-                )
-                module = importlib.import_module(module_path)
-            except ImportError as err:
-                logger.warning(
-                    "No vendor available for "
-                    f"{module_path}\n"
-                    f"  Error: {err}"
-                )
-                raise err
-            if len(config_dict["architectures"]) > 1:
-                raise YetToImplement(
-                    "Multiple architectures config not supported"
-                )
-            try:
-                return (
-                    getattr(
-                        module,
-                        config_dict["architectures"][0]
-                    )
-                    .config_class
-                    .from_dict(config_dict)
-                )
-            except Exception:
-                raise
-
+            return get_auto_config(config_dict=config_dict).from_dict(config_dict)
         raise ValueError(
             "Unrecognized model in "
             f"{pretrained_model_name_or_path}. "

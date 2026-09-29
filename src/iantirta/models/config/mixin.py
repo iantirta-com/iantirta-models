@@ -6,14 +6,16 @@ from __future__ import annotations
 
 import json
 import logging
+from dataclasses import MISSING, asdict, dataclass, fields
+from functools import wraps
 from pathlib import Path
 from typing import Any
-from functools import wraps
-from dataclasses import dataclass, fields, MISSING, asdict
+
 from typing_extensions import Self
 
 from ..exceptions import YetToImplement
 from ..files import cached_file
+from ..vendor.transformers.utils.import_utils import is_torch_available
 
 logger = logging.getLogger(__name__)
 
@@ -57,11 +59,17 @@ class PretrainedOptions:
 class ConfigMixin:
 
     def __post_init__(self, **kwargs):
+        
+        if (torch_dtype := kwargs.pop("torch_dtype", None)) is not None:
+            self.dtype = self.dtype if self.dtype is not None else torch_dtype
+        if self.dtype is not None and isinstance(self.dtype, str) and is_torch_available():
+            import torch
+            self.dtype = getattr(torch, self.dtype)
+            
+        self._name_or_path = str(kwargs.pop("name_or_path", ""))
+
         if kwargs:
-            raise RuntimeError(
-                "Unused Kwargs:\n"
-                f"{kwargs}"
-            )
+            logger.warning(f"Unused config kwargs: {kwargs}")
 
     @classmethod
     def from_pretrained(
@@ -78,7 +86,6 @@ class ConfigMixin:
         config_dict: dict[str, Any],
         **kwargs,
     ) -> type[Self]:
-
         config = cls(**config_dict)
         logger.info(f"Model config {config}")
         return config
@@ -107,6 +114,8 @@ class ConfigMixin:
         pretrained_model_name_or_path: str | Path,
         options: PretrainedOptions,
     ) -> dict[str, Any]:
+
+        is_local = Path(pretrained_model_name_or_path).is_dir()
         if (Path(options.subfolder) / pretrained_model_name_or_path).is_file():
             resolved_config_file = Path(pretrained_model_name_or_path)
             is_local = True

@@ -3,18 +3,31 @@
 
 from __future__ import annotations
 
-import os
 import errno
 import hashlib
+import logging
+import os
 import tempfile
 import uuid
+from dataclasses import asdict, dataclass, fields
 from pathlib import Path
+from typing import Any, Literal
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
+import requests
 from tqdm import tqdm
 
+from iantirta.models.exceptions import YetToImplement
+
+logger = logging.getLogger(__name__)
+
 HF_HUB_ENDPOINT = "https://huggingface.co"
+HF_URL_TEMPLATE = "/{repo_id}/resolve/{revision}/{filename}"
+ALL_HF_REPO_TYPES = [
+    None, "model", "dataset",
+    "space", "kernel"
+]
 
 CACHE_HOME = Path("~/.cache/iantirta/hf").expanduser().resolve()
 CACHEDIR_TAG_CONTENT = (
@@ -25,10 +38,7 @@ CACHEDIR_TAG_CONTENT = (
 )
 
 _CHUNK_SIZE = 128 * 1024
-ALL_HF_REPO_TYPES = [
-    None, "model", "dataset",
-    "space", "kernel"
-]
+
 
 
 def http_download(
@@ -327,196 +337,56 @@ def ensure_file(
     )
 
 
-def _get_hf_url(
-    repo_id: str,
-    filename: str,
-    *,
-    subfolder: str | None = None,
-    repo_type: str | None = None,
-    revision: str | None = None,
-    endpoint: str | None = None,
-) -> str:
-    if subfolder == "":
-        subfolder = None
-    if subfolder is not None:
-        filename = f"{subfolder}/{filename}"
-
-    if repo_type not in constants.REPO_TYPES_WITH_KERNEL:
-        raise ValueError("Invalid repo type")
-
-    if repo_type in constants.REPO_TYPES_URL_PREFIXES:
-        repo_id = constants.REPO_TYPES_URL_PREFIXES[repo_type] + repo_id  # type: ignore
-
-    if revision is None:
-        revision = constants.DEFAULT_REVISION
-    url = constants.HUGGINGFACE_CO_URL_TEMPLATE.format(
-        repo_id=repo_id, revision=quote(revision, safe=""), filename=quote(filename)
-    )
-    # Update endpoint if provided
-    if endpoint is not None and url.startswith(constants.ENDPOINT):
-        url = endpoint + url[len(constants.ENDPOINT) :]
-    return url
-
-    
-def _get_metadata_or_catch_error(
-    *,
-    repo_id: str,
-    filename: str,
-    repo_type: str,
-    revision: str,
-    endpoint: str | None,
-    etag_timeout: float | None,
-    headers: dict[str, str],  # mutated inplace!
-    token: bool | str | None,
-    local_files_only: bool,
-    relative_filename: str | None = None,  # only used to store `.no_exists` in cache
-    storage_folder: str | None = None,  # only used to store `.no_exists` in cache
-    retry_on_errors: bool = False,
-    tree_cache_folder: str | None = None,  # if set, read the on-disk tree listing to skip the HEAD call
-) -> (
-    # Either an exception is caught and returned
-    tuple[None, None, None, None, None, Exception]
-    |
-    # Or the metadata is returned as
-    # `(url_to_download, etag, commit_hash, expected_size, xet_file_data, None)`
-    tuple[str, str, str, int | None, XetFileData | None, None]
-):
-    if local_files_only:
-        return (
-            None,
-            None,
-            None,
-            None,
-            None,
-            ConnectionError(
-                f"Cannot access file since 'local_files_only=True' as been set. (repo_id: {repo_id}, repo_type: {repo_type}, revision: {revision}, filename: {filename})"
-            ),
-        )
-    if tree_cache_folder is not None:
-        if revision is not None and revision != "main":
-            raise YetToImplement("using commit hash for revision is not supported.")
- 
-
-def _hf_dl_cache(
-    *,
+@dataclass(slots=True)
+class HFDownloadKwargs:
     # Destination
-    cache_dir: Path,
+    cache_dir: str | Path | None = None
+    local_dir: str | Path | None = None
+
     # File info
-    repo_id: str,
-    filename: str,
-    repo_type: str,
-    revision: str,
+    subfolder: str | None = None
+    repo_type: Literal["model", "dataset", "space", "kernel"] | None = None
+    revision: str | None = "main"
+
     # HTTP info
-    endpoint: str | None,
-    etag_timeout: float,
-    headers: dict[str, str],
-    token: bool | str | None,
+    etag_timeout: float = 10
+    endpoint: str = HF_HUB_ENDPOINT
+    token: bool | str | None = None
+    headers: dict[str, str] | None = None
+
     # Additional options
-    local_files_only: bool,
-    force_download: bool,
-    tqdm_class: type[base_tqdm] | None,
-    dry_run: bool,
-) -> Path:
-    repo_folder_name = f"{repo_type}s" + "--".join(repo.split("/")
-    locks_dir = cache_dir / ".locks"
-    storage_folder = cache_dir / repo_folder_name
+    local_files_only: bool = False
+    tqdm_class: type[tqdm] | None = None
+    dry_run: bool = False
+    force_download: bool = False
 
-    # cross-platform transcription of filename, to be used as a local file path.
-    relative_filename = os.path.join(*filename.split("/"))
+    # error
+    _raise_exceptions_for_gated_repo: bool = True
+    _raise_exceptions_for_missing_entries: bool = True
+    _raise_exceptions_for_connection_errors: bool = True
+    retry_on_errors: bool = False
 
-    if revision is not None and revision != "main":
-        raise YetToImplement("using commit hash for revision is not supported.")
-
-    (
-        url, etag, commit_hash,
-        expected_size, xet_fd,
-        head_call_error
-    ) = _get_metadata_or_catch_error(
-        repo_id=repo_id,
-        filename=filename,
-        repo_type=repo_type,
-        revision=revision,
-        endpoint=endpoint,
-        etag_timeout=etag_timeout,
-        headers=headers,
-        token=token,
-        local_files_only=local_files_only,
-        storage_folder=storage_folder,
-        relative_filename=relative_filename,
-        tree_cache_folder=storage_folder,
-    )
-
-
-def hf_dl(
-    repo_id: str,
-    filename: str,
-    *,
-    subfolder: str | None = None,
-    repo_type: str | None = None,
-    revision: str | None = "main",
-    library_name: str | None = None,
-    library_version: str | None = None,
-    cache_dir: str | Path | None = None,
-    local_dir: str | Path | None = None,
-    user_agent: dict | str | None = None,
-    force_download: bool = False,
-    etag_timeout: float = 10,
-    token: bool | str | None = None,
-    local_files_only: bool = False,
-    headers: dict[str, str] | None = None,
-    endpoint: str | None = None,
-    tqdm_class: type[tqdm] | None = None,
-    dry_run: bool = False,
-) -> Path:
+    user_agent: dict | str | None = None
     
-    if revision is None:
-        revision = "main"
-    elif not isinstance(revision, str):
-        raise YetToImplement(f"using {type(revision)} is not supported.")
+    library_name: str | None = None
+    library_version: str | None = None
     
-    if cache_dir is None:
-        cache_dir = CACHE_HOME
-    cache_dir = Path(cache_dir).expanduser().resolve()
-
-    if local_dir is not None:
-        local_dir = Path(local_dir).expanduser().resolve()
-
-    if subfolder == "":
-        subfolder = None
-    if subfolder is not None:
-        # This is used to create a URL, and not a local path, hence the forward slash.
-        filename = f"{subfolder}/{filename}"
-
-    if repo_type is None:
-        repo_type = "model"
-
-    if repo_type not in ALL_HF_REPO_TYPES:
-        raise ValueError(
-            f"Invalid repo type: {repo_type}. Accepted repo types are: {str(ALL_REPO_TYPES)}"
-        )
-
-    if local_dir is not None:
-        raise YetToImplement("download to local dir is not supported.")
-    else:
-        return _hf_dl_cache(
-            # Destination
-            cache_dir=cache_dir,
-            # File info
-            repo_id=repo_id,
-            filename=filename,
-            repo_type=repo_type,
-            revision=revision,
-            # HTTP info
-            endpoint=endpoint,
-            etag_timeout=etag_timeout,
-            headers=headers,
-            token=token,
-            # Additional options
-            local_files_only=local_files_only,
-            force_download=force_download,
-            tqdm_class=tqdm_class,
-            dry_run=dry_run,
-        )
+    @classmethod
+    def from_dict(
+        cls,
+        options: dict,
+        *,
+        unknown: bool = False
+    ) -> HFDownloadKwargs | tuple[HFDownloadKwargs, dict[str, Any]]:
+        if unknown:
+            cls_vars = [f.name for f in fields(cls)]
+            unused = {}
+            for k, v in options.items():
+                if k not in cls_vars:
+                    unused.setdefault(k, v)
+            options = {k: v for k, v in options.items() if k not in unused}
+            return cls(**options), unused
+        return cls(**options)
 
 
 def cached_file(
@@ -538,158 +408,88 @@ def cached_file(
 
 
 def cached_files(
-    path_or_repo_id: str | Patg,
+    path_or_repo_id: str | Path,
     filenames: list[str],
-    
-    cache_dir: str | Path | None = None,
-    force_download: bool = False,
+    options: HFDownloadKwargs | dict | None = None,
     proxies: dict[str, str] | None = None,
-    token: bool | str | None = None,
-    revision: str | None = None,
-    local_files_only: bool = False,
-    subfolder: str = "",
-    
-    repo_type: str | None = None,
-    user_agent: str | dict[str, str] | None = None,
-    
-    _raise_exceptions_for_gated_repo: bool = True,
-    _raise_exceptions_for_missing_entries: bool = True,
-    _raise_exceptions_for_connection_errors: bool = True,
-    
-    tqdm_class: type | None = None,
-    
-    **deprecated_kwargs,
+    **kwargs,
 ) -> list[str] | None:
-    
-    full_filenames = [
-        os.path.join(subfolder, file)
-        for file in filenames
-    ]
-    existing_files = []
-    for filename in full_filenames:
-        if (path_or_repo_id := Path(path_or_repo_id)).is_dir():
-            if not (resolved_file := path_or_repo_id / filename).is_file():
-                if (
-                    _raise_exceptions_for_missing_entries
-                    and filename != os.path.join(subfolder, "config.json")
-                ):
-                    revision_ = "main" if revision is None else revision
-                    raise OSError(
-                        f"{path_or_repo_id} does not appear to have a file named {filename}. Checkout "
-                        f"'https://huggingface.co/{path_or_repo_id}/tree/{revision_}' for available files."
-                    )
-                else:
-                    continue
-            existing_files.append(resolved_file)
+    if not isinstance(options, HFDownloadKwargs):
+        if options and isinstance(options, dict):
+            options, unknown = HFDownloadKwargs.from_dict(options, unknown=True)
+        elif kwargs and isinstance(kwargs, dict):
+            options, unknown = HFDownloadKwargs.from_dict(kwargs, unknown=True)
+        else:
+            options = HFDownloadKwargs()
+            unknown = kwargs
+    if unknown:
+        logger.warning(f"Unused Kwargs: {unknown}")
 
-    if path_or_repo_id.is_dir():
-        return (
-            existing_files
-            if existing_files
-            else None
+    if len(filenames) > 1:
+        raise YetToImplement("multiple download is not supported.")
+    filename = filenames[0]
+
+    if not isinstance(options.revision, str):
+        raise YetToImplement(f"using {type(options.revision)} is not supported.")
+    elif options.revision != "main":
+        raise YetToImplement("using revision other than 'main' is not supported.")
+
+    if options.subfolder == "":
+        options.subfolder = None
+    if options.subfolder is not None:
+        raise YetToImplement("using subfolder is not supported.")
+
+    if options.repo_type is None:
+        options.repo_type = "model"
+    if options.repo_type not in ALL_HF_REPO_TYPES:
+        raise ValueError(
+            f"Invalid repo type: {options.repo_type}. Accepted repo types are: {ALL_HF_REPO_TYPES!s}"
         )
 
+    if options.cache_dir is None:
+        options.cache_dir = CACHE_HOME
+    options.cache_dir = Path(options.cache_dir).expanduser().resolve()
+
+    if options.local_dir is not None:
+        raise YetToImplement("using local dir is not supported.")
+
+    if options.token is not None:
+        raise YetToImplement("Using token to download is not supported.")
+
+    if options.dry_run:
+        raise YetToImplement("Dry run is not supported.")
+
+    if options.local_files_only:
+        raise YetToImplement("local file only is not supported.")
+
+    url = options.endpoint.rstrip("/") + HF_URL_TEMPLATE.format(
+        repo_id=path_or_repo_id,
+        revision=quote(options.revision, safe=""),
+        filename=quote(filename)
+    )
     
-    def finalize(
-        resolved_files: list[str | None]
-    ) -> list[str] | None:
-        # If there are any missing file and the flag is active, raise
-        if any(
-            file is None
-            for file in resolved_files
-        ) and _raise_exceptions_for_missing_entries:
-            missing_entries = [
-                original
-                for original, resolved in zip(
-                    full_filenames,
-                    resolved_files
-                ) if resolved is None
-            ]
-            # Last escape
-            if (
-                len(resolved_files) == 1
-                and missing_entries[0] == os.path.join(
-                    subfolder, "config.json"
-                )
-            ):
-                return None
-            # Now we raise for missing entries
-            revision_ = "main" if revision is None else revision
-            msg = (
-                f"a file named {missing_entries[0]}"
-                if len(missing_entries) == 1
-                else f"files named {(*missing_entries,)}"
-            )
-            raise OSError(
-                f"{path_or_repo_id} does not appear to have {msg}. Checkout 'https://huggingface.co/{path_or_repo_id}/tree/{revision_}'"
-                " for available files."
-            )
+    parts = [f"{options.repo_type}s", *path_or_repo_id.split("/")]
+    repo_folder_name: str = "--".join(parts)
+    
+    storage_folder: Path = options.cache_dir / repo_folder_name
+    target_path = storage_folder / options.revision / filename
 
-        # Remove potential missing entries (we can silently remove them at this point based on the flags)
-        resolved_files = [
-            file
-            for file in resolved_files
-            if file is not None
-        ]
-        # Return `None` if the list is empty, coherent with other Exception when the flag is not active
-        resolved_files = None if len(resolved_files) == 0 else resolved_files
-
-        return resolved_files
-
-    if cache_dir is None:
-        cache_dir = CACHE_HOME
-
-    file_counter = 0
-    if revision is not None and revision != "main":
-        raise YetToImplement("using commit hash for revision is not supported.")
-
-    if file_counter == len(full_filenames):
-        return finalize(existing_files)
+    if target_path.is_file():
+        return [target_path]
 
     try:
-        if len(full_filenames) == 1:
-            hf_dl()
-        else:
-            hf_snapshot_dl()
-    except Exception as e:
-        if isinstance(e, PermissionError):
-            raise OSError(
-                f"PermissionError at {e.filename} when downloading {path_or_repo_id}. "
-                "Check cache directory permissions. Common causes: 1) another user is downloading the same model (please wait); "
-                "2) a previous download was canceled and the lock file needs manual removal."
-            ) from e
-        elif isinstance(e, OSError) and e.errno == errno.EROFS:
-            # Unlike EACCES (errno 13), which Python maps to PermissionError,
-            # EROFS (errno 30) is a plain OSError that does NOT match `isinstance(e, PermissionError)`.
-            # Without this guard it would fall through to the stale-cache recovery block below,
-            # silently returning an old cached file even when a newer revision exists on the Hub.
-            # Re-raise so callers can detect the read-only condition and retry with a writable path.
-            raise
-        elif isinstance(e, ValueError):
-            raise OSError(f"{e}") from e
+        options.cache_dir.mkdir(parents=True, exist_ok=True)
 
-        # Now we try to recover if we can find all files correctly in the cache
-        resolved_files = [
-            _get_cache_file_to_return(
-                path_or_repo_id,
-                filename,
-                cache_dir,
-                commit_hash or revision,
-                repo_type
-            ) for filename in full_filenames
-        ]
-        if all(
-            file is not None
-            for file in resolved_files
-        ):
-            return resolved_files
+        if not (tag_path := options.cache_dir / "CACHEDIR.TAG").exists():
+            tag_path.write_text(
+                CACHEDIR_TAG_CONTENT,
+                encoding="utf-8",
+            )
+    except OSError:
+        pass
 
-    resolved_files = [
-        _get_cache_file_to_return(
-            path_or_repo_id,
-            filename,
-            cache_dir,
-            commit_hash or revision
-        ) for filename in full_filenames
-    ]
-    return finalize(resolved_files)
+    return [http_download(
+        url,
+        target_path,
+        progress=True,
+    )]

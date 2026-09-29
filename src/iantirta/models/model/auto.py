@@ -5,17 +5,48 @@
 from __future__ import annotations
 
 import importlib
-
-from pathlib import Path
-from typing_extensions import Self
-from dataclasses import asdict
 import logging
+from dataclasses import asdict
+from pathlib import Path
+from typing import TYPE_CHECKING
 
-from .mixin import ModelPretrainedOptions
-from ..config import PretrainedConfig, AutoConfig
+from typing_extensions import Self
+
+from ..config import AutoConfig, PretrainedConfig
 from ..exceptions import YetToImplement
+from .mixin import ModelPretrainedOptions
+
+if TYPE_CHECKING:
+    from .model import Model
+
 
 logger = logging.getLogger(__name__)
+
+
+def get_auto_model(
+    *,
+    config: PretrainedConfig | None = None,
+    config_dict: dict | None = None
+) -> type[Model]:
+    if (config_dict is None) ^ (config is not None):
+        raise ValueError("This function must take exactly one of `config_dict` or `config`")
+    base_module = "iantirta.models.vendor.transformers.models."
+    model_type = config.model_type if config is not None else config_dict["model_type"]
+    try:
+        model_module = importlib.import_module(base_module + model_type)
+    except ImportError as e:
+        logger.warning(
+            "No vendor available for "
+            f"{base_module + model_type}\n"
+            f"  Error: {e}"
+        )
+        raise e
+    architectures = config.architectures if config is not None else config_dict["architectures"]
+    if len(architectures) > 1:
+        raise YetToImplement(
+            "Multiple architectures config not supported"
+        )
+    return getattr(model_module, architectures[0])
 
 
 class AutoModel:

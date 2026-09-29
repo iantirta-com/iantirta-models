@@ -12,12 +12,8 @@ from iantirta.models.model import AutoModel
 
 
 # @dataclass
-# class TestConfig(ModelConfig):
-#     model_type: str = "test"
-#     input_size: int = 4
-#     hidden_size: int = 8
-#     output_size: int = 2
-#     architectures: list[str] | None = None
+class TestConfig(PreTrainedConfig):
+    model_type: str = "test_type"
 
 
 # class TestModel(Model):
@@ -38,13 +34,19 @@ from iantirta.models.model import AutoModel
 @pytest.fixture
 def config_dict() -> dict:
     return {
-        "model_type": "test",
         "architectures": ["test_arch"],
+        "torch_dtype": torch.float32
     }
+
 
 @pytest.fixture
 def mms_pretrained_name() -> str:
     return "facebook/mms-1b-all"
+
+
+@pytest.fixture
+def qwen_pretrained_name() -> str:
+    return "Qwen/Qwen3-ASR-1.7B-hf"
 
 
 def test_config_from_dict(config_dict):
@@ -53,8 +55,16 @@ def test_config_from_dict(config_dict):
     for key in config_dict:
         assert getattr(config, key, None) is not None
 
-def test_config_from_pretrained(mms_pretrained_name):
-    config = AutoConfig.from_pretrained(mms_pretrained_name)
+
+@pytest.mark.parametrize(
+    "pretrained_name",
+    [
+        "facebook/mms-1b-all",
+        "Qwen/Qwen3-ASR-1.7B-hf",
+    ]
+)
+def test_config_from_pretrained(pretrained_name):
+    config = AutoConfig.from_pretrained(pretrained_name)
     assert isinstance(config, PreTrainedConfig)
 
 # def test_model_from_pretrained(tmp_path):

@@ -3,7 +3,7 @@
 #
 # Partial code of transformers, improved by iantirta.com
 #
-# Copyright 2022 The HuggingFace Inc. team.
+# Copyright 2024 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,17 +16,19 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""
-Processing saving/loading class for common processors.
-"""
+"""Backward-compatible re-exports. Prefer ``transformers.distributed.fsdp``."""
 from __future__ import annotations
 
-import sys
-import typing
+from ..distributed.fsdp import (
+    get_fsdp_ckpt_kwargs,
+    # is_fsdp_enabled,
+    is_fsdp_managed_module,
+    # update_fsdp_plugin_peft,
+)
 
-import typing_extensions
-
-if sys.version_info >= (3, 11):
-    Unpack = typing.Unpack
-else:
-    Unpack = typing_extensions.Unpack
+__all__ = [
+    "get_fsdp_ckpt_kwargs",
+    # "is_fsdp_enabled",
+    "is_fsdp_managed_module",
+    # "update_fsdp_plugin_peft"
+]

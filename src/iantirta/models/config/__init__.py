@@ -14,6 +14,6 @@ PreTrainedConfig = PretrainedConfig
 
 __all__ = [
     "AutoConfig",
-    "PretrainedConfig",
     "PreTrainedConfig",
+    "PretrainedConfig",
 ]

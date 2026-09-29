@@ -1564,3 +1564,9 @@ def layer_type_validation(layer_types: list[str], num_hidden_layers: int | None 
             f"`num_hidden_layers` ({num_hidden_layers}) must be equal to the number of layer types "
             f"({len(layer_types)})"
         )
+
+
+def __getattr__(name):
+    if name == "PreTrainedConfig":
+        raise AttributeError("Importing 'BlockedClass' is explicitly blocked!")
+    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

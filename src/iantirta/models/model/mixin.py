@@ -81,10 +81,7 @@ class ModelMixin(nn.Module):
         **kwargs
     ):
         super().__init__()
-        if not isinstance(
-            config,
-            PreTrainedConfig
-        ):
+        if not isinstance(config,PreTrainedConfig):
             raise TypeError(
                 f"Parameter config in `{self.__class__.__name__}(config)` should be an instance of class "
                 "`PreTrainedConfig`. To create a model from a pretrained model use "
