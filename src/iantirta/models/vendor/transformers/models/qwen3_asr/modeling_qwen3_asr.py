@@ -42,7 +42,7 @@ from ...modeling_outputs import (
 from ...utils.generic import can_return_tuple
 from ...utils.import_utils import torch_compilable_check
 
-# from ...generation import GenerationMixin
+from ...generation import GenerationMixin
 # from ...modeling_layers import GenericForTokenClassification, GradientCheckpointingLayer
 # from ...modeling_utils import ALL_ATTENTION_FUNCTIONS
 # from ...utils import TransformersKwargs, auto_docstring, can_return_tuple, torch_compilable_check
