@@ -1,9 +1,4 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-#
-# Copyright 2021 The Fairseq Authors and the HuggingFace Inc. team. All rights reserved.
+# Copyright 2026 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,6 +15,7 @@
 Contains the logic for automatic additional output capture with our forward decorators.
 This mostly describe the hooks used and the logic to make capture thread/context safe.
 """
+
 from __future__ import annotations
 
 import threading
@@ -33,7 +29,7 @@ from .import_utils import is_torchdynamo_compiling, requires
 if TYPE_CHECKING:
     from torch import nn
 
-    from iantirta.models.model import PreTrainedModel
+    from ..modeling_utils import PreTrainedModel
 
 
 _CAN_RECORD_REGISTRY = {}
@@ -96,11 +92,12 @@ class CompileableContextVar:
             self.context_var.reset(token)
 
 
+# Thread/context-safe global variable
+_active_collector = CompileableContextVar("output_collector")
+
+
 def install_output_capuring_hook(
-    module: nn.Module,
-    key: str,
-    index: int,
-    capture_initial_hidden_state: bool = True
+    module: nn.Module, key: str, index: int, capture_initial_hidden_state: bool = True
 ) -> None:
     """Install the forward hook needed to capture the output described by `key` and `index` in `module`."""
 
@@ -108,7 +105,7 @@ def install_output_capuring_hook(
         # Get the current thread-local collector
         collected_outputs = _active_collector.get()
         # If it's None or not a key we want to capture, simply return, the hook is inactive
-        if collected_outputs is None or key not in collected_outputs:
+        if collected_outputs is None or key not in collected_outputs.keys():
             return
 
         # Optionally capture only some layer's hidden_states
@@ -141,9 +138,7 @@ def install_output_capuring_hook(
 
 
 def recursively_install_hooks(
-    parent_module: nn.Module,
-    module_name: str,
-    capture_tasks: list[tuple[str, OutputRecorder]]
+    parent_module: nn.Module, module_name: str, capture_tasks: list[tuple[str, OutputRecorder]]
 ) -> None:
     """
     Recursively install all output capturing hooks on all submodules of `parent_module`.
@@ -152,7 +147,7 @@ def recursively_install_hooks(
     we reach a submodel in the graph, its children should use this submodel's `capture_tasks`, but other parts of the graph
     should not.
     """
-    from iantirta.models.model import PreTrainedModel
+    from ..modeling_utils import PreTrainedModel
 
     # First dispatch to children if needed
     for name, module in parent_module.named_children():
@@ -208,11 +203,7 @@ def install_all_output_capturing_hooks(model: PreTrainedModel, prefix: str | Non
     prefix = prefix if prefix is not None else ""
     recursively_install_hooks(model, prefix, capture_tasks)
     # Mark the model as already hooked
-    model._output_capturing_hooks_installed = True
-
-
-# Thread/context-safe global variable
-_active_collector = CompileableContextVar("output_collector")
+    setattr(model, "_output_capturing_hooks_installed", True)
 
 
 # We need this to make sure we don't have race conditions when installing hooks, resulting in them being installed
@@ -299,7 +290,7 @@ def capture_outputs(func=None, *, tie_last_hidden_states=True):
 
             hidden_states_layers = collected_outputs.pop("_hidden_states_layers", None)
             # Inject collected outputs into model output (return everything as tuples for BC)
-            for key in collected_outputs:  # noqa: PLC0206
+            for key in collected_outputs:
                 if key == "hidden_states":
                     tie_last = getattr(self.config, "tie_last_hidden_states", None)
                     tie_last = tie_last_hidden_states if tie_last is None else tie_last

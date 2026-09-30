@@ -1,3 +1,8 @@
+# Part of Iantirta.com
+# See LICENSE file for full copyright and licensing details.
+#
+# Partial code of transformers, improved by iantirta.com
+#
 # Copyright 2018 The Google AI Language Team Authors and The HuggingFace Inc. team.
 # Copyright (c) 2018, NVIDIA CORPORATION.  All rights reserved.
 #
@@ -23,30 +28,28 @@ import os
 from collections.abc import Sequence
 from dataclasses import MISSING, dataclass, fields
 from functools import wraps
-from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeVar
+from typing import TYPE_CHECKING, Any, ClassVar, Literal
 
-from huggingface_hub.dataclasses import strict
 from packaging import version
-from typing_extensions import dataclass_transform
+from typing_extensions import Self, dataclass_transform
 
+from iantirta.models.exceptions import YetToImplement
+
+from ..huggingface_hub.dataclasses import strict
 from . import __version__
-from .dynamic_module_utils import custom_object_save
 from .generation.configuration_utils import GenerationConfig
 from .integrations.heterogeneity import HeterogeneousConfigMixin
-from .modeling_gguf_pytorch_utils import load_gguf_checkpoint
 from .modeling_rope_utils import RotaryEmbeddingConfigMixin
 from .utils import (
     CONFIG_NAME,
     PushToHubMixin,
     cached_file,
     copy_func,
-    hf_api,
     is_torch_available,
     logging,
     resolve_revision,
 )
 from .utils.generic import is_timm_config_dict
-
 
 if TYPE_CHECKING:
     import torch
@@ -54,9 +57,6 @@ if TYPE_CHECKING:
 
 logger = logging.get_logger(__name__)
 
-
-# type hinting: specifying the type of config class that inherits from PreTrainedConfig
-SpecificPreTrainedConfigType = TypeVar("SpecificPreTrainedConfigType", bound="PreTrainedConfig")
 
 _FLOAT_TAG_KEY = "__float__"
 _FLOAT_TAG_VALUES = {"Infinity": float("inf"), "-Infinity": float("-inf"), "NaN": float("nan")}
@@ -122,12 +122,12 @@ def remap_legacy_layer_types(
     if layer_types is not None:
         return [_LEGACY_LAYER_TYPE_REMAP.get(t, t) for t in layer_types]
     else:
-        if getattr(config, "layer_types", None) is not None:
+        if getattr(config, "layer_types", None) is not None:  # noqa: SIM102
             # This check should not be needed, but sometimes `layer_types` is a read-only @property (already following
             # correct conventions), so this avoids error when trying to `setattr` it
             if (remapped := remap_legacy_layer_types(config.layer_types)) != config.layer_types:
                 config.layer_types = remapped
-        if getattr(config, "mtp_layer_types", None) is not None:
+        if getattr(config, "mtp_layer_types", None) is not None:  # noqa: SIM102
             # This check should not be needed, but sometimes `mtp_layer_types` is a read-only @property (already following
             # correct conventions), so this avoids error when trying to `setattr` it
             if (remapped := remap_legacy_layer_types(config.mtp_layer_types)) != config.mtp_layer_types:
@@ -180,100 +180,6 @@ def wrap_init_to_accept_kwargs(cls: dataclass):
 @dataclass(repr=False)
 class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
     # no-format
-    r"""
-    Base class for all configuration classes. Handles a few parameters common to all models' configurations as well as
-    methods for loading/downloading/saving configurations.
-
-    <Tip>
-
-    A configuration file can be loaded and saved to disk. Loading the configuration file and using this file to
-    initialize a model does **not** load the model weights. It only affects the model's configuration.
-
-    </Tip>
-
-    Class attributes (overridden by derived classes):
-
-    - **model_type** (`str`) -- An identifier for the model type, serialized into the JSON file, and used to recreate
-      the correct object in [`~transformers.AutoConfig`].
-    - **has_no_defaults_at_init** (`bool`) -- Whether the config class can be initialized without providing input arguments.
-      Some configurations requires inputs to be defined at init and have no default values, usually these are composite configs,
-      (but not necessarily) such as [`~transformers.EncoderDecoderConfig`] or [`~RagConfig`]. They have to be initialized from
-      two or more configs of type [`~transformers.PreTrainedConfig`].
-    - **keys_to_ignore_at_inference** (`list[str]`) -- A list of keys to ignore by default when looking at dictionary
-      outputs of the model during inference.
-    - **attribute_map** (`dict[str, str]`) -- A dict that maps model specific attribute names to the standardized
-      naming of attributes.
-    - **base_model_tp_plan** (`dict[str, Any]`) -- A dict that maps sub-modules FQNs of a base model to a tensor
-      parallel plan applied to the sub-module when `model.tensor_parallel` is called.
-    - **base_model_fsdp_plan** (`dict[Any, str]`) -- A dict that maps sub-modules of a base model to an FSDP2
-      sharding strategy (e.g. `"free_full_weight"` / `"keep_full_weight"`). Keys can be wildcard module paths
-      (e.g. `"layers.*"`) or tuples of paths (grouped into a single `fully_shard` call).
-    - **base_model_pp_plan** (`dict[str, tuple[list[str]]]`) -- A dict that maps child-modules of a base model to a
-      pipeline parallel plan that enables users to place the child-module on the appropriate device.
-
-    Common attributes (present in all subclasses):
-
-    - **vocab_size** (`int`) -- The number of tokens in the vocabulary, which is also the first dimension of the
-      embeddings matrix (this attribute may be missing for models that don't have a text modality like ViT).
-    - **hidden_size** (`int`) -- The hidden size of the model.
-    - **num_attention_heads** (`int`) -- The number of attention heads used in the multi-head attention layers of the
-      model.
-    - **num_hidden_layers** (`int`) -- The number of blocks in the model.
-
-    <Tip warning={true}>
-
-    Setting parameters for sequence generation in the model config is deprecated. For backward compatibility, loading
-    some of them will still be possible, but attempting to overwrite them will throw an exception -- you should set
-    them in a [~transformers.GenerationConfig]. Check the documentation of [~transformers.GenerationConfig] for more
-    information about the individual parameters.
-
-    </Tip>
-
-    Arg:
-        name_or_path (`str`, *optional*, defaults to `""`):
-            Store the string that was passed to [`PreTrainedModel.from_pretrained`] as `pretrained_model_name_or_path`
-            if the configuration was created with such a method.
-        output_hidden_states (`bool`, *optional*, defaults to `False`):
-            Whether or not the model should return all hidden-states.
-        output_attentions (`bool`, *optional*, defaults to `False`):
-            Whether or not the model should returns all attentions.
-        return_dict (`bool`, *optional*, defaults to `True`):
-            Whether or not the model should return a [`~transformers.utils.ModelOutput`] instead of a plain tuple.
-        is_encoder_decoder (`bool`, *optional*, defaults to `False`):
-            Whether the model is used as an encoder/decoder or not.
-        chunk_size_feed_forward (`int`, *optional*, defaults to `0`):
-            The chunk size of all feed forward layers in the residual attention blocks. A chunk size of `0` means that
-            the feed forward layer is not chunked. A chunk size of n means that the feed forward layer processes `n` <
-            sequence_length embeddings at a time. For more information on feed forward chunking, see [How does Feed
-            Forward Chunking work?](../glossary.html#feed-forward-chunking).
-        per_layer_config (`dict[int | str, dict[str, Any]]`, *optional*):
-            A sparse mapping from layer indices to configuration attribute overrides. Each key is a layer index, and each value contains the attributes that differ from the global config for that layer.
-        tie_last_hidden_states (`bool`, *optional*):
-            Whether `hidden_states[-1]` should be the post-final-norm `last_hidden_state` rather than the pre-final-norm
-            hidden state. If unset, the model's built-in default is used.
-
-        > Parameters for fine-tuning tasks
-
-        architectures (`list[str]`, *optional*):
-            Model architectures that can be used with the model pretrained weights.
-        id2label (`dict[int, str]`, *optional*):
-            A map from index (for instance prediction index, or target index) to label.
-        label2id (`dict[str, int]`, *optional*):
-            A map from label to index for the model.
-        num_labels (`int`, *optional*):
-            Number of labels to use in the last layer added to the model, typically for a classification task.
-        problem_type (`str`, *optional*):
-            Problem type for `XxxForSequenceClassification` models. Can be one of `"regression"`,
-            `"single_label_classification"` or `"multi_label_classification"`.
-
-        > PyTorch specific parameters
-
-        dtype (`str`, *optional*):
-            The `dtype` of the weights. This attribute can be used to initialize the model to a non-default `dtype`
-            (which is normally `float32`) and thus allow for optimal storage allocation. For example, if the saved
-            model is `float16`, ideally we want to load it back using the minimal amount of memory needed to load
-            `float16` weights.
-    """
 
     # Class attributes that we don't want to save or have in `self.__dict__`
     # They are not supposed to be set/changed by users. Each field is set when
@@ -356,7 +262,7 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
             kwargs = self.convert_rope_params_to_dict(**kwargs)
 
         # Parameters for sequence generation saved in the config are popped instead of loading them.
-        for parameter_name in GenerationConfig._get_default_generation_params().keys():
+        for parameter_name in GenerationConfig._get_default_generation_params():
             kwargs.pop(parameter_name, None)
 
         # Name or path to the pretrained checkpoint
@@ -379,9 +285,9 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
             if key not in ("_attn_implementation_internal", "_experts_implementation_internal"):
                 try:
                     setattr(self, key, value)
-                except AttributeError as err:
+                except AttributeError:
                     logger.error(f"Can't set {key} with value {value} for {self}")
-                    raise err
+                    raise
 
         # HeterogeneousConfigMixin
         if per_layer_config is not None:
@@ -403,14 +309,14 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
         # kw_only=True ensures fields without defaults in subclasses can follow
         # parent fields that have defaults (Python dataclass ordering rule).
         # Config fields are always passed as keyword arguments, so this is safe.
-        cls = dataclass(cls, repr=False, kw_only=True)
+        cls = dataclass(cls, repr=False, kw_only=True)  # noqa: PLW0642
 
         if not cls_has_custom_init:
             # Wrap all subclasses to accept arbitrary kwargs for BC
             # only if the subclass has no custom `__init__`. Most
             # remote code has an init defined, but some model are not
             # See https://huggingface.co/hmellor/Ilama-3.2-1B/blob/main/configuration_ilama.py
-            cls = wrap_init_to_accept_kwargs(cls)
+            cls = wrap_init_to_accept_kwargs(cls)  # noqa: PLW0642
 
     @property
     def name_or_path(self) -> str | None:
@@ -590,70 +496,11 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
         self.rope_parameters = value
 
     def save_pretrained(self, save_directory: str | os.PathLike, push_to_hub: bool = False, **kwargs):
-        """
-        Save a configuration object to the directory `save_directory`, so that it can be re-loaded using the
-        [`~PreTrainedConfig.from_pretrained`] class method.
-
-        Args:
-            save_directory (`str` or `os.PathLike`):
-                Directory where the configuration JSON file will be saved (will be created if it does not exist).
-            push_to_hub (`bool`, *optional*, defaults to `False`):
-                Whether or not to push your model to the Hugging Face model hub after saving it. You can specify the
-                repository you want to push to with `repo_id` (will default to the name of `save_directory` in your
-                namespace).
-            kwargs (`dict[str, Any]`, *optional*):
-                Additional key word arguments passed along to the [`~utils.PushToHubMixin.push_to_hub`] method.
-        """
-        if os.path.isfile(save_directory):
-            raise AssertionError(f"Provided path ({save_directory}) should be a directory, not a file")
-
-        generation_parameters = self._get_generation_parameters()
-        if len(generation_parameters) > 0:
-            raise ValueError(
-                "Some generation parameters are set in the model config. These should go into `model.generation_config`"
-                f"as opposed to `model.config`. \nGeneration parameters found: {str(generation_parameters)}",
-            )
-
-        os.makedirs(save_directory, exist_ok=True)
-
-        if push_to_hub:
-            commit_message = kwargs.pop("commit_message", None)
-            repo_id = kwargs.pop("repo_id", save_directory.split(os.path.sep)[-1])
-            repo_id = hf_api().create_repo(repo_id, exist_ok=True, **kwargs).repo_id
-            files_timestamps = self._get_files_timestamps(save_directory)
-
-        # This attribute is important to know on load, but should not be serialized on save.
-        if "transformers_weights" in self:
-            delattr(self, "transformers_weights")
-
-        # If we have a custom config, we copy the file defining it in the folder and set the attributes so it can be
-        # loaded from the Hub.
-        if self._auto_class is not None:
-            custom_object_save(self, save_directory, config=self)
-
-        # If we save using the predefined names, we can load using `from_pretrained`
-        output_config_file = os.path.join(save_directory, CONFIG_NAME)
-
-        # Strict validation at save-time: prevent bad patterns from propagating
-        # Using `strict` decorator guarantees that `self.validate` exists , but not all
-        # model config might have the decorator added
-        if hasattr(self, "validate"):
-            self.validate()
-        self.to_json_file(output_config_file, use_diff=True)
-        logger.info(f"Configuration saved in {output_config_file}")
-
-        if push_to_hub:
-            self._upload_modified_files(
-                save_directory,
-                repo_id,
-                files_timestamps,
-                commit_message=commit_message,
-                token=kwargs.get("token"),
-            )
+        raise YetToImplement("save pretained is not supported.")
 
     @classmethod
     def from_pretrained(
-        cls: type[SpecificPreTrainedConfigType],
+        cls,
         pretrained_model_name_or_path: str | os.PathLike,
         cache_dir: str | os.PathLike | None = None,
         force_download: bool = False,
@@ -661,7 +508,7 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
         token: str | bool | None = None,
         revision: str = "main",
         **kwargs,
-    ) -> SpecificPreTrainedConfigType:
+    ) -> Self:
         r"""
         Instantiate a [`PreTrainedConfig`] (or a derived class) from a pretrained model configuration.
 
@@ -859,7 +706,7 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
                 # Raise any environment error raise by `cached_file`. It will have a helpful error message adapted to
                 # the original exception.
                 raise
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # For any other exception, we throw a generic error.
                 raise OSError(
                     f"Can't load the configuration of '{pretrained_model_name_or_path}'. If you were trying to load it"
@@ -872,7 +719,12 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
             if gguf_file:
                 # A GGUF repo ships no `config.json`: the metadata is the config. Architectures the fast
                 # reader covers rebuild it from those keys; the rest go to the legacy reader.
-                from .integrations.gguf import GGUF_CONFIG_ARCHS, get_gguf_config, read_gguf_metadata
+                from .integrations.gguf import (
+                    GGUF_CONFIG_ARCHS,
+                    get_gguf_config,
+                    read_gguf_metadata,
+                )
+                from .modeling_gguf_pytorch_utils import load_gguf_checkpoint
 
                 metadata, tensor_names = read_gguf_metadata(resolved_config_file)
                 if metadata["general.architecture"] in GGUF_CONFIG_ARCHS:
@@ -907,8 +759,8 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
 
     @classmethod
     def from_dict(
-        cls: type[SpecificPreTrainedConfigType], config_dict: dict[str, Any], **kwargs
-    ) -> SpecificPreTrainedConfigType:
+        cls, config_dict: dict[str, Any], **kwargs
+    ) -> Self:
         """
         Instantiates a [`PreTrainedConfig`] from a Python dictionary of parameters.
 
@@ -968,8 +820,8 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
 
     @classmethod
     def from_json_file(
-        cls: type[SpecificPreTrainedConfigType], json_file: str | os.PathLike
-    ) -> SpecificPreTrainedConfigType:
+        cls, json_file: str | os.PathLike
+    ) -> Self:
         """
         Instantiates a [`PreTrainedConfig`] from the path to a JSON file of parameters.
 
@@ -1099,8 +951,7 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
         self._remove_keys_not_serialized(serializable_config_dict)
 
         # Key removed only in diff dict
-        if "_name_or_path" in serializable_config_dict:
-            del serializable_config_dict["_name_or_path"]
+        serializable_config_dict.pop("_name_or_path", None)
 
         if hasattr(self, "quantization_config"):
             serializable_config_dict["quantization_config"] = (
@@ -1335,7 +1186,7 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
         """
         generation_params = {}
         default_config = self.__class__().to_dict() if not self.has_no_defaults_at_init else {}
-        for key in GenerationConfig._get_default_generation_params().keys():
+        for key in GenerationConfig._get_default_generation_params():
             if key == "use_cache":
                 continue  # common key for most models
             if hasattr(self, key) and getattr(self, key) is not None and key not in default_config:
@@ -1564,9 +1415,3 @@ def layer_type_validation(layer_types: list[str], num_hidden_layers: int | None 
             f"`num_hidden_layers` ({num_hidden_layers}) must be equal to the number of layer types "
             f"({len(layer_types)})"
         )
-
-
-def __getattr__(name):
-    if name == "PreTrainedConfig":
-        raise AttributeError("Importing 'BlockedClass' is explicitly blocked!")
-    raise AttributeError(f"module '{__name__}' has no attribute '{name}'")

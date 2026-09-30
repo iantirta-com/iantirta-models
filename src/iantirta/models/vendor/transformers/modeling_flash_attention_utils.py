@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-#
 # Copyright 2025 The Fairseq Authors and the HuggingFace Inc. team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,11 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import annotations
-
 import importlib
 import inspect
-import logging
 import os
 from collections.abc import Callable
 from functools import partial
@@ -29,48 +21,46 @@ from typing import TypedDict
 import torch
 import torch.nn.functional as F
 
-from .utils.generic import split_attention_implementation
-from .utils.import_utils import (
-    PACKAGE_DISTRIBUTION_MAPPING,
+from .utils import (
     is_flash_attn_2_available,
     is_flash_attn_3_available,
     is_flash_attn_4_available,
     is_rocm_platform,
-    #     is_torch_cuda_available,
-    #     is_torch_mlu_available,
-    #     is_torch_musa_available,
+    is_torch_cuda_available,
+    is_torch_mlu_available,
+    is_torch_musa_available,
     is_torch_npu_available,
-    #     is_torch_xpu_available,
-    is_tracing,
+    is_torch_xpu_available,
+    logging,
 )
+from .utils.generic import split_attention_implementation
+from .utils.import_utils import PACKAGE_DISTRIBUTION_MAPPING, is_tracing
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
-# # TODO Deprecate when all models have the attention interface
+# TODO Deprecate when all models have the attention interface
 def flash_attn_supports_top_left_mask():
     if is_flash_attn_2_available() or is_flash_attn_3_available() or is_flash_attn_4_available():
         return False
 
-    from .integrations.npu_flash_attention import (
-        is_npu_fa2_top_left_aligned_causal_mask,
-    )
+    from .integrations.npu_flash_attention import is_npu_fa2_top_left_aligned_causal_mask
 
     return is_npu_fa2_top_left_aligned_causal_mask()
 
 
-# # TODO Deprecate when all models have the attention interface
-# def is_flash_attn_available():
-#     return (
-#         is_flash_attn_4_available()
-#         or is_flash_attn_3_available()
-#         or is_flash_attn_2_available()
-#         or is_torch_npu_available()
-#         or is_torch_xpu_available()
-#     )
+# TODO Deprecate when all models have the attention interface
+def is_flash_attn_available():
+    return (
+        is_flash_attn_4_available()
+        or is_flash_attn_3_available()
+        or is_flash_attn_2_available()
+        or is_torch_npu_available()
+        or is_torch_xpu_available()
+    )
 
 
-# # Mapping from flash attention implementations to their kernel fallback repositories.
+# Mapping from flash attention implementations to their kernel fallback repositories.
 
 FLASH_ATTN_KERNEL_FALLBACK = {
     "flash_attention_2": "kernels-community/flash-attn2",
@@ -80,92 +70,92 @@ FLASH_ATTN_KERNEL_FALLBACK = {
     "flash_attention_4": "kernels-community/flash-attn4",
 }
 
-# FLASH_ATTN_KERNEL_VERSIONS = {
-#     "kernels-community/flash-attn2": 3,
-#     "kernels-community/flash-attn3": 1,
-#     "kernels-community/vllm-flash-attn3": 1,
-#     "kernels-community/aiter-flash-attn": 2,
-#     "kernels-community/flash-attn4": 0,
-#     "kernels-community/metal-flash-sdpa": 2,
-# }
+FLASH_ATTN_KERNEL_VERSIONS = {
+    "kernels-community/flash-attn2": 3,
+    "kernels-community/flash-attn3": 1,
+    "kernels-community/vllm-flash-attn3": 1,
+    "kernels-community/aiter-flash-attn": 2,
+    "kernels-community/flash-attn4": 0,
+    "kernels-community/metal-flash-sdpa": 2,
+}
 
-# # Devices each hub flash kernel ships builds for, unlisted kernels are assumed to run everywhere
-# FLASH_ATTN_KERNEL_DEVICES = {
-#     "kernels-community/flash-attn2": ("cuda", "xpu"),
-#     "kernels-community/flash-attn3": ("cuda",),
-#     "kernels-community/vllm-flash-attn3": ("cuda",),
-#     "kernels-community/aiter-flash-attn": ("rocm",),
-#     "kernels-community/flash-attn4": ("cuda",),
-#     "kernels-community/metal-flash-sdpa": ("mps",),
-# }
+# Devices each hub flash kernel ships builds for, unlisted kernels are assumed to run everywhere
+FLASH_ATTN_KERNEL_DEVICES = {
+    "kernels-community/flash-attn2": ("cuda", "xpu"),
+    "kernels-community/flash-attn3": ("cuda",),
+    "kernels-community/vllm-flash-attn3": ("cuda",),
+    "kernels-community/aiter-flash-attn": ("rocm",),
+    "kernels-community/flash-attn4": ("cuda",),
+    "kernels-community/metal-flash-sdpa": ("mps",),
+}
 
-# # Meta information on each mainline FA compatibility:
-# #   1. The import structure and availability
-# #   2. Device support (with custom ones that use other workarounds, e.g. kernels)
-# #   3. Supported major cuda devices, e.g. Hopper, Blackwell. Mostly found in the newest FA versions
-# FLASH_ATTENTION_COMPATIBILITY_MATRIX = {
-#     2: {
-#         "flash_attn_version": 2,
-#         "general_availability_check": is_flash_attn_2_available,
-#         "pkg_availability_check": lambda *args, **kwargs: (
-#             importlib.util.find_spec("flash_attn") is not None
-#             and "flash-attn" in [pkg.replace("_", "-") for pkg in PACKAGE_DISTRIBUTION_MAPPING.get("flash_attn", [])]
-#         ),
-#         "supported_devices": (
-#             (is_torch_cuda_available, "cuda"),
-#             (is_torch_mlu_available, "mlu"),
-#             (is_torch_musa_available, "musa"),
-#             (is_torch_npu_available, "npu"),
-#             (is_torch_xpu_available, "xpu"),
-#         ),
-#         "custom_supported_devices": (
-#             (is_torch_npu_available, "Detect using FlashAttention2 on Ascend NPU."),
-#             (
-#                 is_torch_xpu_available,
-#                 f"Detect using FlashAttention2 (via kernel `{FLASH_ATTN_KERNEL_FALLBACK['flash_attention_2']}`) on XPU.",
-#             ),
-#         ),
-#     },
-#     3: {
-#         "flash_attn_version": 3,
-#         "general_availability_check": is_flash_attn_3_available,
-#         "pkg_availability_check": lambda *args, **kwargs: (
-#             importlib.util.find_spec("flash_attn_interface") is not None
-#             and "flash-attn-3"
-#             in [pkg.replace("_", "-") for pkg in PACKAGE_DISTRIBUTION_MAPPING.get("flash_attn_interface", [])]
-#         ),
-#         "supported_devices": ((is_torch_cuda_available, "cuda"),),
-#         "cuda_min_major_version": 8,  # Ampere
-#     },
-#     4: {
-#         "flash_attn_version": 4,
-#         "general_availability_check": is_flash_attn_4_available,
-#         "pkg_availability_check": lambda *args, **kwargs: (
-#             importlib.util.find_spec("flash_attn") is not None
-#             and "flash-attn-4" in [pkg.replace("_", "-") for pkg in PACKAGE_DISTRIBUTION_MAPPING.get("flash_attn", [])]
-#         ),
-#         "supported_devices": ((is_torch_cuda_available, "cuda"),),
-#         "cuda_min_major_version": 9,  # Hopper
-#     },
-# }
+# Meta information on each mainline FA compatibility:
+#   1. The import structure and availability
+#   2. Device support (with custom ones that use other workarounds, e.g. kernels)
+#   3. Supported major cuda devices, e.g. Hopper, Blackwell. Mostly found in the newest FA versions
+FLASH_ATTENTION_COMPATIBILITY_MATRIX = {
+    2: {
+        "flash_attn_version": 2,
+        "general_availability_check": is_flash_attn_2_available,
+        "pkg_availability_check": lambda *args, **kwargs: (
+            importlib.util.find_spec("flash_attn") is not None
+            and "flash-attn" in [pkg.replace("_", "-") for pkg in PACKAGE_DISTRIBUTION_MAPPING.get("flash_attn", [])]
+        ),
+        "supported_devices": (
+            (is_torch_cuda_available, "cuda"),
+            (is_torch_mlu_available, "mlu"),
+            (is_torch_musa_available, "musa"),
+            (is_torch_npu_available, "npu"),
+            (is_torch_xpu_available, "xpu"),
+        ),
+        "custom_supported_devices": (
+            (is_torch_npu_available, "Detect using FlashAttention2 on Ascend NPU."),
+            (
+                is_torch_xpu_available,
+                f"Detect using FlashAttention2 (via kernel `{FLASH_ATTN_KERNEL_FALLBACK['flash_attention_2']}`) on XPU.",
+            ),
+        ),
+    },
+    3: {
+        "flash_attn_version": 3,
+        "general_availability_check": is_flash_attn_3_available,
+        "pkg_availability_check": lambda *args, **kwargs: (
+            importlib.util.find_spec("flash_attn_interface") is not None
+            and "flash-attn-3"
+            in [pkg.replace("_", "-") for pkg in PACKAGE_DISTRIBUTION_MAPPING.get("flash_attn_interface", [])]
+        ),
+        "supported_devices": ((is_torch_cuda_available, "cuda"),),
+        "cuda_min_major_version": 8,  # Ampere
+    },
+    4: {
+        "flash_attn_version": 4,
+        "general_availability_check": is_flash_attn_4_available,
+        "pkg_availability_check": lambda *args, **kwargs: (
+            importlib.util.find_spec("flash_attn") is not None
+            and "flash-attn-4" in [pkg.replace("_", "-") for pkg in PACKAGE_DISTRIBUTION_MAPPING.get("flash_attn", [])]
+        ),
+        "supported_devices": ((is_torch_cuda_available, "cuda"),),
+        "cuda_min_major_version": 9,  # Hopper
+    },
+}
 
 
-# # `globals()` is not compatible with dynamo, hence we have do define them in global scope ourselves
-# _loaded_implementation = None
-# _flash_fn = None
-# _flash_varlen_fn = None
-# _flash_with_kvcache_fn = None
-# _pad_fn = None
-# _unpad_fn = None
+# `globals()` is not compatible with dynamo, hence we have do define them in global scope ourselves
+_loaded_implementation = None
+_flash_fn = None
+_flash_varlen_fn = None
+_flash_with_kvcache_fn = None
+_pad_fn = None
+_unpad_fn = None
 
-# # function that processes kwargs, generalized to handle any supported kwarg within the function
-# _process_flash_kwargs_fn = None
-# # exceptions where hf API doesn't match the original flash attention API
+# function that processes kwargs, generalized to handle any supported kwarg within the function
+_process_flash_kwargs_fn = None
+# exceptions where hf API doesn't match the original flash attention API
 _hf_api_to_flash_mapping = {
     "dropout": "dropout_p",
     "sliding_window": "window_size",
 }
-# # alternative names within the different flash attention APIs, e.g. for attention sinks
+# alternative names within the different flash attention APIs, e.g. for attention sinks
 _flash_api_alternative_names = {"s_aux": "learnable_sink"}
 
 
@@ -193,31 +183,17 @@ def _lazy_imports(
     if (implementation == "flash_attention_2" and is_fa2) or (
         implementation is None and is_fa2 and not is_fa3 and not is_fa4
     ):
-        from flash_attn import (
-            flash_attn_func,
-            flash_attn_varlen_func,
-            flash_attn_with_kvcache,
-        )
+        from flash_attn import flash_attn_func, flash_attn_varlen_func, flash_attn_with_kvcache
         from flash_attn.bert_padding import pad_input, unpad_input
     elif is_torch_npu_available():
         # Package `flash-attn` is unavailable on Ascend NPU, which will cause ImportError
         # Flash-Attention2 related apis for Ascend NPU must be imported from `.integrations.npu_flash_attention` module
-        from .integrations.npu_flash_attention import (
-            npu_flash_attn_func as flash_attn_func,
-        )
-        from .integrations.npu_flash_attention import (
-            npu_flash_attn_varlen_func as flash_attn_varlen_func,
-        )
-        from .integrations.npu_flash_attention import (
-            npu_flash_attn_with_kvcache as flash_attn_with_kvcache,
-        )
+        from .integrations.npu_flash_attention import npu_flash_attn_func as flash_attn_func
+        from .integrations.npu_flash_attention import npu_flash_attn_varlen_func as flash_attn_varlen_func
+        from .integrations.npu_flash_attention import npu_flash_attn_with_kvcache as flash_attn_with_kvcache
     else:
         if implementation == "flash_attention_3" or (implementation is None and is_fa3 and not is_fa4):
-            from flash_attn_interface import (
-                flash_attn_func,
-                flash_attn_varlen_func,
-                flash_attn_with_kvcache,
-            )
+            from flash_attn_interface import flash_attn_func, flash_attn_varlen_func, flash_attn_with_kvcache
         elif implementation == "flash_attention_4" or (implementation is None and is_fa4):
             from flash_attn.cute import flash_attn_func, flash_attn_varlen_func
 

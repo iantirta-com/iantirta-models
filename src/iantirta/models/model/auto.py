@@ -31,16 +31,19 @@ def get_auto_model(
     if (config_dict is None) ^ (config is not None):
         raise ValueError("This function must take exactly one of `config_dict` or `config`")
     base_module = "iantirta.models.vendor.transformers.models."
-    model_type = config.model_type if config is not None else config_dict["model_type"]
+    print(">>>", config_dict)
     try:
+        model_type = config.model_type if config is not None else config_dict["model_type"]
         model_module = importlib.import_module(base_module + model_type)
     except ImportError as e:
-        logger.warning(
+        raise ImportError(
             "No vendor available for "
             f"{base_module + model_type}\n"
             f"  Error: {e}"
-        )
-        raise e
+        ) from e
+    except Exception:
+        print(config_dict)
+        raise
     architectures = config.architectures if config is not None else config_dict["architectures"]
     if len(architectures) > 1:
         raise YetToImplement(

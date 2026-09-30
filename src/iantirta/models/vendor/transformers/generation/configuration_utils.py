@@ -1,3 +1,8 @@
+# Part of Iantirta.com
+# See LICENSE file for full copyright and licensing details.
+#
+# Partial code of transformers, improved by iantirta.com
+#
 # Copyright 2022 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,36 +20,32 @@
 
 import copy
 import json
-import logging
 import os
 import warnings
-from abc import ABC, abstractmethod
 from collections.abc import Callable
 from dataclasses import dataclass, is_dataclass
 from typing import TYPE_CHECKING, Any, Optional, Union
 
+from iantirta.models.exceptions import YetToImplement
+
 from .. import __version__
-from ..utils.generic import ExplicitEnum
-from ..utils.import_utils import is_torch_available
-
-# from ..utils import (
-#     GENERATION_CONFIG_NAME,
-#     PushToHubMixin,
-#     cached_file,
-#     hf_api,
-#     logging,
-#     resolve_revision,
-# )
-
+from ..utils import (
+    GENERATION_CONFIG_NAME,
+    ExplicitEnum,
+    PushToHubMixin,
+    cached_file,
+    logging,
+    resolve_revision,
+)
 
 if TYPE_CHECKING:
     import torch
 
-    from iantirta.models.config import PreTrainedConfig
-    from iantirta.models.model import PreTrainedModel
+    from ..configuration_utils import PreTrainedConfig
+    from ..modeling_utils import PreTrainedModel
 
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 METADATA_FIELDS = ("_from_model_config", "_commit_hash", "_original_object_hash", "transformers_version")
 STATIC_CACHE_IMPLEMENTATIONS = ("static", "offloaded_static")
 DYNAMIC_CACHE_IMPLEMENTATIONS = ("dynamic", "offloaded", "quantized")
@@ -58,13 +59,6 @@ DEPRECATED_STATIC_CACHE_IMPLEMENTATIONS = (
 )
 ALL_STATIC_CACHE_IMPLEMENTATIONS = STATIC_CACHE_IMPLEMENTATIONS + DEPRECATED_STATIC_CACHE_IMPLEMENTATIONS
 ALL_CACHE_IMPLEMENTATIONS = ALL_STATIC_CACHE_IMPLEMENTATIONS + DYNAMIC_CACHE_IMPLEMENTATIONS
-
-
-if is_torch_available():
-    from .logits_process import (
-        # SynthIDTextWatermarkLogitsProcessor,
-        WatermarkLogitsProcessor,
-    )
 
 
 def _should_warn(outer_attr: str, inner_attr: str, user_set_attributes: set | None) -> bool:
@@ -103,279 +97,6 @@ class GenerationMode(ExplicitEnum):
 
 
 class GenerationConfig(PushToHubMixin):
-    # no-format
-    """
-    Class that holds a configuration for a generation task. A `generate` call supports the following generation methods
-    for text-decoder, text-to-text, speech-to-text, and vision-to-text models:
-
-        - *greedy decoding* if `num_beams=1` and `do_sample=False`
-        - *multinomial sampling* if `num_beams=1` and `do_sample=True`
-        - *beam-search decoding* if `num_beams>1` and `do_sample=False`
-        - *beam-search multinomial sampling* if `num_beams>1` and `do_sample=True`
-        - *assisted decoding* if `assistant_model` or `prompt_lookup_num_tokens` is passed to `.generate()`
-
-    To learn more about decoding strategies refer to the [text generation strategies guide](../generation_strategies).
-
-    <Tip>
-
-    A large number of these flags control the logits or the stopping criteria of the generation. Make sure you check
-    the [generate-related classes](https://huggingface.co/docs/transformers/internal/generation_utils) for a full
-    description of the possible manipulations, as well as examples of their usage.
-
-    </Tip>
-
-    Note: the configuration fields that are still `None` will be overridden by `GenerationConfig._get_default_generation_params()`
-    during the generation loop. If you want to use different values for these fields, make sure to explicitly set them in the
-    generation config.
-
-    Args:
-        > Parameters that control the length of the output
-
-        max_length (`int`, *optional*):
-            `max_new_tokens` is recommended for controlling how many tokens the model generates.
-            `max_length` remains for backward compatibility.
-
-        max_new_tokens (`int`, *optional*):
-            The maximum numbers of tokens to generate, ignoring the number of tokens in the prompt.
-        min_length (`int`, *optional*):
-            The minimum length of the sequence to be generated. Corresponds to the length of the input prompt +
-            `min_new_tokens`. Its effect is overridden by `min_new_tokens`, if also set.
-        min_new_tokens (`int`, *optional*):
-            The minimum numbers of tokens to generate, ignoring the number of tokens in the prompt.
-        early_stopping (`bool` or `str`, *optional*):
-            Controls the stopping condition for beam-based methods, like beam-search. It accepts the following values:
-            `True`, where the generation stops as soon as there are `num_beams` complete candidates; `False`, where an
-            heuristic is applied and the generation stops when is it very unlikely to find better candidates;
-            `"never"`, where the beam search procedure only stops when there cannot be better candidates (canonical
-            beam search algorithm).
-        max_time (`float`, *optional*):
-            The maximum amount of time you allow the computation to run for in seconds. generation will still finish
-            the current pass after allocated time has been passed.
-        stop_strings (`str` or `list[str]`, *optional*):
-            A string or a list of strings that should terminate generation if the model outputs them.
-
-        > Parameters that control the generation strategy used
-
-        do_sample (`bool`):
-            Whether or not to use sampling ; use greedy decoding otherwise.
-        num_beams (`int`, *optional*):
-            Number of beams for beam search. 1 means no beam search.
-        use_mtp: (`bool`):
-            Whether or not to use Multi-Token Prediction (MTP) if the model supports it.
-
-        > Parameters that control the cache
-
-        use_cache (`bool`):
-            Whether or not the model should use the past last key/values attentions (if applicable to the model) to
-            speed up decoding.
-        cache_implementation (`str`, *optional*):
-            Name of the cache class that will be instantiated in `generate`, for faster decoding. Possible values are:
-
-            - `"dynamic"`: [`DynamicCache`]
-            - `"static"`: [`StaticCache`]
-            - `"offloaded"`: [`DynamicCache(offloaded=True)`]
-            - `"offloaded_static"`: [`StaticCache(offloaded=True)`]
-            - `"quantized"`: [`QuantizedCache`]
-
-            If none is specified, we will use the default cache for the model (which is often [`DynamicCache`]). See
-            our [cache documentation](https://huggingface.co/docs/transformers/en/kv_cache) for further information.
-        cache_config (`dict`, *optional*, default to `None`):
-            Arguments used in the key-value cache class can be passed in `cache_config`.
-        max_cache_len (`int`, *optional*):
-            Only used with static caches (`cache_implementation` set to `"static"` or `"offloaded_static"`).
-            Pre-sizes the cache to this length instead of the current call's `max_length`. Set it once to the
-            largest call you expect so that repeated `generate()` calls with a longer prompt or a larger
-            `max_new_tokens` (up to this ceiling) reuse the same cache instead of triggering a reallocation and a
-            `torch.compile` recompilation.
-
-        > Parameters for manipulation of the model output logits
-
-        temperature (`float`, *optional*):
-            The value used to module the next token probabilities. This value is set in a model's `generation_config.json` file. If it isn't set, the default value is 1.0
-        top_k (`int`, *optional*):
-            The number of highest probability vocabulary tokens to keep for top-k-filtering. This value is set in a model's `generation_config.json` file. If it isn't set, the default value is 50.
-        top_p (`float`, *optional*):
-            If set to float < 1, only the smallest set of most probable tokens with probabilities that add up to
-            `top_p` or higher are kept for generation. This value is set in a model's `generation_config.json` file. If it isn't set, the default value is 1.0
-        min_p (`float`, *optional*):
-            Minimum token probability, which will be scaled by the probability of the most likely token. It must be a
-            value between 0 and 1. Typical values are in the 0.01-0.2 range, comparably selective as setting `top_p` in
-            the 0.99-0.8 range (use the opposite of normal `top_p` values).
-        top_h (`float`, *optional*):
-            Entropy budget scaling factor, which controls how much of the distribution’s entropy is preserved when sampling.
-            Must be a value between 0 and 1. At each step, tokens are sorted by probability, and the smallest prefix of tokens
-            is kept whose *renormalized* entropy is less than or equal to `top_h` times the entropy of the full distribution.
-            Smaller values (e.g., 0.2–0.5) lead to more focused, deterministic outputs, while values closer to 1.0 allow more
-            randomness and diversity. Typical values are in the 0.3–0.6 range.
-        typical_p (`float`, *optional*):
-            Local typicality measures how similar the conditional probability of predicting a target token next is to
-            the expected conditional probability of predicting a random token next, given the partial text already
-            generated. If set to float < 1, the smallest set of the most locally typical tokens with probabilities that
-            add up to `typical_p` or higher are kept for generation. See [this
-            paper](https://huggingface.co/papers/2202.00666) for more details.
-        epsilon_cutoff (`float`, *optional*):
-            If set to float strictly between 0 and 1, only tokens with a conditional probability greater than
-            `epsilon_cutoff` will be sampled. In the paper, suggested values range from 3e-4 to 9e-4, depending on the
-            size of the model. See [Truncation Sampling as Language Model
-            Desmoothing](https://huggingface.co/papers/2210.15191) for more details.
-        eta_cutoff (`float`, *optional*):
-            Eta sampling is a hybrid of locally typical sampling and epsilon sampling. If set to float strictly between
-            0 and 1, a token is only considered if it is greater than either `eta_cutoff` or `sqrt(eta_cutoff) *
-            exp(-entropy(softmax(next_token_logits)))`. The latter term is intuitively the expected next token
-            probability, scaled by `sqrt(eta_cutoff)`. In the paper, suggested values range from 3e-4 to 2e-3,
-            depending on the size of the model. See [Truncation Sampling as Language Model
-            Desmoothing](https://huggingface.co/papers/2210.15191) for more details.
-        repetition_penalty (`float`, *optional*):
-            The parameter for repetition penalty. 1.0 means no penalty. See [this
-            paper](https://huggingface.co/papers/1909.05858) for more details.
-        encoder_repetition_penalty (`float`, *optional*):
-            The parameter for encoder_repetition_penalty. An exponential penalty on sequences that are not in the
-            original input. 1.0 means no penalty.
-        length_penalty (`float`, *optional*):
-            Exponential penalty to the length that is used with beam-based generation. It is applied as an exponent to
-            the sequence length, which in turn is used to divide the score of the sequence. Since the score is the log
-            likelihood of the sequence (i.e. negative), `length_penalty` > 0.0 promotes longer sequences, while
-            `length_penalty` < 0.0 encourages shorter sequences.
-        no_repeat_ngram_size (`int`, *optional*):
-            If set to int > 0, all ngrams of that size can only occur once.
-        bad_words_ids (`list[list[int]]`, *optional*):
-            List of list of token ids that are not allowed to be generated. Check
-            [`~generation.NoBadWordsLogitsProcessor`] for further documentation and examples.
-        renormalize_logits (`bool`):
-            Whether to renormalize the logits after applying all the logits processors (including the custom
-            ones). It's highly recommended to set this flag to `True` as the search algorithms suppose the score logits
-            are normalized but some logit processors break the normalization.
-        forced_bos_token_id (`int`, *optional*, defaults to `model.config.forced_bos_token_id`):
-            The id of the token to force as the first generated token after the `decoder_start_token_id`. Useful for
-            multilingual models like [mBART](../model_doc/mbart) where the first generated token needs to be the target
-            language token.
-        forced_eos_token_id (`int` or list[int]`, *optional*, defaults to `model.config.forced_eos_token_id`):
-            The id of the token to force as the last generated token when `max_length` is reached. Optionally, use a
-            list to set multiple *end-of-sequence* tokens.
-        remove_invalid_values (`bool`):
-            Whether to remove possible *nan* and *inf* outputs of the model to prevent the generation method to crash.
-            Note that using `remove_invalid_values` can slow down generation.
-        exponential_decay_length_penalty (`tuple(int, float)`, *optional*):
-            This Tuple adds an exponentially increasing length penalty, after a certain amount of tokens have been
-            generated. The tuple shall consist of: `(start_index, decay_factor)` where `start_index` indicates where
-            penalty starts and `decay_factor` represents the factor of exponential decay
-        suppress_tokens (`list[int]`, *optional*):
-            A list of tokens that will be suppressed at generation. The `SuppressTokens` logit processor will set their
-            log probs to `-inf` so that they are not sampled.
-        begin_suppress_tokens  (`list[int]`, *optional*):
-            A list of tokens that will be suppressed at the beginning of the generation. The `SuppressBeginTokens` logit
-            processor will set their log probs to `-inf` so that they are not sampled.
-        sequence_bias (`dict[tuple[int], float]`, *optional*)):
-            Dictionary that maps a sequence of tokens to its bias term. Positive biases increase the odds of the
-            sequence being selected, while negative biases do the opposite. Check
-            [`~generation.SequenceBiasLogitsProcessor`] for further documentation and examples.
-        token_healing (`bool`):
-            Heal tail tokens of prompts by replacing them with their appropriate extensions.
-            This enhances the quality of completions for prompts affected by greedy tokenization bias.
-        guidance_scale (`float`, *optional*):
-            The guidance scale for classifier free guidance (CFG). CFG is enabled by setting `guidance_scale > 1`.
-            Higher guidance scale encourages the model to generate samples that are more closely linked to the input
-            prompt, usually at the expense of poorer quality.
-        watermarking_config (`BaseWatermarkingConfig` or `dict`, *optional*):
-            Arguments used to watermark the model outputs by adding a small bias to randomly selected set of "green"
-            tokens. See the docs of [`SynthIDTextWatermarkingConfig`] and [`WatermarkingConfig`] for more
-            details. If passed as `Dict`, it will be converted to a `WatermarkingConfig` internally.
-
-        > Parameters that define the output variables of generate
-
-        num_return_sequences (`int`, *optional*):
-            The number of independently computed returned sequences for each element in the batch.
-        output_attentions (`bool`):
-            Whether or not to return the attentions tensors of all attention layers. See `attentions` under returned
-            tensors for more details.
-        output_hidden_states (`bool`):
-            Whether or not to return the hidden states of all layers. See `hidden_states` under returned tensors for
-            more details.
-        output_scores (`bool`):
-            Whether or not to return the prediction scores. See `scores` under returned tensors for more details.
-        output_logits (`bool`):
-            Whether or not to return the unprocessed prediction logit scores. See `logits` under returned tensors for
-            more details.
-        return_dict_in_generate (`bool`):
-            Whether or not to return a [`~utils.ModelOutput`], as opposed to returning exclusively the generated
-            sequence. This flag must be set to `True` to return the generation cache (when `use_cache` is `True`)
-            or optional outputs (see flags starting with `output_`)
-
-        > Special tokens that can be used at generation time
-
-        pad_token_id (`int`, *optional*):
-            The id of the *padding* token.
-        bos_token_id (`int`, *optional*):
-            The id of the *beginning-of-sequence* token.
-        eos_token_id (`Union[int, list[int]]`, *optional*):
-            The id of the *end-of-sequence* token. Optionally, use a list to set multiple *end-of-sequence* tokens.
-
-        > Generation parameters exclusive to encoder-decoder models
-
-        encoder_no_repeat_ngram_size (`int`, *optional*):
-            If set to int > 0, all ngrams of that size that occur in the `encoder_input_ids` cannot occur in the
-            `decoder_input_ids`.
-        decoder_start_token_id (`int` or `list[int]`, *optional*):
-            If an encoder-decoder model starts decoding with a different token than *bos*, the id of that token or a list of length
-            `batch_size`. Indicating a list enables different start ids for each element in the batch
-            (e.g. multilingual models with different target languages in one batch)
-
-        > Generation parameters exclusive to assistant generation
-        is_assistant (`bool`):
-            Whether the model is an assistant (draft) model.
-        num_assistant_tokens (`int`, *optional*):
-            Defines the number of _speculative tokens_ that shall be generated by the assistant model before being
-            checked by the target model at each iteration. Higher values for `num_assistant_tokens` make the generation
-            more _speculative_ : If the assistant model is performant larger speed-ups can be reached, if the assistant
-            model requires lots of corrections, lower speed-ups are reached.
-        num_assistant_tokens_schedule (`str`, *optional*):
-            Defines the schedule at which max assistant tokens shall be changed during inference.
-            - `"heuristic"`: When all speculative tokens are correct, increase `num_assistant_tokens` by 2 else
-              reduce by 1. `num_assistant_tokens` value is persistent over multiple generation calls with the same assistant model.
-            - `"heuristic_transient"`: Same as `"heuristic"` but `num_assistant_tokens` is reset to its initial value after each generation call.
-            - `"constant"`: `num_assistant_tokens` stays unchanged during generation
-        assistant_confidence_threshold (`float`, *optional*):
-            The confidence threshold for the assistant model. If the assistant model's confidence in its prediction for the current token is lower
-            than this threshold, the assistant model stops the current token generation iteration, even if the number of _speculative tokens_
-            (defined by `num_assistant_tokens`) is not yet reached. The assistant's confidence threshold is adjusted throughout the speculative iterations to reduce the number of unnecessary draft and target forward passes, biased towards avoiding false negatives.
-            `assistant_confidence_threshold` value is persistent over multiple generation calls with the same assistant model.
-            It is an unsupervised version of the dynamic speculation lookahead
-            from Dynamic Speculation Lookahead Accelerates Speculative Decoding of Large Language Models <https://huggingface.co/papers/2405.04304>.
-        prompt_lookup_num_tokens (`int`, *optional*):
-            The number of tokens to be output as candidate tokens.
-        max_matching_ngram_size (`int`, *optional*):
-            The maximum ngram size to be considered for matching in the prompt. Default to 2 if not provided.
-        assistant_early_exit(`int`, *optional*):
-            If set to a positive integer, early exit of the model will be used as an assistant. Can only be used with
-            models that support early exit (i.e. models where logits from intermediate layers can be interpreted by the LM head).
-        assistant_lookbehind(`int`, *optional*):
-            If set to a positive integer, the re-encodeing process will additionally consider the last `assistant_lookbehind` assistant tokens
-            to correctly align tokens. Can only be used with different tokenizers in speculative decoding.
-            See this [blog](https://huggingface.co/blog/universal_assisted_generation) for more details.
-        target_lookbehind(`int`, *optional*):
-            If set to a positive integer, the re-encodeing process will additionally consider the last `target_lookbehind` target tokens
-            to correctly align tokens. Can only be used with different tokenizers in speculative decoding.
-            See this [blog](https://huggingface.co/blog/universal_assisted_generation) for more details.
-        assistant_ensemble_weight (`float`, *optional*):
-            Enables static ensemble verification in speculative decoding. If set to a value in `(0.0, 1.0)`,
-            the verifier accepts tokens against the mixture `w * p_target + (1 - w) * q_draft` instead of
-            `p_target`, trading a controlled distributional bias for a higher acceptance rate. Defaults
-            to `None`, which keeps decoding lossless. Requires the assistant model to return logits, so it
-            is not compatible with prompt lookup decoding.
-        speculation_type (`str`, *optional*):
-            The requested speculation type. Accepted values are [`dflash`].
-
-        > Parameters related to performances and compilation
-
-        compile_config (CompileConfig, *optional*):
-            If using a compilable cache, this controls how `generate` will `compile` the forward pass for faster
-            inference.
-        disable_compile (`bool`):
-            Whether to disable the automatic compilation of the forward pass. Automatic compilation happens when
-            specific criteria are met, including using a compilable cache. Please open an issue if you find the
-            need to use this flag.
-    """
-
     extra_output_flags = ("output_attentions", "output_hidden_states", "output_scores", "output_logits")
 
     # Tensor versions of token IDs, set by _prepare_special_tokens() at generation time
@@ -444,7 +165,7 @@ class GenerationConfig(PushToHubMixin):
 
         self.watermarking_config = kwargs.pop("watermarking_config", None)
         if isinstance(self.watermarking_config, dict):
-            self.watermarking_config = WatermarkingConfig.from_dict(self.watermarking_config)
+            raise YetToImplement("Watermark Config")
 
         # Parameters that define the output variables of `generate`
         self.num_return_sequences = kwargs.pop("num_return_sequences", None)
@@ -513,9 +234,9 @@ class GenerationConfig(PushToHubMixin):
             for key, value in kwargs.items():
                 try:
                     setattr(self, key, value)
-                except AttributeError as err:
+                except AttributeError:
                     logger.error(f"Can't set {key} with value {value} for {self}")
-                    raise err
+                    raise
         else:
             # Ensure backward compatibility for models that use `forced_bos_token_id` within their config
             if kwargs.get("force_bos_token_to_be_generated", False):
@@ -542,17 +263,6 @@ class GenerationConfig(PushToHubMixin):
         return f"{self.__class__.__name__} {self.to_json_string(ignore_metadata=True)}"
 
     def get_generation_mode(self, assistant_model: Optional["PreTrainedModel"] = None) -> GenerationMode:
-        """
-        Returns the generation mode triggered by the [`GenerationConfig`] instance.
-
-        Arg:
-            assistant_model (`PreTrainedModel`, *optional*):
-                The assistant model to be used for assisted generation. If set, the generation mode will be
-                assisted generation.
-
-        Returns:
-            `GenerationMode`: The generation mode triggered by the instance.
-        """
         # TODO joao: find out a way of not depending on external fields (e.g. `assistant_model`), then make this a
         # property and part of the `__repr__`
         if self.constraints is not None or self.force_words_ids is not None:
@@ -897,65 +607,15 @@ class GenerationConfig(PushToHubMixin):
                 logger.warning_once(warning_message)
                 logger.info_once(info_message)
 
-    # def save_pretrained(
-    #     self,
-    #     save_directory: str | os.PathLike,
-    #     config_file_name: str | os.PathLike | None = None,
-    #     push_to_hub: bool = False,
-    #     **kwargs,
-    # ):
-    #     r"""
-    #     Save a generation configuration object to the directory `save_directory`, so that it can be re-loaded using the
-    #     [`~GenerationConfig.from_pretrained`] class method.
-
-    #     Args:
-    #         save_directory (`str` or `os.PathLike`):
-    #             Directory where the configuration JSON file will be saved (will be created if it does not exist).
-    #         config_file_name (`str` or `os.PathLike`, *optional*, defaults to `"generation_config.json"`):
-    #             Name of the generation configuration JSON file to be saved in `save_directory`.
-    #         push_to_hub (`bool`, *optional*, defaults to `False`):
-    #             Whether or not to push your model to the Hugging Face model hub after saving it. You can specify the
-    #             repository you want to push to with `repo_id` (will default to the name of `save_directory` in your
-    #             namespace).
-    #         kwargs (`dict[str, Any]`, *optional*):
-    #             Additional key word arguments passed along to the [`~utils.PushToHubMixin.push_to_hub`] method.
-    #     """
-
-    #     # At save time, validate the instance enforcing strictness -- if any warning/exception would be thrown, we
-    #     # refuse to save the instance.
-    #     # This strictness is enforced to prevent bad configurations from being saved and re-used.
-    #     try:
-    #         self.validate(strict=True)
-    #     except ValueError as exc:
-    #         raise ValueError(str(exc) + "\n\nFix these issues to save the configuration.")
-
-    #     config_file_name = config_file_name if config_file_name is not None else GENERATION_CONFIG_NAME
-
-    #     if os.path.isfile(save_directory):
-    #         raise AssertionError(f"Provided path ({save_directory}) should be a directory, not a file")
-
-    #     os.makedirs(save_directory, exist_ok=True)
-
-    #     if push_to_hub:
-    #         commit_message = kwargs.pop("commit_message", None)
-    #         repo_id = kwargs.pop("repo_id", str(save_directory).split(os.path.sep)[-1])
-    #         repo_id = hf_api().create_repo(repo_id, exist_ok=True, **kwargs).repo_id
-    #         files_timestamps = self._get_files_timestamps(save_directory)
-
-    #     output_config_file = os.path.join(save_directory, config_file_name)
-
-    #     self.to_json_file(output_config_file, use_diff=True, keys_to_pop=["compile_config"])
-    #     logger.info(f"Configuration saved in {output_config_file}")
-
-    #     if push_to_hub:
-    #         self._upload_modified_files(
-    #             save_directory,
-    #             repo_id,
-    #             files_timestamps,
-    #             commit_message=commit_message,
-    #             token=kwargs.get("token"),
-    #         )
-
+    def save_pretrained(
+        self,
+        save_directory: str | os.PathLike,
+        config_file_name: str | os.PathLike | None = None,
+        push_to_hub: bool = False,
+        **kwargs,
+    ):
+        raise YetToImplement("save pretained is not supported.")
+    
     @classmethod
     def from_pretrained(
         cls,
@@ -1096,7 +756,7 @@ class GenerationConfig(PushToHubMixin):
                 # Raise any environment error raise by `cached_file`. It will have a helpful error message adapted to
                 # the original exception.
                 raise
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # For any other exception, we throw a generic error.
                 raise OSError(
                     f"Can't load the configuration of '{pretrained_model_name}'. If you were trying to load it"
@@ -1333,12 +993,11 @@ class GenerationConfig(PushToHubMixin):
                 setattr(generation_config, attr, model_config[attr])
 
         # If any `output_...` flag is set to `True`, we ensure `return_dict_in_generate` is set to `True`.
-        if not generation_config.return_dict_in_generate:
-            if any(
-                getattr(generation_config, extra_output_flag, False)
-                for extra_output_flag in generation_config.extra_output_flags
-            ):
-                generation_config.return_dict_in_generate = True
+        if not generation_config.return_dict_in_generate and any(
+            getattr(generation_config, extra_output_flag, False)
+            for extra_output_flag in generation_config.extra_output_flags
+        ):
+            generation_config.return_dict_in_generate = True
 
         # Hash to detect whether the instance was modified
         generation_config._original_object_hash = hash(generation_config)
@@ -1368,7 +1027,7 @@ class GenerationConfig(PushToHubMixin):
             elif hasattr(self, key):
                 if not defaults_only or getattr(self, key) is None:
                     if key == "watermarking_config" and isinstance(value, dict):
-                        value = WatermarkingConfig.from_dict(value)
+                        raise YetToImplement("Watermark Config")
                     setattr(self, key, value)
                     to_remove.append(key)
 
@@ -1379,256 +1038,6 @@ class GenerationConfig(PushToHubMixin):
         # Remove all the attributes that were updated, without modifying the input dict
         unused_kwargs = {key: value for key, value in kwargs.items() if key not in to_remove}
         return unused_kwargs
-
-
-@dataclass
-class BaseWatermarkingConfig(ABC):
-    """Generic watermarking config"""
-
-    @classmethod
-    def from_dict(cls, config_dict, **kwargs):
-        """
-        Constructs a BaseWatermarkingConfig instance from a dictionary of parameters.
-
-        Args:
-            config_dict (dict[str, Any]): Dictionary containing configuration parameters.
-            **kwargs: Additional keyword arguments to override dictionary values.
-
-        Returns:
-            BaseWatermarkingConfig: Instance of BaseWatermarkingConfig constructed from the dictionary.
-        """
-        config = cls(**config_dict)
-        to_remove = []
-        for key, value in kwargs.items():
-            if hasattr(config, key):
-                setattr(config, key, value)
-                to_remove.append(key)
-        for key in to_remove:
-            kwargs.pop(key, None)
-        return config
-
-    def to_json_file(self, json_file_path: str | os.PathLike):
-        """
-        Save this instance to a JSON file.
-
-        Args:
-            json_file_path (Union[str, os.PathLike]): Path to the JSON file in which this configuration instance's parameters will be saved.
-        """
-        with open(json_file_path, "w", encoding="utf-8") as writer:
-            config_dict = self.to_dict()
-            json_string = json.dumps(config_dict, indent=2, sort_keys=True) + "\n"
-
-            writer.write(json_string)
-
-    def to_dict(self) -> dict[str, Any]:
-        """
-        Serializes this instance to a Python dictionary.
-
-        Returns:
-            dict[str, Any]: Dictionary of all the attributes that make up this configuration instance.
-        """
-        output = copy.deepcopy(self.__dict__)
-        return output
-
-    def __iter__(self):
-        yield from copy.deepcopy(self.__dict__).items()
-
-    def __repr__(self):
-        return f"{self.__class__.__name__} {self.to_json_string()}"
-
-    def to_json_string(self):
-        """
-        Serializes this instance to a JSON formatted string.
-
-        Returns:
-            str: JSON formatted string representing the configuration instance.
-        """
-        return json.dumps(self.__dict__, indent=2) + "\n"
-
-    def update(self, **kwargs):
-        """
-        Update the configuration attributes with new values.
-
-        Args:
-            **kwargs: Keyword arguments representing configuration attributes and their new values.
-        """
-        for key, value in kwargs.items():
-            if hasattr(self, key):
-                setattr(self, key, value)
-
-    @abstractmethod
-    def validate(self): ...
-
-    @abstractmethod
-    def construct_processor(self, vocab_size): ...
-
-
-@dataclass
-class WatermarkingConfig(BaseWatermarkingConfig):
-    """
-    Class that holds arguments for watermark generation and should be passed into `GenerationConfig` during `generate`.
-    See [this paper](https://huggingface.co/papers/2306.04634) for more details on the arguments.
-
-    Accepts the following keys:
-        - greenlist_ratio (`float`):
-            Used for watermarking. The ratio of "green" tokens used to the vocabulary size. Defaults to 0.25.
-        - bias (`float`):
-            Used with watermarking. The bias added to the selected "green" tokens' logits. Defaults to 2.0.
-        - hashing_key (`int`):
-            Hashing key used for watermarking. Defaults to 15485863 (the millionth prime).
-        - seeding_scheme (`str`):
-            Algorithm to use for watermarking. Accepts values:
-                - "lefthash" (default): "green" tokens selection depend on the last token (Algorithm 2 from the paper)
-                - "selfhash": "green" tokens selection depends on the current token itself (Algorithm 3 from the paper)
-                    The downside of this scheme is that it considers all possible next tokens and can be slower than "lefthash".
-        - context_width(`int`):
-            The context length of previous tokens to use in seeding. Higher context length makes watermarking more robust.
-    """
-
-    def __init__(
-        self,
-        greenlist_ratio: float = 0.25,
-        bias: float = 2.0,
-        hashing_key: int = 15485863,
-        seeding_scheme: str = "lefthash",
-        context_width: int = 1,
-    ):
-        self.greenlist_ratio = greenlist_ratio
-        self.bias = bias
-        self.hashing_key = hashing_key
-        self.seeding_scheme = seeding_scheme
-        self.context_width = context_width
-
-    def validate(self):
-        watermark_missing_arg_msg = (
-            "Some of the keys in `watermarking_config` are defined incorrectly. `{key}` should be {correct_value}` "
-            "but found {found_value}"
-        )
-        if self.seeding_scheme not in ["selfhash", "lefthash"]:
-            raise ValueError(
-                watermark_missing_arg_msg.format(
-                    key="seeding_scheme",
-                    correct_value="[`selfhash`, `lefthash`]",
-                    found_value=self.seeding_scheme,
-                ),
-            )
-        if not 0.0 <= self.greenlist_ratio <= 1.0:
-            raise ValueError(
-                watermark_missing_arg_msg.format(
-                    key="greenlist_ratio",
-                    correct_value="in range between 0.0 and 1.0",
-                    found_value=self.seeding_scheme,
-                ),
-            )
-        if not self.context_width >= 1:
-            raise ValueError(
-                watermark_missing_arg_msg.format(
-                    key="context_width",
-                    correct_value="a positive integer",
-                    found_value=self.context_width,
-                ),
-            )
-
-    def construct_processor(self, vocab_size: int, device) -> "WatermarkLogitsProcessor":
-        return WatermarkLogitsProcessor(
-            vocab_size=vocab_size,
-            device=device,
-            greenlist_ratio=self.greenlist_ratio,
-            bias=self.bias,
-            hashing_key=self.hashing_key,
-            seeding_scheme=self.seeding_scheme,
-            context_width=self.context_width,
-        )
-
-
-# @dataclass
-# class SynthIDTextWatermarkingConfig(BaseWatermarkingConfig):
-#     """
-#     Class that holds arguments for watermark generation and should be passed into `GenerationConfig` during `generate`.
-#     See [this paper](https://www.nature.com/articles/s41586-024-08025-4) for more details on the arguments.
-
-#     Args:
-#         ngram_len (`int`):
-#             Ngram length.
-#         keys (`list[int]`):
-#             A sequence of watermarking keys, one for each depth.
-#         context_history_size (`int`, *optional*, defaults to 1024):
-#             Size of the tensor to keep track of seen contexts.
-#         sampling_table_seed (`int`, *optional*, defaults to 0):
-#             Random seed to generate the sampling table.
-#         sampling_table_size (`int`, *optional*, defaults to 65536):
-#             Size of the sampling table.
-#         skip_first_ngram_calls (`bool`, *optional*, defaults to `False`):
-#             Whether to skip first ngram calls.
-#         debug_mode (`bool`, *optional*, defaults to `False`):
-#             Logits are modified to uniform one got before watermarking modification is applied. This is to test the
-#             implementation.
-
-#     Examples:
-#     ```python
-#     >>> from transformers import AutoModelForCausalLM, AutoTokenizer, SynthIDTextWatermarkingConfig
-
-#     >>> tokenizer = AutoTokenizer.from_pretrained('google/gemma-2-2b', padding_side="left")
-#     >>> model = AutoModelForCausalLM.from_pretrained('google/gemma-2-2b')
-
-#     >>> # SynthID Text configuration
-#     >>> watermarking_config = SynthIDTextWatermarkingConfig(
-#     ...     keys=[654, 400, 836, 123, 340, 443, 597, 160, 57],
-#     ...     ngram_len=5,
-#     ... )
-
-#     >>> # Generation with watermarking
-#     >>> tokenized_prompts = tokenizer(["Once upon a time, "], return_tensors="pt", padding=True)
-#     >>> output_sequences = model.generate(
-#     ...     **tokenized_prompts, watermarking_config=watermarking_config, do_sample=True, max_new_tokens=10
-#     ... )
-#     >>> watermarked_text = tokenizer.batch_decode(output_sequences, skip_special_tokens=True)
-#     ```
-#     """
-
-#     def __init__(
-#         self,
-#         ngram_len: int,
-#         keys: list[int],
-#         context_history_size: int = 1024,
-#         sampling_table_seed: int = 0,
-#         sampling_table_size: int = 2**16,
-#         skip_first_ngram_calls: bool = False,
-#         debug_mode: bool = False,
-#     ):
-#         self.ngram_len = ngram_len
-#         self.keys = keys
-#         self.sampling_table_size = sampling_table_size
-#         self.sampling_table_seed = sampling_table_seed
-#         self.context_history_size = context_history_size
-#         self.skip_first_ngram_calls = skip_first_ngram_calls
-#         self.debug_mode = debug_mode
-
-#     def validate(self):
-#         watermark_missing_arg_msg = (
-#             "Some of the keys in `watermarking_config` are defined incorrectly. `{key}` should be {correct_value}` "
-#             "but found {found_value}"
-#         )
-#         if self.sampling_table_size > 2**24:
-#             raise ValueError(
-#                 watermark_missing_arg_msg.format(
-#                     key="sampling_table_size",
-#                     correct_value="< 2**24",
-#                     found_value=self.sampling_table_size,
-#                 ),
-#             )
-
-#     def construct_processor(self, vocab_size: int, device) -> "WatermarkLogitsProcessor":
-#         return SynthIDTextWatermarkLogitsProcessor(
-#             ngram_len=self.ngram_len,
-#             keys=self.keys,
-#             sampling_table_size=self.sampling_table_size,
-#             sampling_table_seed=self.sampling_table_seed,
-#             context_history_size=self.context_history_size,
-#             device=device,
-#             skip_first_ngram_calls=self.skip_first_ngram_calls,
-#             debug_mode=self.debug_mode,
-#         )
 
 
 @dataclass

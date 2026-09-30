@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-#
 # Copyright 2024 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -23,8 +18,7 @@ from functools import wraps
 import packaging.version
 
 from .. import __version__
-from .generic import ExplicitEnum
-from .import_utils import is_torch_available, is_torchdynamo_compiling
+from . import ExplicitEnum, is_torch_available, is_torchdynamo_compiling
 
 # This is needed in case we deprecate a kwarg of a function/method being compiled
 if is_torch_available():

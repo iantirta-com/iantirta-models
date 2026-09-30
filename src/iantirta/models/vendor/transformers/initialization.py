@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-#
 # Copyright 2025 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from __future__ import annotations
-
 import math
 import sys
 from collections import defaultdict
@@ -274,7 +267,7 @@ def no_init_weights():
         for module_name in TORCH_MODULES_TO_PATCH:
             if module_name in sys.modules:
                 module = sys.modules[module_name]
-                for func_name in TORCH_INIT_FUNCTIONS.keys():
+                for func_name in TORCH_INIT_FUNCTIONS:
                     if hasattr(module, func_name):
                         originals[module][func_name] = getattr(module, func_name)
                         setattr(module, func_name, empty_func)

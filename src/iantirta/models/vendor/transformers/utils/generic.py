@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-#
 # Copyright 2022 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,7 +20,6 @@ from __future__ import annotations
 import importlib
 import inspect
 import json
-import logging
 import os
 import random
 import re
@@ -41,6 +35,7 @@ from typing import TYPE_CHECKING, Any, TypedDict, TypeVar
 
 import numpy as np
 
+from ..utils import logging
 from .import_utils import (
     is_mlx_available,
     is_torch_available,
@@ -52,14 +47,14 @@ if TYPE_CHECKING:
     import torch
     from torch import nn
 
-    from iantirta.models.config import PreTrainedConfig
+    from ..configuration_utils import PreTrainedConfig
 
 
 # Generic class or function
 T = TypeVar("T")
 
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 _is_torch_available = False

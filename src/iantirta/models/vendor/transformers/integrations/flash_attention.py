@@ -1,19 +1,12 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-from __future__ import annotations
-
-import logging
-
 import torch
 
 from ..modeling_flash_attention_utils import (
     _flash_attention_forward,
     flash_attn_supports_top_left_mask,
 )
+from ..utils import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 _use_top_left_mask = flash_attn_supports_top_left_mask()
 

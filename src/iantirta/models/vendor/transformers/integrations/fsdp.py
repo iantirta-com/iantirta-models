@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-#
 # Copyright 2024 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,18 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """Backward-compatible re-exports. Prefer ``transformers.distributed.fsdp``."""
-from __future__ import annotations
 
 from ..distributed.fsdp import (
     get_fsdp_ckpt_kwargs,
-    # is_fsdp_enabled,
+    is_fsdp_enabled,
     is_fsdp_managed_module,
-    # update_fsdp_plugin_peft,
+    update_fsdp_plugin_peft,
 )
 
-__all__ = [
-    "get_fsdp_ckpt_kwargs",
-    # "is_fsdp_enabled",
-    "is_fsdp_managed_module",
-    # "update_fsdp_plugin_peft"
-]
+__all__ = ["get_fsdp_ckpt_kwargs", "is_fsdp_enabled", "is_fsdp_managed_module", "update_fsdp_plugin_peft"]

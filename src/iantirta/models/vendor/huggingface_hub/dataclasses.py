@@ -1,10 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Original code of huggingface_hub, improved by iantirta.com
-
-from __future__ import annotations
-
 import collections.abc
 import inspect
 import types
@@ -260,14 +253,8 @@ def strict(cls: type[T] | None = None, *, accept_kwargs: bool = False) -> type[T
         # (in which case we just override it)
         validate.__is_defined_by_strict_decorator__ = True  # type: ignore [attr-defined]
 
-        if (
-            hasattr(cls, "validate") and
-            not getattr(
-                cls.validate,
-                "__is_defined_by_strict_decorator__",
-                False
-            )
-        ):  # type: ignore [attr-defined]
+        if hasattr(cls, "validate"):
+            if not getattr(cls.validate, "__is_defined_by_strict_decorator__", False):  # type: ignore [attr-defined]
                 raise StrictDataclassDefinitionError(
                     f"Class '{cls.__name__}' already implements a method called 'validate'."
                     " This method name is reserved when using the @strict decorator on a dataclass."
@@ -285,7 +272,7 @@ def strict(cls: type[T] | None = None, *, accept_kwargs: bool = False) -> type[T
             initial_init(self, *args, **kwargs)  # type: ignore [call-arg]
             cls.validate(self)  # type: ignore [attr-defined]
 
-        cls.__init__ = init_with_validate
+        setattr(cls, "__init__", init_with_validate)
 
         return cls
 
@@ -378,7 +365,7 @@ def _get_typed_dict_annotations(schema: type[TypedDictType]) -> dict[str, Any]:
     """Extract type annotations from a TypedDict class."""
     try:
         # Available in Python 3.14+
-        import annotationlib  # type: ignore
+        import annotationlib
 
         return annotationlib.get_annotations(schema)
     except ImportError:
@@ -386,7 +373,7 @@ def _get_typed_dict_annotations(schema: type[TypedDictType]) -> dict[str, Any]:
             # We do not use `get_type_hints` here to avoid evaluating ForwardRefs (which might fail).
             # ForwardRefs are not validated by @strict anyway.
             name: value if value is not None else type(None)
-            for name, value in schema.__dict__.get("__annotations__", {}).items()  # noqa: RUF063
+            for name, value in schema.__dict__.get("__annotations__", {}).items()
         }
 
 
@@ -480,7 +467,7 @@ def type_validator(name: str, value: Any, expected_type: Any) -> None:
         validator(name, value, args)
     elif isinstance(expected_type, type):  # simple types
         _validate_simple_type(name, value, expected_type)
-    elif isinstance(expected_type, (ForwardRef, str)):
+    elif isinstance(expected_type, ForwardRef) or isinstance(expected_type, str):
         return
     elif origin is Required:
         if value is _TYPED_DICT_DEFAULT_VALUE:
@@ -515,7 +502,7 @@ def _validate_union(name: str, value: Any, args: tuple[Any, ...]) -> None:
             errors.append(str(e))
 
     raise TypeError(
-        f"Field '{name}' with value {value!r} doesn't match any type in {args}. Errors: {'; '.join(errors)}"
+        f"Field '{name}' with value {repr(value)} doesn't match any type in {args}. Errors: {'; '.join(errors)}"
     )
 
 
@@ -532,9 +519,13 @@ def _validate_literal(name: str, value: Any, args: tuple[Any, ...]) -> None:
 
 
 def _validate_list(name: str, value: Any, args: tuple[Any, ...]) -> None:
-    """Validate list[T] type."""
+    """Validate list or list[T] type."""
     if not isinstance(value, list):
         raise TypeError(f"Field '{name}' expected a list, got {type(value).__name__}")
+
+    # If no type argument is provided (i.e., bare `typing.List`), skip item validation
+    if not args:
+        return
 
     # Validate each item in the list
     item_type = args[0]
@@ -546,9 +537,13 @@ def _validate_list(name: str, value: Any, args: tuple[Any, ...]) -> None:
 
 
 def _validate_dict(name: str, value: Any, args: tuple[Any, ...]) -> None:
-    """Validate dict[K, V] type."""
+    """Validate dict or dict[K, V] type."""
     if not isinstance(value, dict):
         raise TypeError(f"Field '{name}' expected a dict, got {type(value).__name__}")
+
+    # If no type arguments are provided (i.e., bare `typing.Dict`), skip key/value validation
+    if not args:
+        return
 
     # Validate keys and values
     key_type, value_type = args
@@ -584,9 +579,13 @@ def _validate_tuple(name: str, value: Any, args: tuple[Any, ...]) -> None:
 
 
 def _validate_set(name: str, value: Any, args: tuple[Any, ...]) -> None:
-    """Validate set[T] type."""
+    """Validate set or set[T] type."""
     if not isinstance(value, set):
         raise TypeError(f"Field '{name}' expected a set, got {type(value).__name__}")
+
+    # If no type argument is provided (i.e., bare `typing.Set`), skip item validation
+    if not args:
+        return
 
     # Validate each item in the set
     item_type = args[0]
@@ -619,11 +618,11 @@ def _validate_simple_type(name: str, value: Any, expected_type: type) -> None:
     """Validate simple type (int, str, etc.)."""
     if expected_type is int and isinstance(value, bool):
         raise TypeError(
-            f"Field '{name}' expected {expected_type.__name__}, got {type(value).__name__} (value: {value!r})"
+            f"Field '{name}' expected {expected_type.__name__}, got {type(value).__name__} (value: {repr(value)})"
         )
     if not isinstance(value, expected_type):
         raise TypeError(
-            f"Field '{name}' expected {expected_type.__name__}, got {type(value).__name__} (value: {value!r})"
+            f"Field '{name}' expected {expected_type.__name__}, got {type(value).__name__} (value: {repr(value)})"
         )
 
 
@@ -684,11 +683,11 @@ _BASIC_TYPE_VALIDATORS[types.UnionType] = _validate_union  # x | y syntax, avail
 
 
 __all__ = [
-    "StrictDataclassClassValidationError",
-    "StrictDataclassDefinitionError",
-    "StrictDataclassFieldValidationError",
-    "Validator_T",
     "strict",
     "validate_typed_dict",
     "validated_field",
+    "Validator_T",
+    "StrictDataclassClassValidationError",
+    "StrictDataclassDefinitionError",
+    "StrictDataclassFieldValidationError",
 ]

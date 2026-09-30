@@ -1,20 +1,9 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-from __future__ import annotations
-
-import logging
-
 import torch
 
-from ..utils.import_utils import (
-    is_torch_greater_or_equal,
-    is_torch_npu_available,
-    is_torch_xpu_available,
-)
+from ..utils import is_torch_npu_available, is_torch_xpu_available, logging
+from ..utils.import_utils import is_torch_greater_or_equal
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
 _is_torch_greater_or_equal_than_2_8 = is_torch_greater_or_equal("2.8", accept_dev=True)

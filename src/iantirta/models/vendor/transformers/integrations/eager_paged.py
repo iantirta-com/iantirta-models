@@ -1,16 +1,7 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import torch
 from torch import nn
 
-if TYPE_CHECKING:
-    from ..generation.continuous_batching.cache import PagedAttentionCache
+from ..generation.continuous_batching.cache import PagedAttentionCache
 
 
 def repeat_kv(hidden_states: torch.Tensor, n_rep: int) -> torch.Tensor:

@@ -5,5 +5,16 @@
             "envManager": "ms-python.python:system",
             "packageManager": "ms-python.python:pip"
         }
-    ]
+    ],
+    "python.analysis.diagnosticMode": "openFilesOnly",
+    "python.analysis.exclude": [
+        "**/node_modules",
+        "**/venv",
+        "**/.venv",
+        "**/dist",
+        "**/build",
+        "**/vendor",
+        "**/.git"
+    ],
+    "python.analysis.indexing": false
 }

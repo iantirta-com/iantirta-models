@@ -1,17 +1,7 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
 import torch
 
+from ..generation.continuous_batching import PagedAttentionCache
 from ..modeling_flash_attention_utils import lazy_import_paged_flash_attention
-
-if TYPE_CHECKING:
-    from ..generation.continuous_batching import PagedAttentionCache
 
 
 # Compile is disabled because the cache update mutates in place aliased views of the cache tensor, which compile's

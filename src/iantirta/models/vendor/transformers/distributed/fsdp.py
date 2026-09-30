@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of transformers, improved by iantirta.com
-#
 # Copyright 2026 The HuggingFace Team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -19,24 +14,22 @@
 from __future__ import annotations
 
 import inspect
-import logging
 import os
 from typing import TYPE_CHECKING, Any
 
-from ..utils.import_utils import (
+from ..utils import (
     is_torch_available,
     is_torch_distributed_available,
     is_torch_greater_or_equal,
+    logging,
+    strtobool,
 )
-
-# from ..utils import strtobool
-# from ..utils.quantization_config import QuantizationMethod
-# from .tensor_parallel import replace_layer_number_by_wildcard
-# from .utils import _is_torch_distributed_initialized
-
+from ..utils.quantization_config import QuantizationMethod
+from .tensor_parallel import replace_layer_number_by_wildcard
+from .utils import _is_torch_distributed_initialized
 
 if TYPE_CHECKING:
-    import torch.nn as nn
+    from torch import nn
 
     from .configuration_utils import DistributedConfig
 
@@ -47,16 +40,16 @@ if is_torch_distributed_available() and is_torch_greater_or_equal("2.6"):
     from torch.distributed._composable.fsdp import fully_shard
     from torch.distributed.fsdp import CPUOffloadPolicy, MixedPrecisionPolicy
 
-logger = logging.getLogger(__name__)
+logger = logging.get_logger(__name__)
 
 
-# def is_fsdp_enabled() -> bool:
-#     """Check if FSDP is active via Accelerate (env var based) — covers FSDP1 only."""
-#     return (
-#         _is_torch_distributed_initialized()
-#         and strtobool(os.environ.get("ACCELERATE_USE_FSDP", "False")) == 1
-#         and strtobool(os.environ.get("FSDP_CPU_RAM_EFFICIENT_LOADING", "False")) == 1
-#     )
+def is_fsdp_enabled() -> bool:
+    """Check if FSDP is active via Accelerate (env var based) — covers FSDP1 only."""
+    return (
+        _is_torch_distributed_initialized()
+        and strtobool(os.environ.get("ACCELERATE_USE_FSDP", "False")) == 1
+        and strtobool(os.environ.get("FSDP_CPU_RAM_EFFICIENT_LOADING", "False")) == 1
+    )
 
 
 def is_fsdp_managed_module(module: nn.Module) -> bool:
@@ -266,23 +259,23 @@ def get_fsdp_ckpt_kwargs():
         return {}
 
 
-# def update_fsdp_plugin_peft(model, accelerator):
-#     """
-#     Updates the FSDP plugin for PEFT LoRA/QLoRA compatibility.
+def update_fsdp_plugin_peft(model, accelerator):
+    """
+    Updates the FSDP plugin for PEFT LoRA/QLoRA compatibility.
 
-#     When using FSDP with PEFT LoRA, the auto wrap policy needs to be updated to additionally wrap
-#     LoRA trainable layers separately. When using FSDP with QLoRA, the mixed precision policy needs
-#     to be updated to use the quantization storage data type.
-#     """
-#     from peft import PeftConfig
-#     from peft.utils.other import fsdp_auto_wrap_policy
+    When using FSDP with PEFT LoRA, the auto wrap policy needs to be updated to additionally wrap
+    LoRA trainable layers separately. When using FSDP with QLoRA, the mixed precision policy needs
+    to be updated to use the quantization storage data type.
+    """
+    from peft import PeftConfig
+    from peft.utils.other import fsdp_auto_wrap_policy
 
-#     if isinstance(model.active_peft_config, PeftConfig):
-#         accelerator.state.fsdp_plugin.auto_wrap_policy = fsdp_auto_wrap_policy(model)
-#     if (
-#         getattr(model, "quantization_method", None) == QuantizationMethod.BITS_AND_BYTES
-#         and model.hf_quantizer.quantization_config.bnb_4bit_quant_storage.is_floating_point
-#     ):
-#         accelerator.state.fsdp_plugin.set_mixed_precision(
-#             model.hf_quantizer.quantization_config.bnb_4bit_quant_storage, override=True
-#         )
+    if isinstance(model.active_peft_config, PeftConfig):
+        accelerator.state.fsdp_plugin.auto_wrap_policy = fsdp_auto_wrap_policy(model)
+    if (
+        getattr(model, "quantization_method", None) == QuantizationMethod.BITS_AND_BYTES
+        and model.hf_quantizer.quantization_config.bnb_4bit_quant_storage.is_floating_point
+    ):
+        accelerator.state.fsdp_plugin.set_mixed_precision(
+            model.hf_quantizer.quantization_config.bnb_4bit_quant_storage, override=True
+        )
