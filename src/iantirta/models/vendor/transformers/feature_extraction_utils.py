@@ -22,7 +22,7 @@ from collections import UserDict
 from typing import TYPE_CHECKING, Any, TypeVar, Union
 
 import numpy as np
-from huggingface_hub import is_offline_mode
+from ..huggingface_hub import is_offline_mode
 
 from .dynamic_module_utils import custom_object_save
 from .utils import (

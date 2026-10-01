@@ -26,7 +26,7 @@ from pathlib import Path
 from typing import TypedDict
 from uuid import uuid4
 
-from ...huggingface_hub import (
+from iantirta.models.vendor.huggingface_hub import (
     _CACHED_NO_EXIST,
     CommitOperationAdd,
     HfApi,
@@ -40,8 +40,8 @@ from ...huggingface_hub import (
     snapshot_download,
     try_to_load_from_cache,
 )
-from ...huggingface_hub.file_download import REGEX_COMMIT_HASH
-from ...huggingface_hub.utils import (
+from iantirta.models.vendor.huggingface_hub.file_download import REGEX_COMMIT_HASH
+from iantirta.models.vendor.huggingface_hub.utils import (
     EntryNotFoundError,
     GatedRepoError,
     HfHubHTTPError,

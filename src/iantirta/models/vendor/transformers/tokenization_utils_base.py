@@ -32,7 +32,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Generic, NamedTuple, Union, overload
 
 import numpy as np
-from huggingface_hub import is_offline_mode
+from ..huggingface_hub import is_offline_mode
 from packaging import version
 from typing_extensions import TypeVar
 

@@ -25,7 +25,7 @@ from shutil import copyfile
 from typing import Any
 
 import tokenizers.pre_tokenizers as pre_tokenizers_fast
-from huggingface_hub import is_offline_mode
+from ..huggingface_hub import is_offline_mode
 from tokenizers import AddedToken, processors
 from tokenizers import Encoding as EncodingFast
 from tokenizers import Tokenizer as TokenizerFast

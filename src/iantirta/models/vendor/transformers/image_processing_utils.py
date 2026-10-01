@@ -19,7 +19,7 @@ from functools import partial
 from typing import Any
 
 import numpy as np
-from huggingface_hub.dataclasses import validate_typed_dict
+from ..huggingface_hub.dataclasses import validate_typed_dict
 
 from .image_processing_base import BatchFeature, ImageProcessingMixin
 from .image_transforms import center_crop, normalize, rescale

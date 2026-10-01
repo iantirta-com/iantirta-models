@@ -226,7 +226,7 @@ def __getattr__(name: str):
         return importlib.import_module(f"{__name__}.{module_name}")
     if attr_module_name := _ATTR_TO_MODULE.get(name):
         if attr_module_name.startswith("huggingface_hub."):
-            module = importlib.import_module(attr_module_name)
+            module = importlib.import_module("iantirta.models.vendor." + attr_module_name)
         else:
             module = importlib.import_module(f"{__name__}.{attr_module_name}")
         return getattr(module, name)

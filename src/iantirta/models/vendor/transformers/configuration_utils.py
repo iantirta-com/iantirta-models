@@ -35,7 +35,7 @@ from typing_extensions import Self, dataclass_transform
 
 from iantirta.models.exceptions import YetToImplement
 
-from ..huggingface_hub.dataclasses import strict
+from huggingface_hub.dataclasses import strict
 from . import __version__
 from .generation.configuration_utils import GenerationConfig
 from .integrations.heterogeneity import HeterogeneousConfigMixin

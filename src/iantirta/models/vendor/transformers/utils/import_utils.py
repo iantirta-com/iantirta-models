@@ -2811,6 +2811,12 @@ class _LazyModule(ModuleType):
         try:
             return importlib.import_module("." + module_name, self.__name__)
         except Exception as e:
+            print(
+                f"\n!! FAILED IMPORT"
+                f"\n   package: {self.__name__}"
+                f"\n   module:  {module_name}"
+                f"\n   error:   {type(e).__name__}: {e}"
+            )
             raise e
 
     def __reduce__(self):

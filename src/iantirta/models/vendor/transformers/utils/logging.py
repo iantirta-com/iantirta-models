@@ -34,7 +34,7 @@ from typing import Any
 
 from tqdm import auto as tqdm_lib
 
-from ...huggingface_hub import utils as hf_hub_utils
+from iantirta.models.vendor.huggingface_hub import utils as hf_hub_utils
 from .._typing import TransformersLogger
 
 _lock = threading.Lock()

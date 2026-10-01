@@ -31,9 +31,9 @@ from typing import Annotated, Any, Literal, TypedDict, TypeVar, Union
 
 import numpy as np
 import typing_extensions
-from huggingface_hub import is_offline_mode
-from huggingface_hub.dataclasses import validate_typed_dict
-from huggingface_hub.errors import EntryNotFoundError
+from ..huggingface_hub import is_offline_mode
+from ..huggingface_hub.dataclasses import validate_typed_dict
+from ..huggingface_hub.errors import EntryNotFoundError
 
 from .audio_utils import AudioInput, load_audio, make_list_of_audio
 from .dynamic_module_utils import custom_object_save

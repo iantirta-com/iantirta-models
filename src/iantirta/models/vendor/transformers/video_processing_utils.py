@@ -20,8 +20,8 @@ from functools import partial
 from typing import Any
 
 import numpy as np
-from huggingface_hub import is_offline_mode
-from huggingface_hub.dataclasses import validate_typed_dict
+from ..huggingface_hub import is_offline_mode
+from ..huggingface_hub.dataclasses import validate_typed_dict
 
 from .dynamic_module_utils import custom_object_save
 from .image_processing_backends import TorchvisionBackend
