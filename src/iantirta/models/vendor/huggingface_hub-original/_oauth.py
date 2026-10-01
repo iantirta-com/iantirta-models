@@ -134,7 +134,7 @@ def attach_huggingface_oauth(app: "fastapi.FastAPI", route_prefix: str = "/"):
 
     Example:
     ```py
-    from huggingface_hub import attach_huggingface_oauth, parse_huggingface_oauth
+    from iantirta.models.vendor.huggingface_hub import attach_huggingface_oauth, parse_huggingface_oauth
 
     # Create a FastAPI app
     app = FastAPI()

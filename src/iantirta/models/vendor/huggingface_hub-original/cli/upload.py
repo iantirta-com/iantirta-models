@@ -20,10 +20,10 @@ from typing import Annotated
 
 import click
 
-from huggingface_hub import constants, logging
-from huggingface_hub._commit_scheduler import CommitScheduler
-from huggingface_hub.errors import CLIError, RevisionNotFoundError
-from huggingface_hub.utils import parse_hf_uri
+from iantirta.models.vendor.huggingface_hub import constants, logging
+from iantirta.models.vendor.huggingface_hub._commit_scheduler import CommitScheduler
+from iantirta.models.vendor.huggingface_hub.errors import CLIError, RevisionNotFoundError
+from iantirta.models.vendor.huggingface_hub.utils import parse_hf_uri
 
 from ._cli_utils import (
     PrivateOpt,

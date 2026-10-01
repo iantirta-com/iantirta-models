@@ -16,5 +16,4 @@ dict used by chat templates, driven by a declarative `response_template` spec.""
 
 from .response_parser import ResponseParser, parse_response
 
-
 __all__ = ["ResponseParser", "parse_response"]

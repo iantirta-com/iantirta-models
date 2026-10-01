@@ -17,8 +17,8 @@ from typing import Annotated
 
 import click
 
-from huggingface_hub.constants import ENDPOINT
-from huggingface_hub.hf_api import whoami
+from iantirta.models.vendor.huggingface_hub.constants import ENDPOINT
+from iantirta.models.vendor.huggingface_hub.hf_api import whoami
 
 from .._login import _save_oauth_token, auth_list, auth_switch, login, logout
 from ..errors import CLIError
@@ -59,7 +59,7 @@ def auth_login(
         ),
     ] = False,
 ) -> None:
-    """Login from your browser, or using a token from huggingface.co/settings/tokens."""
+    """Login from your browser, or using a token from iantirta.models.vendor.huggingface.co/settings/tokens."""
     if token is not None or out.mode == OutputFormat.human:
         # `--token` bypasses any prompt; in human mode the gh-style menu lives in `login()`.
         login(token=token, add_to_git_credential=add_to_git_credential, skip_if_logged_in=not force)

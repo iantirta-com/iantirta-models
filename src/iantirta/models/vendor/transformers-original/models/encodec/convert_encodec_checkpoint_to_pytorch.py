@@ -17,7 +17,7 @@ import argparse
 
 import torch
 
-from transformers import (
+from iantirta.models.vendor.transformers import (
     EncodecConfig,
     EncodecFeatureExtractor,
     EncodecModel,

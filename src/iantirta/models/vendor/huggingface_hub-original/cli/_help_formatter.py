@@ -17,7 +17,7 @@ from collections.abc import Iterable
 
 import click
 
-from huggingface_hub.utils import ANSI
+from iantirta.models.vendor.huggingface_hub.utils import ANSI
 
 
 class StyledHelpFormatter(click.HelpFormatter):

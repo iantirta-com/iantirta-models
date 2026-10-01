@@ -54,7 +54,7 @@ class RepoCard:
 
         Example:
             ```python
-            >>> from huggingface_hub.repocard import RepoCard
+            >>> from iantirta.models.vendor.huggingface_hub.repocard import RepoCard
             >>> text = '''
             ... ---
             ... language: en
@@ -126,7 +126,7 @@ class RepoCard:
 
         Example:
             ```python
-            >>> from huggingface_hub.repocard import RepoCard
+            >>> from iantirta.models.vendor.huggingface_hub.repocard import RepoCard
             >>> card = RepoCard("---\nlanguage: en\n---\n# This is a test repo card")
             >>> card.save("/tmp/test.md")
 
@@ -167,7 +167,7 @@ class RepoCard:
 
         Example:
             ```python
-            >>> from huggingface_hub.repocard import RepoCard
+            >>> from iantirta.models.vendor.huggingface_hub.repocard import RepoCard
             >>> card = RepoCard.load("nateraw/food")
             >>> assert card.data.tags == ["generated_from_trainer", "image-classification", "pytorch"]
 
@@ -374,7 +374,7 @@ class ModelCard(RepoCard):
 
         Example:
             ```python
-            >>> from huggingface_hub import ModelCard, ModelCardData, EvalResult
+            >>> from iantirta.models.vendor.huggingface_hub import ModelCard, ModelCardData, EvalResult
 
             >>> # Using the Default Template
             >>> card_data = ModelCardData(
@@ -458,7 +458,7 @@ class DatasetCard(RepoCard):
 
         Example:
             ```python
-            >>> from huggingface_hub import DatasetCard, DatasetCardData
+            >>> from iantirta.models.vendor.huggingface_hub import DatasetCard, DatasetCardData
 
             >>> # Using the Default Template
             >>> card_data = DatasetCardData(
@@ -620,7 +620,7 @@ def metadata_eval_result(
 
     Example:
         ```python
-        >>> from huggingface_hub import metadata_eval_result
+        >>> from iantirta.models.vendor.huggingface_hub import metadata_eval_result
         >>> results = metadata_eval_result(
         ...         model_pretty_name="RoBERTa fine-tuned on ReactionGIF",
         ...         task_pretty_name="Text Classification",
@@ -746,7 +746,7 @@ def metadata_update(
 
     Example:
         ```python
-        >>> from huggingface_hub import metadata_update
+        >>> from iantirta.models.vendor.huggingface_hub import metadata_update
         >>> metadata = {'model-index': [{'name': 'RoBERTa fine-tuned on ReactionGIF',
         ...             'results': [{'dataset': {'name': 'ReactionGIF',
         ...                                      'type': 'julien-c/reactiongif'},

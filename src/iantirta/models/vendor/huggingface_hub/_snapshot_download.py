@@ -633,7 +633,7 @@ def get_cached_repo_tree(
 
     Example:
         ```py
-        >>> from huggingface_hub import get_cached_repo_tree
+        >>> from iantirta.models.vendor.huggingface_hub import get_cached_repo_tree
         >>> files = get_cached_repo_tree("openai-community/gpt2")
         >>> [f.path for f in files]
         ['.gitattributes', 'config.json', 'model.safetensors', ...]

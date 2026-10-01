@@ -4,12 +4,12 @@ from abc import ABC
 from typing import Any
 from urllib.parse import urlparse
 
-from huggingface_hub import constants
-from huggingface_hub.hf_api import InferenceProviderMapping
-from huggingface_hub.inference._common import RequestParameters, _as_dict, _as_url
-from huggingface_hub.inference._providers._common import TaskProviderHelper, filter_none
-from huggingface_hub.utils import get_session, hf_raise_for_status
-from huggingface_hub.utils.logging import get_logger
+from iantirta.models.vendor.huggingface_hub import constants
+from iantirta.models.vendor.huggingface_hub.hf_api import InferenceProviderMapping
+from iantirta.models.vendor.huggingface_hub.inference._common import RequestParameters, _as_dict, _as_url
+from iantirta.models.vendor.huggingface_hub.inference._providers._common import TaskProviderHelper, filter_none
+from iantirta.models.vendor.huggingface_hub.utils import get_session, hf_raise_for_status
+from iantirta.models.vendor.huggingface_hub.utils.logging import get_logger
 
 
 logger = get_logger(__name__)

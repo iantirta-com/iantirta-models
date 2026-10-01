@@ -7,7 +7,7 @@ from ..utils import is_fouroversix_available
 if is_fouroversix_available():
     from fouroversix import ModelQuantizationConfig
 
-from transformers.utils.quantization_config import FourOverSixConfig
+from iantirta.models.vendor.transformers.utils.quantization_config import FourOverSixConfig
 
 from ..core_model_loading import ConversionOps
 

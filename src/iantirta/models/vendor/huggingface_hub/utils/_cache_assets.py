@@ -96,7 +96,7 @@ def cached_assets_path(
 
     Example:
     ```py
-    >>> from huggingface_hub import cached_assets_path
+    >>> from iantirta.models.vendor.huggingface_hub import cached_assets_path
 
     >>> cached_assets_path(library_name="datasets", namespace="SQuAD", subfolder="download")
     PosixPath('/home/wauplin/.cache/huggingface/extra/datasets/SQuAD/download')

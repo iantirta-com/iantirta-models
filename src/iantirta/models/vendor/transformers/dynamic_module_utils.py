@@ -30,8 +30,13 @@ from pathlib import Path
 from types import ModuleType
 from typing import Any
 
-from ..huggingface_hub import ResolvedRevision, is_offline_mode, try_to_load_from_cache
 from packaging import version
+
+from iantirta.models.vendor.huggingface_hub import (
+    ResolvedRevision,
+    is_offline_mode,
+    try_to_load_from_cache,
+)
 
 from .utils import (
     HF_MODULES_CACHE,
@@ -41,7 +46,6 @@ from .utils import (
     logging,
 )
 from .utils.import_utils import VersionComparison, split_package_version
-
 
 logger = logging.get_logger(__name__)  # pylint: disable=invalid-name
 
@@ -187,7 +191,7 @@ def get_imports(filename: str | os.PathLike) -> list[str]:
         content = f.read()
     imported_modules = set()
 
-    import transformers.utils
+    import iantirta.models.vendor.transformers.utils
 
     def recursive_look_for_imports(node):
         if isinstance(node, ast.Try):
@@ -200,7 +204,7 @@ def get_imports(filename: str | os.PathLike) -> list[str]:
                     if (
                         check_function.endswith("available")
                         and check_function.startswith("is_flash_attn")
-                        or hasattr(transformers.utils.import_utils, check_function)
+                        or hasattr(iantirta.models.vendor.transformers.utils.import_utils, check_function)
                     ):
                         # Don't recurse into "if flash_attn_available()" or any "if library_available" blocks
                         # that appears in `transformers.utils.import_utils` and ignore imports in them
@@ -590,7 +594,7 @@ def get_class_from_dynamic_module(
     Examples:
 
     ```python
-    # Download module `modeling.py` from huggingface.co and cache then extract the class `MyBertModel` from this
+    # Download module `modeling.py` from iantirta.models.vendor.huggingface.co and cache then extract the class `MyBertModel` from this
     # module.
     cls = get_class_from_dynamic_module("modeling.MyBertModel", "sgugger/my-bert-model")
 

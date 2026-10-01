@@ -33,7 +33,7 @@ from tokenizers.decoders import Decoder as DecoderFast
 from tokenizers.models import BPE, Unigram
 from tokenizers.trainers import BpeTrainer, UnigramTrainer, WordLevelTrainer, WordPieceTrainer
 
-from transformers.utils.hub import cached_file
+from iantirta.models.vendor.transformers.utils.hub import cached_file
 
 from .convert_slow_tokenizer import SpmConverter
 from .integrations.mistral.constants import is_tekken_vocab_filename
@@ -1402,7 +1402,7 @@ class TokenizersBackend(PreTrainedTokenizerBase):
 
         from packaging import version
 
-        from transformers.utils.hub import cached_file, hf_api
+        from iantirta.models.vendor.transformers.utils.hub import cached_file, hf_api
 
         @lru_cache(maxsize=128)
         def is_base_mistral(model_id: str) -> bool:

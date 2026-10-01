@@ -169,7 +169,7 @@ class HfUri:
 
         Example:
             ```py
-            >>> from huggingface_hub import parse_hf_uri
+            >>> from iantirta.models.vendor.huggingface_hub import parse_hf_uri
             >>> parse_hf_uri("hf://datasets/my-org/my-dataset@v1/train.csv").to_url()
             'https://huggingface.co/datasets/my-org/my-dataset/blob/v1/train.csv'
             ```
@@ -287,7 +287,7 @@ def parse_hf_uri(uri: str, endpoint: str | None = None) -> HfUri:
 
     Examples:
         ```py
-        >>> from huggingface_hub.utils import parse_hf_uri
+        >>> from iantirta.models.vendor.huggingface_hub.utils import parse_hf_uri
         >>> parse_hf_uri("hf://my-org/my-model")
         HfUri(type='model', id='my-org/my-model', revision=None, path_in_repo='')
         >>> parse_hf_uri("hf://datasets/my-org/my-dataset@refs/pr/3/train.json")
@@ -463,7 +463,7 @@ def parse_hf_mount(mount_str: str) -> HfMount:
 
     Examples:
         ```py
-        >>> from huggingface_hub.utils import parse_hf_mount
+        >>> from iantirta.models.vendor.huggingface_hub.utils import parse_hf_mount
         >>> parse_hf_mount("hf://my-org/my-model:/data:ro")
         HfMount(source=HfUri(type='model', id='my-org/my-model', revision=None, path_in_repo=''), mount_path='/data', read_only=True)
         >>> parse_hf_mount("hf://buckets/my-org/my-bucket/sub/dir:/mnt:rw")

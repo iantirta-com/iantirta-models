@@ -684,9 +684,9 @@ class GenerationConfig(PushToHubMixin):
         Examples:
 
         ```python
-        >>> from transformers import GenerationConfig
+        >>> from iantirta.models.vendor.transformers import GenerationConfig
 
-        >>> # Download configuration from huggingface.co and cache.
+        >>> # Download configuration from iantirta.models.vendor.huggingface.co and cache.
         >>> generation_config = GenerationConfig.from_pretrained("openai-community/gpt2")
 
         >>> # E.g. config was saved using *save_pretrained('./test/saved_model/')*
@@ -1062,7 +1062,7 @@ class CompileConfig:
 
     Examples:
     ```python
-    >>> from transformers import AutoModelForCausalLM, AutoTokenizer, CompileConfig
+    >>> from iantirta.models.vendor.transformers import AutoModelForCausalLM, AutoTokenizer, CompileConfig
 
     >>> tokenizer = AutoTokenizer.from_pretrained('google/gemma-2-2b')
     >>> model = AutoModelForCausalLM.from_pretrained('google/gemma-2-2b').cuda()

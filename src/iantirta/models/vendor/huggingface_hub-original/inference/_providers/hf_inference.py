@@ -4,17 +4,17 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse, urlunparse
 
-from huggingface_hub import constants
-from huggingface_hub.hf_api import InferenceProviderMapping
-from huggingface_hub.inference._common import (
+from iantirta.models.vendor.huggingface_hub import constants
+from iantirta.models.vendor.huggingface_hub.hf_api import InferenceProviderMapping
+from iantirta.models.vendor.huggingface_hub.inference._common import (
     MimeBytes,
     RequestParameters,
     _b64_encode,
     _bytes_to_dict,
     _open_as_mime_bytes,
 )
-from huggingface_hub.inference._providers._common import TaskProviderHelper, filter_none
-from huggingface_hub.utils import build_hf_headers, get_session, get_token, hf_raise_for_status
+from iantirta.models.vendor.huggingface_hub.inference._providers._common import TaskProviderHelper, filter_none
+from iantirta.models.vendor.huggingface_hub.utils import build_hf_headers, get_session, get_token, hf_raise_for_status
 
 
 class HFInferenceTask(TaskProviderHelper):
@@ -171,7 +171,7 @@ def _fetch_recommended_models() -> dict[str, str | None]:
 
 @lru_cache(maxsize=None)
 def _check_supported_task(model: str, task: str) -> None:
-    from huggingface_hub.hf_api import HfApi
+    from iantirta.models.vendor.huggingface_hub.hf_api import HfApi
 
     model_info = HfApi().model_info(model)
     pipeline_tag = model_info.pipeline_tag

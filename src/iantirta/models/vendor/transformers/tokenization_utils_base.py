@@ -1555,10 +1555,10 @@ class PreTrainedTokenizerBase(PushToHubMixin):
 
         ```python
         # We can't instantiate directly the base class *PreTrainedTokenizerBase* so let's show our examples on a derived class: BertTokenizer
-        # Download vocabulary from huggingface.co and cache.
+        # Download vocabulary from iantirta.models.vendor.huggingface.co and cache.
         tokenizer = BertTokenizer.from_pretrained("google-bert/bert-base-uncased")
 
-        # Download vocabulary from huggingface.co (user-uploaded) and cache.
+        # Download vocabulary from iantirta.models.vendor.huggingface.co (user-uploaded) and cache.
         tokenizer = BertTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
 
         # If vocabulary files are in a directory (e.g. tokenizer was saved using *save_pretrained('./test/saved_model/')*)
@@ -2982,7 +2982,7 @@ class PreTrainedTokenizerBase(PushToHubMixin):
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
-        import transformers.models.auto as auto_module
+        import iantirta.models.vendor.transformers.models.auto as auto_module
 
         if not hasattr(auto_module, auto_class):
             raise ValueError(f"{auto_class} is not a valid auto class.")

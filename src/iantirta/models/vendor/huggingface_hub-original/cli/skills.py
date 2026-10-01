@@ -20,8 +20,8 @@ from typing import Annotated
 
 from click import Command, Context, Group
 
-from huggingface_hub import constants
-from huggingface_hub.errors import CLIError
+from iantirta.models.vendor.huggingface_hub import constants
+from iantirta.models.vendor.huggingface_hub.errors import CLIError
 
 from ..utils import disable_progress_bars
 from . import _skills
@@ -242,8 +242,8 @@ def _render_leaf(path_parts: list[str], cmd: Command) -> str:
 
 def build_skill_md() -> str:
     # Lazy import to avoid circular dependency (hf.py imports skills_cli from this module)
-    from huggingface_hub import __version__
-    from huggingface_hub.cli.hf import app
+    from iantirta.models.vendor.huggingface_hub import __version__
+    from iantirta.models.vendor.huggingface_hub.cli.hf import app
 
     click_app = app  # the app is already a click.Group
     ctx = Context(click_app, info_name="hf")

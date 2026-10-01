@@ -17,7 +17,7 @@
 # - Normal usage:
 #       If imported to use it, all modules and functions are lazy-loaded. This means
 #       they exist at top level in module but are imported only the first time they are
-#       used. This way, `from huggingface_hub import something` will import `something`
+#       used. This way, `from iantirta.models.vendor.huggingface_hub import something` will import `something`
 #       quickly without the hassle of importing all the features from `huggingface_hub`.
 # - Static check:
 #       If statically analyzed, all modules and functions are loaded normally. This way

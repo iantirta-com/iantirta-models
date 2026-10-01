@@ -790,7 +790,7 @@ class Sandbox:
     Reattach to a running sandbox from anywhere with [`Sandbox.connect`]. Use as a context manager to terminate it on exit:
 
     ```python
-    >>> from huggingface_hub import Sandbox
+    >>> from iantirta.models.vendor.huggingface_hub import Sandbox
     >>> with Sandbox.create(image="python:3.12") as sbx:
     ...     print(sbx.run("python --version").stdout)
     ```
@@ -1335,7 +1335,7 @@ class SandboxPool:
     are torn down on `close()` (or when idle, via `idle_timeout`). The user never manages jobs:
 
     ```python
-    >>> from huggingface_hub import SandboxPool
+    >>> from iantirta.models.vendor.huggingface_hub import SandboxPool
     >>> with SandboxPool(image="python:3.12", flavor="cpu-basic", warm_up=2) as pool:
     ...     boxes = [pool.create() for _ in range(100)]   # packed across the warm hosts
     ...     print(boxes[0].run("echo hi").stdout)

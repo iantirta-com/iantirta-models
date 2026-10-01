@@ -19,16 +19,16 @@ from typing import Annotated, Any
 
 import click
 
-from huggingface_hub import __version__, constants
-from huggingface_hub.cli._cli_utils import (
+from iantirta.models.vendor.huggingface_hub import __version__, constants
+from iantirta.models.vendor.huggingface_hub.cli._cli_utils import (
     LazyHfCommand,
     LazyHfGroup,
     check_cli_update,
     fallback_typer_group_factory,
     typer_factory,
 )
-from huggingface_hub.cli._output import out
-from huggingface_hub.utils import logging
+from iantirta.models.vendor.huggingface_hub.cli._output import out
+from iantirta.models.vendor.huggingface_hub.utils import logging
 
 from ._completion import _COMPLETE_VAR, InstallCompletionOpt, ShowCompletionOpt
 from ._framework import Option

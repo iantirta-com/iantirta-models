@@ -33,7 +33,29 @@ _MODEL_TO_CONVERSION_PATTERN = {}
 
 
 def _build_checkpoint_conversion_mapping():
-    mapping = {}
+    mapping = {
+        "legacy": [
+            WeightRenaming(
+                source_patterns="LayerNorm.gamma",
+                target_patterns="LayerNorm.weight",
+            ),
+            WeightRenaming(
+                source_patterns="LayerNorm.beta",
+                target_patterns="LayerNorm.bias",
+            ),
+        ],
+    }
+    mapping["legacy"] += [
+            WeightRenaming(
+            source_patterns=".weight_g$",
+            target_patterns=".parametrizations.weight.original0",
+        ),
+        WeightRenaming(
+            source_patterns=".weight_v$",
+            target_patterns=".parametrizations.weight.original1",
+        ),
+    ]
+    
     for model_type, base_pattern in _MODEL_TO_CONVERSION_PATTERN.items():
         if model_type in mapping:
             continue

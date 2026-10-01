@@ -195,7 +195,7 @@ PT_TOKEN_CLASSIFICATION_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoTokenizer, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoTokenizer, {model_class}
     >>> import torch
 
     >>> tokenizer = AutoTokenizer.from_pretrained("{checkpoint}")
@@ -228,7 +228,7 @@ PT_QUESTION_ANSWERING_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoTokenizer, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoTokenizer, {model_class}
     >>> import torch
 
     >>> tokenizer = AutoTokenizer.from_pretrained("{checkpoint}")
@@ -263,7 +263,7 @@ PT_SEQUENCE_CLASSIFICATION_SAMPLE = r"""
 
     ```python
     >>> import torch
-    >>> from transformers import AutoTokenizer, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoTokenizer, {model_class}
 
     >>> tokenizer = AutoTokenizer.from_pretrained("{checkpoint}")
     >>> model = {model_class}.from_pretrained("{checkpoint}")
@@ -291,7 +291,7 @@ PT_SEQUENCE_CLASSIFICATION_SAMPLE = r"""
 
     ```python
     >>> import torch
-    >>> from transformers import AutoTokenizer, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoTokenizer, {model_class}
 
     >>> tokenizer = AutoTokenizer.from_pretrained("{checkpoint}")
     >>> model = {model_class}.from_pretrained("{checkpoint}", problem_type="multi_label_classification")
@@ -320,7 +320,7 @@ PT_MASKED_LM_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoTokenizer, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoTokenizer, {model_class}
     >>> import torch
 
     >>> tokenizer = AutoTokenizer.from_pretrained("{checkpoint}")
@@ -352,7 +352,7 @@ PT_BASE_MODEL_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoTokenizer, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoTokenizer, {model_class}
     >>> import torch
 
     >>> tokenizer = AutoTokenizer.from_pretrained("{checkpoint}")
@@ -369,7 +369,7 @@ PT_MULTIPLE_CHOICE_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoTokenizer, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoTokenizer, {model_class}
     >>> import torch
 
     >>> tokenizer = AutoTokenizer.from_pretrained("{checkpoint}")
@@ -394,7 +394,7 @@ PT_CAUSAL_LM_SAMPLE = r"""
 
     ```python
     >>> import torch
-    >>> from transformers import AutoTokenizer, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoTokenizer, {model_class}
 
     >>> tokenizer = AutoTokenizer.from_pretrained("{checkpoint}")
     >>> model = {model_class}.from_pretrained("{checkpoint}")
@@ -410,7 +410,7 @@ PT_SPEECH_BASE_MODEL_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoProcessor, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoProcessor, {model_class}
     >>> import torch
     >>> from datasets import load_dataset
 
@@ -436,7 +436,7 @@ PT_SPEECH_CTC_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoProcessor, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoProcessor, {model_class}
     >>> from datasets import load_dataset
     >>> import torch
 
@@ -471,7 +471,7 @@ PT_SPEECH_SEQ_CLASS_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoFeatureExtractor, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoFeatureExtractor, {model_class}
     >>> from datasets import load_dataset
     >>> import torch
 
@@ -507,7 +507,7 @@ PT_SPEECH_FRAME_CLASS_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoFeatureExtractor, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoFeatureExtractor, {model_class}
     >>> from datasets import load_dataset
     >>> import torch
 
@@ -536,7 +536,7 @@ PT_SPEECH_XVECTOR_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoFeatureExtractor, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoFeatureExtractor, {model_class}
     >>> from datasets import load_dataset
     >>> import torch
 
@@ -571,7 +571,7 @@ PT_VISION_BASE_MODEL_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoImageProcessor, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoImageProcessor, {model_class}
     >>> import torch
     >>> from datasets import load_dataset
 
@@ -596,7 +596,7 @@ PT_VISION_SEQ_CLASS_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoImageProcessor, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoImageProcessor, {model_class}
     >>> import torch
     >>> from datasets import load_dataset
 
@@ -641,7 +641,7 @@ TEXT_TO_AUDIO_SPECTROGRAM_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoProcessor, {model_class}, SpeechT5HifiGan
+    >>> from iantirta.models.vendor.transformers import AutoProcessor, {model_class}, SpeechT5HifiGan
 
     >>> model = {model_class}.from_pretrained("{checkpoint}")
 
@@ -659,7 +659,7 @@ TEXT_TO_AUDIO_WAVEFORM_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoProcessor, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoProcessor, {model_class}
 
     >>> model = {model_class}.from_pretrained("{checkpoint}")
 
@@ -682,10 +682,10 @@ DEPTH_ESTIMATION_SAMPLE = r"""
     Example:
 
     ```python
-    >>> from transformers import AutoImageProcessor, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoImageProcessor, {model_class}
     >>> import torch
     >>> from PIL import Image
-    >>> from huggingface_hub.utils import httpx
+    >>> from iantirta.models.vendor.huggingface_hub.utils import httpx
         >>> from io import BytesIO
 
     >>> url = "http://images.cocodataset.org/val2017/000000039769.jpg"
@@ -857,7 +857,7 @@ IMAGE_TEXT_TO_TEXT_GENERATION_SAMPLE = r"""
 
     ```python
     >>> from PIL import Image
-    >>> from transformers import AutoProcessor, {model_class}
+    >>> from iantirta.models.vendor.transformers import AutoProcessor, {model_class}
 
     >>> model = {model_class}.from_pretrained("{checkpoint}")
     >>> processor = AutoProcessor.from_pretrained("{checkpoint}")

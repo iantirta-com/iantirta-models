@@ -416,7 +416,7 @@ class BaseVideoProcessor(TorchvisionBackend):
         # derived class: *LlavaOnevisionVideoProcessor*
         video_processor = LlavaOnevisionVideoProcessor.from_pretrained(
             "llava-hf/llava-onevision-qwen2-0.5b-ov-hf"
-        )  # Download video_processing_config from huggingface.co and cache.
+        )  # Download video_processing_config from iantirta.models.vendor.huggingface.co and cache.
         video_processor = LlavaOnevisionVideoProcessor.from_pretrained(
             "./test/saved_model/"
         )  # E.g. video processor (or model) was saved using *save_pretrained('./test/saved_model/')*
@@ -754,7 +754,7 @@ class BaseVideoProcessor(TorchvisionBackend):
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
-        import transformers.models.auto as auto_module
+        import iantirta.models.vendor.transformers.models.auto as auto_module
 
         if not hasattr(auto_module, auto_class):
             raise ValueError(f"{auto_class} is not a valid auto class.")

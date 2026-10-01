@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, BinaryIO, Literal, NoReturn, Union, overl
 
 import httpx2
 
-from huggingface_hub.errors import (
+from iantirta.models.vendor.huggingface_hub.errors import (
     GenerationError,
     HfHubHTTPError,
     IncompleteGenerationError,

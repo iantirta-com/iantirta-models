@@ -16,7 +16,7 @@
 import traceback
 from collections.abc import Callable
 
-from huggingface_hub.errors import (
+from iantirta.models.vendor.huggingface_hub.errors import (
     BucketNotFoundError,
     CLIError,
     CLIExtensionInstallError,

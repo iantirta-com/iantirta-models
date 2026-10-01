@@ -252,7 +252,7 @@ sys.modules[__name__].__class__ = _LazyUtilsModule
 if TYPE_CHECKING:  # pragma: no cover
     import httpx2 as httpx  # noqa: F401
 
-    from huggingface_hub.errors import (
+    from iantirta.models.vendor.huggingface_hub.errors import (
         BadRequestError,  # noqa: F401
         BucketNotFoundError,  # noqa: F401
         CacheNotFound,  # noqa: F401

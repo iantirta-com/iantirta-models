@@ -2,13 +2,12 @@ from collections.abc import Callable, Sequence
 from functools import partial
 from typing import Any, Union, cast
 
-from huggingface_hub.dataclasses import as_validated_field
+from iantirta.models.vendor.huggingface_hub.dataclasses import as_validated_field
 
 from ..tokenization_utils_base import PaddingStrategy, TruncationStrategy
 from ..video_utils import VideoMetadataType
 from .generic import TensorType
 from .import_utils import is_torch_available, is_vision_available
-
 
 if is_vision_available():
     from ..image_utils import PILImageResampling

@@ -112,7 +112,7 @@ class ModelHubMixin:
     Example:
 
     ```python
-    >>> from huggingface_hub import ModelHubMixin
+    >>> from iantirta.models.vendor.huggingface_hub import ModelHubMixin
 
     # Inherit from ModelHubMixin
     >>> class MyCustomModel(
@@ -162,7 +162,7 @@ class ModelHubMixin:
     256
 
     # Model card has been correctly populated
-    >>> from huggingface_hub import ModelCard
+    >>> from iantirta.models.vendor.huggingface_hub import ModelCard
     >>> card = ModelCard.load("username/my-awesome-model")
     >>> card.data.tags
     ["x-custom-tag", "pytorch_model_hub_mixin", "model_hub_mixin"]
@@ -702,7 +702,7 @@ class PyTorchModelHubMixin(ModelHubMixin):
     ```python
     >>> import torch
     >>> import torch.nn as nn
-    >>> from huggingface_hub import PyTorchModelHubMixin
+    >>> from iantirta.models.vendor.huggingface_hub import PyTorchModelHubMixin
 
     >>> class MyModel(
     ...         nn.Module,

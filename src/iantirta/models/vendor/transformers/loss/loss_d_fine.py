@@ -22,7 +22,7 @@ from .loss_for_object_detection import box_iou
 from .loss_rt_detr import RTDetrHungarianMatcher, RTDetrLoss
 
 if is_vision_available():
-    from transformers.image_transforms import center_to_corners_format
+    from iantirta.models.vendor.transformers.image_transforms import center_to_corners_format
 
 
 def _set_aux_loss(outputs_class, outputs_coord):

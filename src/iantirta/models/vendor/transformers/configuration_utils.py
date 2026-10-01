@@ -35,7 +35,7 @@ from typing_extensions import Self, dataclass_transform
 
 from iantirta.models.exceptions import YetToImplement
 
-from huggingface_hub.dataclasses import strict
+from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 from . import __version__
 from .generation.configuration_utils import GenerationConfig
 from .integrations.heterogeneity import HeterogeneousConfigMixin
@@ -134,7 +134,7 @@ def remap_legacy_layer_types(
                 config.mtp_layer_types = remapped
 
 
-# copied from huggingface_hub.dataclasses.strict when `accept_kwargs=True`
+# copied from iantirta.models.vendor.huggingface_hub.dataclasses.strict when `accept_kwargs=True`
 def wrap_init_to_accept_kwargs(cls: dataclass):
     # Get the original dataclass-generated __init__
     original_init = cls.__init__
@@ -568,7 +568,7 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
         # derived class: BertConfig
         config = BertConfig.from_pretrained(
             "google-bert/bert-base-uncased"
-        )  # Download configuration from huggingface.co and cache.
+        )  # Download configuration from iantirta.models.vendor.huggingface.co and cache.
         config = BertConfig.from_pretrained(
             "./test/saved_model/"
         )  # E.g. config (or model) was saved using *save_pretrained('./test/saved_model/')*
@@ -1159,7 +1159,7 @@ class PreTrainedConfig(PushToHubMixin, RotaryEmbeddingConfigMixin, Heterogeneous
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
-        import transformers.models.auto as auto_module
+        import iantirta.models.vendor.transformers.models.auto as auto_module
 
         if not hasattr(auto_module, auto_class):
             raise ValueError(f"{auto_class} is not a valid auto class.")

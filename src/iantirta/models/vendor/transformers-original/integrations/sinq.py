@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from transformers.utils import is_torch_available, logging
+from iantirta.models.vendor.transformers.utils import is_torch_available, logging
 
 from ..core_model_loading import ConversionOps
 from ..quantizers.quantizers_utils import get_module_from_name, should_convert_module

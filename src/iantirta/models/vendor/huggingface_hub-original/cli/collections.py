@@ -16,7 +16,7 @@
 import enum
 from typing import Annotated, get_args
 
-from huggingface_hub.hf_api import CollectionItemType_T, CollectionSort_T
+from iantirta.models.vendor.huggingface_hub.hf_api import CollectionItemType_T, CollectionSort_T
 
 from ._cli_utils import LimitOpt, TokenOpt, get_hf_api, typer_factory
 from ._framework import Argument, Option

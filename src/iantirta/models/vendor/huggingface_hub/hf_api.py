@@ -1877,7 +1877,7 @@ class LFSFileInfo:
 
     Example:
         ```py
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
         >>> api = HfApi()
         >>> lfs_files = api.list_lfs_files("username/my-cool-repo")
 
@@ -2158,7 +2158,7 @@ class HfApi:
 
         Example:
             ```py
-            >>> from huggingface_hub import HfApi
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi
             >>> api = HfApi()
             >>> future = api.run_as_future(api.whoami) # instant
             >>> future.done()
@@ -2359,7 +2359,7 @@ class HfApi:
         Example:
 
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
 
         >>> api = HfApi()
 
@@ -2551,7 +2551,7 @@ class HfApi:
         Example usage with the `filter` argument:
 
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
 
         >>> api = HfApi()
 
@@ -2575,7 +2575,7 @@ class HfApi:
         Example usage with the `search` argument:
 
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
 
         >>> api = HfApi()
 
@@ -2696,7 +2696,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import list_dataset_parquet_files
+            >>> from iantirta.models.vendor.huggingface_hub import list_dataset_parquet_files
             >>> list_dataset_parquet_files("lhoestq/demo1")
             >>> entries[0]
             DatasetParquetEntry(config='default', split='train', url='https://huggingface.co/...', size=5038)
@@ -2869,7 +2869,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import HfApi
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi
             >>> api = HfApi()
             >>> results = list(api.search_spaces("generate image"))
             >>> results[0].id
@@ -2929,7 +2929,7 @@ class HfApi:
 
         Example:
         ```python
-        >>> from huggingface_hub import list_liked_repos, unlike
+        >>> from iantirta.models.vendor.huggingface_hub import list_liked_repos, unlike
         >>> "gpt2" in list_liked_repos().models # we assume you have already liked gpt2
         True
         >>> unlike("gpt2")
@@ -2978,7 +2978,7 @@ class HfApi:
 
         Example:
         ```python
-        >>> from huggingface_hub import list_liked_repos
+        >>> from iantirta.models.vendor.huggingface_hub import list_liked_repos
 
         >>> likes = list_liked_repos("julien-c")
 
@@ -3043,7 +3043,7 @@ class HfApi:
 
         Example:
         ```python
-        >>> from huggingface_hub import list_user_repos
+        >>> from iantirta.models.vendor.huggingface_hub import list_user_repos
 
         >>> repos = list(list_user_repos())
         >>> repos[0]
@@ -3293,7 +3293,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import HfApi
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi
             >>> api = HfApi()
             >>> leaderboard = api.get_dataset_leaderboard("allenai/olmOCR-bench")
             >>> leaderboard[0].model_id
@@ -3561,7 +3561,7 @@ class HfApi:
 
         Example:
             ```py
-            >>> from huggingface_hub import hf_hub_download, resolve_revision
+            >>> from iantirta.models.vendor.huggingface_hub import hf_hub_download, resolve_revision
             >>> revision = resolve_revision("openai-community/gpt2")
             >>> revision
             ResolvedRevision(initial=None, resolved='607a30d783dfa663caf39e06633721c8d4cfcd7e')
@@ -3662,7 +3662,7 @@ class HfApi:
 
         Examples:
             ```py
-            >>> from huggingface_hub import repo_exists
+            >>> from iantirta.models.vendor.huggingface_hub import repo_exists
             >>> repo_exists("google/gemma-7b")
             True
             >>> repo_exists("google/not-a-repo")
@@ -3709,7 +3709,7 @@ class HfApi:
 
         Examples:
             ```py
-            >>> from huggingface_hub import revision_exists
+            >>> from iantirta.models.vendor.huggingface_hub import revision_exists
             >>> revision_exists("google/gemma-7b", "float16")
             True
             >>> revision_exists("google/gemma-7b", "not-a-revision")
@@ -3760,7 +3760,7 @@ class HfApi:
 
         Examples:
             ```py
-            >>> from huggingface_hub import file_exists
+            >>> from iantirta.models.vendor.huggingface_hub import file_exists
             >>> file_exists("bigcode/starcoder", "config.json")
             True
             >>> file_exists("bigcode/starcoder", "not-a-file")
@@ -3879,7 +3879,7 @@ class HfApi:
 
             Get information about a repo's tree.
             ```py
-            >>> from huggingface_hub import list_repo_tree
+            >>> from iantirta.models.vendor.huggingface_hub import list_repo_tree
             >>> repo_tree = list_repo_tree("lysandre/arxiv-nlp")
             >>> repo_tree
             <generator object HfApi.list_repo_tree at 0x7fa4088e1ac0>
@@ -3903,7 +3903,7 @@ class HfApi:
 
             Get even more information about a repo's tree (last commit and files' security scan results)
             ```py
-            >>> from huggingface_hub import list_repo_tree
+            >>> from iantirta.models.vendor.huggingface_hub import list_repo_tree
             >>> repo_tree = list_repo_tree("prompthero/openjourney-v4", expand=True)
             >>> list(repo_tree)
             [
@@ -4059,7 +4059,7 @@ class HfApi:
 
         Example:
         ```py
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
         >>> api = HfApi()
         >>> api.list_repo_refs("gpt2")
         GitRefs(branches=[GitRefInfo(name='main', ref='refs/heads/main', target_commit='e7da7f221d5bf496a48136c0cd264e630fe9fcc8')], converts=[], tags=[])
@@ -4135,7 +4135,7 @@ class HfApi:
 
         Example:
         ```py
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
         >>> api = HfApi()
 
         # Commits are sorted by date (last commit first)
@@ -4237,7 +4237,7 @@ class HfApi:
 
         Example:
         ```py
-        >>> from huggingface_hub import get_paths_info
+        >>> from iantirta.models.vendor.huggingface_hub import get_paths_info
         >>> paths_info = get_paths_info("allenai/c4", ["README.md", "en"], repo_type="dataset")
         >>> paths_info
         [
@@ -4314,7 +4314,7 @@ class HfApi:
 
         Example:
         ```py
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
         >>> api = HfApi()
 
         # Create repo
@@ -4377,7 +4377,7 @@ class HfApi:
 
         Example:
             ```py
-            >>> from huggingface_hub import HfApi
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi
             >>> api = HfApi()
             >>> lfs_files = api.list_lfs_files("username/my-cool-repo")
 
@@ -4435,7 +4435,7 @@ class HfApi:
 
         Example:
             ```py
-            >>> from huggingface_hub import HfApi
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi
             >>> api = HfApi()
             >>> lfs_files = api.list_lfs_files("username/my-cool-repo")
 
@@ -4485,7 +4485,7 @@ class HfApi:
 
         Example:
             ```py
-            >>> from huggingface_hub import list_space_templates
+            >>> from iantirta.models.vendor.huggingface_hub import list_space_templates
             >>> templates = list_space_templates()
             >>> templates[0]
             SpaceTemplate(name='Streamlit', repo_id='streamlit/streamlit-template-space', sdk='docker', preferred_private=False)
@@ -5290,7 +5290,7 @@ class HfApi:
 
         Example:
         ```py
-        >>> from huggingface_hub import CommitOperationAdd, preupload_lfs_files, create_commit, create_repo
+        >>> from iantirta.models.vendor.huggingface_hub import CommitOperationAdd, preupload_lfs_files, create_commit, create_repo
 
         >>> repo_id = create_repo("test_preupload").repo_id
 
@@ -5625,7 +5625,7 @@ class HfApi:
         Example:
 
         ```python
-        >>> from huggingface_hub import upload_file
+        >>> from iantirta.models.vendor.huggingface_hub import upload_file
 
         >>> with open("./local/filepath", "rb") as fobj:
         ...     upload_file(
@@ -7155,14 +7155,14 @@ class HfApi:
             Collecting all discussions of a repo in a list:
 
             ```python
-            >>> from huggingface_hub import get_repo_discussions
+            >>> from iantirta.models.vendor.huggingface_hub import get_repo_discussions
             >>> discussions_list = list(get_repo_discussions(repo_id="bert-base-uncased"))
             ```
 
             Iterating over discussions of a repo:
 
             ```python
-            >>> from huggingface_hub import get_repo_discussions
+            >>> from iantirta.models.vendor.huggingface_hub import get_repo_discussions
             >>> for discussion in get_repo_discussions(repo_id="bert-base-uncased"):
             ...     print(discussion.num, discussion.title)
             ```
@@ -7943,7 +7943,7 @@ class HfApi:
 
         Example:
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
         >>> api = HfApi()
         >>> api.get_space_secrets("username/my-space")
         {'HF_TOKEN': SpaceSecret(key='HF_TOKEN', description='...', updated_at=datetime.datetime(...))}
@@ -8079,7 +8079,7 @@ class HfApi:
         Example:
 
         ```python
-        >>> from huggingface_hub import list_spaces_hardware
+        >>> from iantirta.models.vendor.huggingface_hub import list_spaces_hardware
         >>> hardware_list = list_spaces_hardware()
         >>> hardware_list[0]
         JobHardwareInfo(name='cpu-basic', pretty_name='CPU Basic', cpu='2 vCPU', ram='16 GB', ...)
@@ -8509,7 +8509,7 @@ class HfApi:
         Example:
 
             ```python
-            >>> from huggingface_hub import fetch_space_logs
+            >>> from iantirta.models.vendor.huggingface_hub import fetch_space_logs
             >>> # Non-blocking: print currently available run logs and exit.
             >>> for line in fetch_space_logs("username/my-space"):
             ...     print(line, end="")
@@ -8574,7 +8574,7 @@ class HfApi:
         Example:
 
             ```python
-            >>> from huggingface_hub import restart_space, wait_for_space
+            >>> from iantirta.models.vendor.huggingface_hub import restart_space, wait_for_space
             >>> restart_space("username/my-space")
             >>> runtime = wait_for_space("username/my-space")
             >>> runtime.stage
@@ -8678,7 +8678,7 @@ class HfApi:
 
         Example:
         ```python
-        >>> from huggingface_hub import duplicate_repo
+        >>> from iantirta.models.vendor.huggingface_hub import duplicate_repo
 
         # Duplicate a model to your account
         >>> duplicate_repo("google/gemma-7b")
@@ -8804,7 +8804,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import HfApi, Volume
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi, Volume
             >>> api = HfApi()
             >>> api.set_space_volumes(
             ...     "username/my-space",
@@ -8847,7 +8847,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import HfApi
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi
             >>> api = HfApi()
             >>> api.delete_space_volumes("username/my-space")
             ```
@@ -8882,7 +8882,7 @@ class HfApi:
 
         Example:
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
         >>> api = HfApi()
         >>> api.list_inference_endpoints()
         [InferenceEndpoint(name='my-endpoint', ...), ...]
@@ -9050,7 +9050,7 @@ class HfApi:
 
             Example:
             ```python
-            >>> from huggingface_hub import HfApi
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi
             >>> api = HfApi()
             >>> endpoint = api.create_inference_endpoint(
             ...     "my-endpoint-name",
@@ -9074,7 +9074,7 @@ class HfApi:
 
             ```python
             # Start an Inference Endpoint running Zephyr-7b-beta on TGI
-            >>> from huggingface_hub import HfApi
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi
             >>> api = HfApi()
             >>> endpoint = api.create_inference_endpoint(
             ...     "aws-zephyr-7b-beta-0486",
@@ -9104,7 +9104,7 @@ class HfApi:
 
             ```python
             # Start an Inference Endpoint running ProsusAI/finbert while scaling to zero in 15 minutes
-            >>> from huggingface_hub import HfApi
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi
             >>> api = HfApi()
             >>> endpoint = api.create_inference_endpoint(
             ...     "finbert-classifier",
@@ -9330,7 +9330,7 @@ class HfApi:
 
         Example:
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
         >>> api = HfApi()
         >>> endpoint = api.get_inference_endpoint("my-text-to-image")
         >>> endpoint
@@ -9710,7 +9710,7 @@ class HfApi:
 
         Example:
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
         >>> api = HfApi()
         >>> hardware = api.list_inference_endpoints_hardware()
         >>> [hw.id for hw in hardware if hw.accelerator == "gpu" and hw.status == "available"]
@@ -9819,7 +9819,7 @@ class HfApi:
         Example:
 
         ```py
-        >>> from huggingface_hub import get_collection
+        >>> from iantirta.models.vendor.huggingface_hub import get_collection
         >>> collection = get_collection("TheBloke/recent-models-64f9a55bb3115b4f513ec026")
         >>> collection.title
         'Recent models'
@@ -9879,7 +9879,7 @@ class HfApi:
         Example:
 
         ```py
-        >>> from huggingface_hub import create_collection
+        >>> from iantirta.models.vendor.huggingface_hub import create_collection
         >>> collection = create_collection(
         ...     title="ICCV 2023",
         ...     description="Portfolio of models, papers and demos I presented at ICCV 2023",
@@ -9954,7 +9954,7 @@ class HfApi:
         Example:
 
         ```py
-        >>> from huggingface_hub import update_collection_metadata
+        >>> from iantirta.models.vendor.huggingface_hub import update_collection_metadata
         >>> collection = update_collection_metadata(
         ...     collection_slug="username/iccv-2023-64f9a55bb3115b4f513ec026",
         ...     title="ICCV Oct. 2023"
@@ -10009,7 +10009,7 @@ class HfApi:
         Example:
 
         ```py
-        >>> from huggingface_hub import update_collection_resource_group
+        >>> from iantirta.models.vendor.huggingface_hub import update_collection_resource_group
         >>> update_collection_resource_group(
         ...     collection_slug="my-org/iccv-2023-64f9a55bb3115b4f513ec026",
         ...     resource_group_id="66980ecfc1e12a49c8f0e42d",
@@ -10042,7 +10042,7 @@ class HfApi:
         Example:
 
         ```py
-        >>> from huggingface_hub import delete_collection
+        >>> from iantirta.models.vendor.huggingface_hub import delete_collection
         >>> collection = delete_collection("username/useless-collection-64f9a55bb3115b4f513ec026", missing_ok=True)
         ```
 
@@ -10107,7 +10107,7 @@ class HfApi:
         Example:
 
         ```py
-        >>> from huggingface_hub import add_collection_item
+        >>> from iantirta.models.vendor.huggingface_hub import add_collection_item
         >>> collection = add_collection_item(
         ...     collection_slug="davanstrien/climate-64f99dc2a5067f6b65531bab",
         ...     item_id="pierre-loic/climate-news-articles",
@@ -10175,7 +10175,7 @@ class HfApi:
         Example:
 
         ```py
-        >>> from huggingface_hub import get_collection, update_collection_item
+        >>> from iantirta.models.vendor.huggingface_hub import get_collection, update_collection_item
 
         # Get collection first
         >>> collection = get_collection("TheBloke/recent-models-64f9a55bb3115b4f513ec026")
@@ -10225,7 +10225,7 @@ class HfApi:
         Example:
 
         ```py
-        >>> from huggingface_hub import get_collection, delete_collection_item
+        >>> from iantirta.models.vendor.huggingface_hub import get_collection, delete_collection_item
 
         # Get collection first
         >>> collection = get_collection("TheBloke/recent-models-64f9a55bb3115b4f513ec026")
@@ -10293,7 +10293,7 @@ class HfApi:
 
         Example:
         ```py
-        >>> from huggingface_hub import list_pending_access_requests, accept_access_request
+        >>> from iantirta.models.vendor.huggingface_hub import list_pending_access_requests, accept_access_request
 
         # List pending requests
         >>> requests = list(list_pending_access_requests("meta-llama/Llama-2-7b"))
@@ -10359,7 +10359,7 @@ class HfApi:
 
         Example:
         ```py
-        >>> from huggingface_hub import list_accepted_access_requests
+        >>> from iantirta.models.vendor.huggingface_hub import list_accepted_access_requests
 
         >>> requests = list(list_accepted_access_requests("meta-llama/Llama-2-7b"))
         >>> len(requests)
@@ -10421,7 +10421,7 @@ class HfApi:
 
         Example:
         ```py
-        >>> from huggingface_hub import list_rejected_access_requests
+        >>> from iantirta.models.vendor.huggingface_hub import list_rejected_access_requests
 
         >>> requests = list(list_rejected_access_requests("meta-llama/Llama-2-7b"))
         >>> len(requests)
@@ -10704,7 +10704,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import get_webhook
+            >>> from iantirta.models.vendor.huggingface_hub import get_webhook
             >>> webhook = get_webhook("654bbbc16f2ec14d77f109cc")
             >>> print(webhook)
             WebhookInfo(
@@ -10755,7 +10755,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import list_webhooks
+            >>> from iantirta.models.vendor.huggingface_hub import list_webhooks
             >>> webhooks = list_webhooks()
             >>> len(webhooks)
             2
@@ -10836,7 +10836,7 @@ class HfApi:
 
             Create a webhook that sends a payload to a URL
             ```python
-            >>> from huggingface_hub import create_webhook
+            >>> from iantirta.models.vendor.huggingface_hub import create_webhook
             >>> payload = create_webhook(
             ...     watched=[{"type": "user", "name": "julien-c"}, {"type": "org", "name": "HuggingFaceH4"}],
             ...     url="https://webhook.site/a2176e82-5720-43ee-9e06-f91cb4c91548",
@@ -10857,7 +10857,7 @@ class HfApi:
 
             Run a Job and then create a webhook that triggers this Job
             ```python
-            >>> from huggingface_hub import create_webhook, run_job
+            >>> from iantirta.models.vendor.huggingface_hub import create_webhook, run_job
             >>> job = run_job(
             ...     image="ubuntu",
             ...     command=["bash", "-c", r"echo An event occurred in $WEBHOOK_REPO_ID: $WEBHOOK_PAYLOAD"],
@@ -10975,7 +10975,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import update_webhook
+            >>> from iantirta.models.vendor.huggingface_hub import update_webhook
             >>> updated_payload = update_webhook(
             ...     webhook_id="654bbbc16f2ec14d77f109cc",
             ...     url="https://new.webhook.site/a2176e82-5720-43ee-9e06-f91cb4c91548",
@@ -11054,7 +11054,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import enable_webhook
+            >>> from iantirta.models.vendor.huggingface_hub import enable_webhook
             >>> enabled_webhook = enable_webhook("654bbbc16f2ec14d77f109cc")
             >>> enabled_webhook
             WebhookInfo(
@@ -11107,7 +11107,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import disable_webhook
+            >>> from iantirta.models.vendor.huggingface_hub import disable_webhook
             >>> disabled_webhook = disable_webhook("654bbbc16f2ec14d77f109cc")
             >>> disabled_webhook
             WebhookInfo(
@@ -11159,7 +11159,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import delete_webhook
+            >>> from iantirta.models.vendor.huggingface_hub import delete_webhook
             >>> delete_webhook("654bbbc16f2ec14d77f109cc")
             ```
         """
@@ -11528,7 +11528,7 @@ class HfApi:
         Example:
 
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
 
         >>> api = HfApi()
 
@@ -11633,7 +11633,7 @@ class HfApi:
         Example:
 
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
 
         >>> api = HfApi()
         >>> list(api.list_daily_papers(date="2025-10-29"))
@@ -11706,8 +11706,8 @@ class HfApi:
             Check if the user has access to a repository:
 
             ```python
-            >>> from huggingface_hub import auth_check
-            >>> from huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError
+            >>> from iantirta.models.vendor.huggingface_hub import auth_check
+            >>> from iantirta.models.vendor.huggingface_hub.utils import GatedRepoError, RepositoryNotFoundError
 
             try:
                 auth_check("user/my-cool-model")
@@ -11843,14 +11843,14 @@ class HfApi:
             Run your first Job:
 
             ```python
-            >>> from huggingface_hub import run_job
+            >>> from iantirta.models.vendor.huggingface_hub import run_job
             >>> run_job(image="python:3.12", command=["python", "-c" ,"print('Hello from HF compute!')"])
             ```
 
             Run a GPU Job:
 
             ```python
-            >>> from huggingface_hub import run_job
+            >>> from iantirta.models.vendor.huggingface_hub import run_job
             >>> image = "pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel"
             >>> command = ["python", "-c", "import torch; print(f"This code ran with the following GPU: {torch.cuda.get_device_name()}")"]
             >>> run_job(image=image, command=command, flavor="a10g-small")
@@ -11859,7 +11859,7 @@ class HfApi:
             Run a Job with volumes:
 
             ```python
-            >>> from huggingface_hub import Volume, run_job
+            >>> from iantirta.models.vendor.huggingface_hub import Volume, run_job
             >>> dataset_volume = Volume(type="dataset", source="HuggingFaceFW/fineweb", mount_path="/data")
             >>> output_bucket_volume = Volume(type="bucket", source="username/my-bucket", mount_path="/output")
             >>> image = "duckdb/duckdb"
@@ -11976,7 +11976,7 @@ class HfApi:
         Example:
 
             ```python
-            >>> from huggingface_hub import fetch_job_logs, run_job
+            >>> from iantirta.models.vendor.huggingface_hub import fetch_job_logs, run_job
             >>> job = run_job(image="python:3.12", command=["python", "-c" ,"print('Hello from HF compute!')"])
             >>> for log in fetch_job_logs(job_id=job.id):
             ...     print(log)
@@ -12045,7 +12045,7 @@ class HfApi:
         Example:
 
             ```python
-            >>> from huggingface_hub import fetch_job_metrics, run_job
+            >>> from iantirta.models.vendor.huggingface_hub import fetch_job_metrics, run_job
             >>> job = run_job(image="python:3.12", command=["python", "-c" ,"print('Hello from HF compute!')"], flavor="a10g-small")
             >>> for metrics in fetch_job_metrics(job_id=job.id):
             ...     print(metrics)
@@ -12144,7 +12144,7 @@ class HfApi:
         Example:
 
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
         >>> api = HfApi()
         >>> hardware_list = api.list_jobs_hardware()
         >>> hardware_list[0]
@@ -12187,7 +12187,7 @@ class HfApi:
         Example:
 
             ```python
-            >>> from huggingface_hub import inspect_job, run_job
+            >>> from iantirta.models.vendor.huggingface_hub import inspect_job, run_job
             >>> job = run_job(image="python:3.12", command=["python", "-c" ,"print('Hello from HF compute!')"])
             >>> inspect_job(job.id)
             JobInfo(
@@ -12293,7 +12293,7 @@ class HfApi:
         Example:
 
             ```python
-            >>> from huggingface_hub import run_job, wait_for_job
+            >>> from iantirta.models.vendor.huggingface_hub import run_job, wait_for_job
             >>> job = run_job(image="python:3.12", command=["python", "-c", "print('Hello from HF compute!')"])
             >>> wait_for_job(job_id=job.id).status.stage
             'COMPLETED'
@@ -12594,7 +12594,7 @@ class HfApi:
             Run a script from a URL:
 
             ```python
-            >>> from huggingface_hub import run_uv_job
+            >>> from iantirta.models.vendor.huggingface_hub import run_uv_job
             >>> script = "https://raw.githubusercontent.com/huggingface/trl/refs/heads/main/trl/scripts/sft.py"
             >>> script_args = ["--model_name_or_path", "Qwen/Qwen2-0.5B", "--dataset_name", "trl-lib/Capybara", "--push_to_hub"]
             >>> run_uv_job(script, script_args=script_args, dependencies=["trl"], flavor="a10g-small")
@@ -12603,7 +12603,7 @@ class HfApi:
             Run a local script:
 
             ```python
-            >>> from huggingface_hub import run_uv_job
+            >>> from iantirta.models.vendor.huggingface_hub import run_uv_job
             >>> script = "my_sft.py"
             >>> script_args = ["--model_name_or_path", "Qwen/Qwen2-0.5B", "--dataset_name", "trl-lib/Capybara", "--push_to_hub"]
             >>> run_uv_job(script, script_args=script_args, dependencies=["trl"], flavor="a10g-small")
@@ -12612,7 +12612,7 @@ class HfApi:
             Run a command:
 
             ```python
-            >>> from huggingface_hub import run_uv_job
+            >>> from iantirta.models.vendor.huggingface_hub import run_uv_job
             >>> script = "lighteval"
             >>> script_args= ["endpoint", "inference-providers", "model_name=openai/gpt-oss-20b,provider=auto", "lighteval|gsm8k|0|0"]
             >>> run_uv_job(script, script_args=script_args, dependencies=["lighteval"], flavor="a10g-small")
@@ -12621,7 +12621,7 @@ class HfApi:
             Mount volumes, e.g. to save model checkpoints during training:
 
             ```python
-            >>> from huggingface_hub import Volume, run_uv_job
+            >>> from iantirta.models.vendor.huggingface_hub import Volume, run_uv_job
             >>> script = "my_sft.py"
             >>> script_args = ["--output_dir", "/training-outputs/training-v3-final", ...]
             >>> checkpoints_bucket = Volume(type="bucket", source="username/my-bucket", mount_path="/training-outputs")
@@ -12771,21 +12771,21 @@ class HfApi:
             Create your first scheduled Job:
 
             ```python
-            >>> from huggingface_hub import create_scheduled_job
+            >>> from iantirta.models.vendor.huggingface_hub import create_scheduled_job
             >>> create_scheduled_job(image="python:3.12", command=["python", "-c" ,"print('Hello from HF compute!')"], schedule="@hourly")
             ```
 
             Use a CRON schedule expression:
 
             ```python
-            >>> from huggingface_hub import create_scheduled_job
+            >>> from iantirta.models.vendor.huggingface_hub import create_scheduled_job
             >>> create_scheduled_job(image="python:3.12", command=["python", "-c" ,"print('this runs every 5min')"], schedule="*/5 * * * *")
             ```
 
             Create a scheduled GPU Job:
 
             ```python
-            >>> from huggingface_hub import create_scheduled_job
+            >>> from iantirta.models.vendor.huggingface_hub import create_scheduled_job
             >>> image = "pytorch/pytorch:2.6.0-cuda12.4-cudnn9-devel"
             >>> command = ["python", "-c", "import torch; print(f"This code ran with the following GPU: {torch.cuda.get_device_name()}")"]
             >>> create_scheduled_job(image, command, flavor="a10g-small", schedule="@hourly")
@@ -12909,7 +12909,7 @@ class HfApi:
         Example:
 
             ```python
-            >>> from huggingface_hub import inspect_job, create_scheduled_job
+            >>> from iantirta.models.vendor.huggingface_hub import inspect_job, create_scheduled_job
             >>> scheduled_job = create_scheduled_job(image="python:3.12", command=["python", "-c" ,"print('Hello from HF compute!')"], schedule="@hourly")
             >>> inspect_scheduled_job(scheduled_job.id)
             ```
@@ -13049,7 +13049,7 @@ class HfApi:
         Example:
 
             ```python
-            >>> from huggingface_hub import update_scheduled_job_schedule
+            >>> from iantirta.models.vendor.huggingface_hub import update_scheduled_job_schedule
             >>> scheduled_job = update_scheduled_job_schedule(scheduled_job_id="6abb8dc9c617607c354d45f4", schedule="@daily")
             >>> scheduled_job.schedule
             '@daily'
@@ -13267,7 +13267,7 @@ class HfApi:
             Schedule a script from a URL:
 
             ```python
-            >>> from huggingface_hub import create_scheduled_uv_job
+            >>> from iantirta.models.vendor.huggingface_hub import create_scheduled_uv_job
             >>> script = "https://raw.githubusercontent.com/huggingface/trl/refs/heads/main/trl/scripts/sft.py"
             >>> script_args = ["--model_name_or_path", "Qwen/Qwen2-0.5B", "--dataset_name", "trl-lib/Capybara", "--push_to_hub"]
             >>> create_scheduled_uv_job(script, script_args=script_args, dependencies=["trl"], flavor="a10g-small", schedule="@weekly")
@@ -13276,7 +13276,7 @@ class HfApi:
             Schedule a local script:
 
             ```python
-            >>> from huggingface_hub import create_scheduled_uv_job
+            >>> from iantirta.models.vendor.huggingface_hub import create_scheduled_uv_job
             >>> script = "my_sft.py"
             >>> script_args = ["--model_name_or_path", "Qwen/Qwen2-0.5B", "--dataset_name", "trl-lib/Capybara", "--push_to_hub"]
             >>> create_scheduled_uv_job(script, script_args=script_args, dependencies=["trl"], flavor="a10g-small", schedule="@weekly")
@@ -13285,7 +13285,7 @@ class HfApi:
             Schedule a command:
 
             ```python
-            >>> from huggingface_hub import create_scheduled_uv_job
+            >>> from iantirta.models.vendor.huggingface_hub import create_scheduled_uv_job
             >>> script = "lighteval"
             >>> script_args= ["endpoint", "inference-providers", "model_name=openai/gpt-oss-20b,provider=auto", "lighteval|gsm8k|0|0"]
             >>> create_scheduled_uv_job(script, script_args=script_args, dependencies=["lighteval"], flavor="a10g-small", schedule="@weekly")
@@ -13506,7 +13506,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import run_uv_job, sync_job_volume
+            >>> from iantirta.models.vendor.huggingface_hub import run_uv_job, sync_job_volume
 
             # Upload ./training-data once, then run multiple jobs against it
             >>> volume = sync_job_volume("./training-data", "/data")
@@ -13592,7 +13592,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import create_bucket
+            >>> from iantirta.models.vendor.huggingface_hub import create_bucket
 
             >>> url = create_bucket(bucket_id="my-bucket")
             >>> url.bucket_id
@@ -13678,7 +13678,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import bucket_info
+            >>> from iantirta.models.vendor.huggingface_hub import bucket_info
             >>> info = bucket_info(bucket_id="Wauplin/first-bucket")
             >>> info.id
             'Wauplin/first-bucket'
@@ -13727,7 +13727,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import list_buckets
+            >>> from iantirta.models.vendor.huggingface_hub import list_buckets
             >>> for bucket in list_buckets(): # lists buckets in the user's namespace
             ...     print(bucket)
 
@@ -13776,7 +13776,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import delete_bucket
+            >>> from iantirta.models.vendor.huggingface_hub import delete_bucket
             >>> delete_bucket(bucket_id="Wauplin/first-bucket")
             >>> delete_bucket(bucket_id="Wauplin/first-bucket", missing_ok=True)
             ```
@@ -13827,7 +13827,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import move_bucket
+            >>> from iantirta.models.vendor.huggingface_hub import move_bucket
 
             >>> # Rename a bucket within the same namespace
             >>> move_bucket(from_id="username/old-name", to_id="username/new-name")
@@ -13878,7 +13878,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import update_bucket_settings
+            >>> from iantirta.models.vendor.huggingface_hub import update_bucket_settings
 
             >>> # Make a bucket public
             >>> update_bucket_settings(bucket_id="Wauplin/first-bucket", private=False)
@@ -13924,7 +13924,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import list_bucket_tree
+            >>> from iantirta.models.vendor.huggingface_hub import list_bucket_tree
             >>> for file_info in list_bucket_tree(bucket_id="username/my-bucket"):
             ...     print(file_info.path)
 
@@ -13980,7 +13980,7 @@ class HfApi:
 
         Example:
         ```py
-        >>> from huggingface_hub import get_bucket_paths_info
+        >>> from iantirta.models.vendor.huggingface_hub import get_bucket_paths_info
         >>> paths_info = get_bucket_paths_info("username/my-bucket", ["file.txt", "checkpoints/model.safetensors"])
         >>> for info in paths_info:
         ...     print(info)
@@ -14042,7 +14042,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import copy_files
+            >>> from iantirta.models.vendor.huggingface_hub import copy_files
 
             # Copy a single file between buckets
             >>> copy_files("hf://buckets/my-bucket/data.bin", "hf://buckets/other-bucket/data.bin")
@@ -14367,7 +14367,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import batch_bucket_files
+            >>> from iantirta.models.vendor.huggingface_hub import batch_bucket_files
 
             # Upload files
             >>> batch_bucket_files(
@@ -14629,7 +14629,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import get_bucket_file_metadata
+            >>> from iantirta.models.vendor.huggingface_hub import get_bucket_file_metadata
             >>> metadata = get_bucket_file_metadata(
             ...     bucket_id="username/my-bucket",
             ...     remote_path="models/model.safetensors",
@@ -14694,7 +14694,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import download_bucket_files
+            >>> from iantirta.models.vendor.huggingface_hub import download_bucket_files
 
             >>> download_bucket_files(
             ...     bucket_id="username/my-bucket",
@@ -14706,7 +14706,7 @@ class HfApi:
             ```
 
             ```python
-            >>> from huggingface_hub import download_bucket_files
+            >>> from iantirta.models.vendor.huggingface_hub import download_bucket_files
 
             >>> parquet_files = [file for file in list_bucket_tree(bucket_id="username/my-bucket") if file.path.endswith(".parquet")]
             >>> download_bucket_files(
@@ -14867,7 +14867,7 @@ class HfApi:
 
         Example:
             ```python
-            >>> from huggingface_hub import HfApi
+            >>> from iantirta.models.vendor.huggingface_hub import HfApi
             >>> api = HfApi()
 
             # Upload local directory to bucket

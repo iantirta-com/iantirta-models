@@ -201,7 +201,7 @@ def is_offline_mode() -> bool:
 
     Example:
         ```py
-        from huggingface_hub import is_offline_mode
+        from iantirta.models.vendor.huggingface_hub import is_offline_mode
 
         def list_files(repo_id: str):
             if is_offline_mode():

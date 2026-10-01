@@ -83,7 +83,7 @@ class HFSummaryWriter:
     ```diff
     # Taken from https://pytorch.org/docs/stable/tensorboard.html
     - from torch.utils.tensorboard import SummaryWriter
-    + from huggingface_hub import HFSummaryWriter
+    + from iantirta.models.vendor.huggingface_hub import HFSummaryWriter
 
     import numpy as np
 
@@ -98,7 +98,7 @@ class HFSummaryWriter:
     ```
 
     ```py
-    >>> from huggingface_hub import HFSummaryWriter
+    >>> from iantirta.models.vendor.huggingface_hub import HFSummaryWriter
 
     # Logs are automatically pushed every 15 minutes (5 by default) + when exiting the context manager
     >>> with HFSummaryWriter(repo_id="test_hf_logger", commit_every=15) as logger:

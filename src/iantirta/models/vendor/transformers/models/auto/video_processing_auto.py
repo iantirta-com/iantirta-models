@@ -164,13 +164,13 @@ def get_video_processor_config(
     Examples:
 
     ```python
-    # Download configuration from huggingface.co and cache.
+    # Download configuration from iantirta.models.vendor.huggingface.co and cache.
     video_processor_config = get_video_processor_config("llava-hf/llava-onevision-qwen2-0.5b-ov-hf")
     # This model does not have a video processor config so the result will be an empty dict.
     video_processor_config = get_video_processor_config("FacebookAI/xlm-roberta-base")
 
     # Save a pretrained video processor locally and you can reload its config
-    from transformers import AutoVideoProcessor
+    from iantirta.models.vendor.transformers import AutoVideoProcessor
 
     video_processor = AutoVideoProcessor.from_pretrained("llava-hf/llava-onevision-qwen2-0.5b-ov-hf")
     video_processor.save_pretrained("video-processor-test")
@@ -308,9 +308,9 @@ class AutoVideoProcessor:
         Examples:
 
         ```python
-        >>> from transformers import AutoVideoProcessor
+        >>> from iantirta.models.vendor.transformers import AutoVideoProcessor
 
-        >>> # Download video processor from huggingface.co and cache.
+        >>> # Download video processor from iantirta.models.vendor.huggingface.co and cache.
         >>> video_processor = AutoVideoProcessor.from_pretrained("llava-hf/llava-onevision-qwen2-0.5b-ov-hf")
 
         >>> # If video processor files are in a directory (e.g. video processor was saved using *save_pretrained('./test/saved_model/')*)

@@ -36,7 +36,7 @@ def chunk_iterable(iterable: Iterable[T], chunk_size: int) -> Iterable[Iterable[
     Example:
 
     ```python
-    >>> from huggingface_hub.utils import chunk_iterable
+    >>> from iantirta.models.vendor.huggingface_hub.utils import chunk_iterable
 
     >>> for items in chunk_iterable(range(17), chunk_size=8):
     ...     print(items)

@@ -1,11 +1,11 @@
 from functools import lru_cache
 from typing import Any, overload
 
-from huggingface_hub import constants
-from huggingface_hub.hf_api import InferenceProviderMapping
-from huggingface_hub.inference._common import MimeBytes, RequestParameters
-from huggingface_hub.inference._generated.types.chat_completion import ChatCompletionInputMessage
-from huggingface_hub.utils import build_hf_headers, get_token, logging
+from iantirta.models.vendor.huggingface_hub import constants
+from iantirta.models.vendor.huggingface_hub.hf_api import InferenceProviderMapping
+from iantirta.models.vendor.huggingface_hub.inference._common import MimeBytes, RequestParameters
+from iantirta.models.vendor.huggingface_hub.inference._generated.types.chat_completion import ChatCompletionInputMessage
+from iantirta.models.vendor.huggingface_hub.utils import build_hf_headers, get_token, logging
 
 
 logger = logging.get_logger(__name__)
@@ -350,7 +350,7 @@ def _fetch_inference_provider_mapping(model: str) -> list["InferenceProviderMapp
     """
     Fetch provider mappings for a model from the Hub.
     """
-    from huggingface_hub.hf_api import HfApi
+    from iantirta.models.vendor.huggingface_hub.hf_api import HfApi
 
     info = HfApi().model_info(model, expand=["inferenceProviderMapping"])
     provider_mapping = info.inference_provider_mapping

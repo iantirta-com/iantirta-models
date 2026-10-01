@@ -186,7 +186,7 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
     Usage:
 
     ```python
-    >>> from huggingface_hub import hffs
+    >>> from iantirta.models.vendor.huggingface_hub import hffs
 
     >>> # List files
     >>> hffs.glob("my-username/my-model/*.bin")
@@ -203,7 +203,7 @@ class HfFileSystem(fsspec.AbstractFileSystem, metaclass=_Cached):  # ty: ignore[
 
     Specify a token for authentication:
     ```python
-    >>> from huggingface_hub import HfFileSystem
+    >>> from iantirta.models.vendor.huggingface_hub import HfFileSystem
     >>> hffs = HfFileSystem(token=token)
     ```
     """

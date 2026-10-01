@@ -27,9 +27,9 @@ from typing import Annotated, Literal
 
 import click
 
-from huggingface_hub import HfApi
-from huggingface_hub.errors import CLIError
-from huggingface_hub.utils import HfUri, SoftTemporaryDirectory, disable_progress_bars, is_hf_uri, parse_hf_uri
+from iantirta.models.vendor.huggingface_hub import HfApi
+from iantirta.models.vendor.huggingface_hub.errors import CLIError
+from iantirta.models.vendor.huggingface_hub.utils import HfUri, SoftTemporaryDirectory, disable_progress_bars, is_hf_uri, parse_hf_uri
 
 from ._cli_utils import TokenOpt, get_hf_api
 from ._framework import Argument

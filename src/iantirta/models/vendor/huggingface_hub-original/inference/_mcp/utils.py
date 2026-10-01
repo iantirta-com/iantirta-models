@@ -8,8 +8,8 @@ import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional
 
-from huggingface_hub import snapshot_download
-from huggingface_hub.errors import EntryNotFoundError
+from iantirta.models.vendor.huggingface_hub import snapshot_download
+from iantirta.models.vendor.huggingface_hub.errors import EntryNotFoundError
 
 from .constants import DEFAULT_AGENT, DEFAULT_REPO_ID, FILENAME_CONFIG, PROMPT_FILENAMES
 from .types import AgentConfig

@@ -318,7 +318,7 @@ class ModelCardData(CardData):
 
     Example:
         ```python
-        >>> from huggingface_hub import ModelCardData
+        >>> from iantirta.models.vendor.huggingface_hub import ModelCardData
         >>> card_data = ModelCardData(
         ...     language="en",
         ...     license="mit",
@@ -514,7 +514,7 @@ class SpaceCardData(CardData):
 
     Example:
         ```python
-        >>> from huggingface_hub import SpaceCardData
+        >>> from iantirta.models.vendor.huggingface_hub import SpaceCardData
         >>> card_data = SpaceCardData(
         ...     title="Dreambooth Training",
         ...     license="mit",
@@ -578,7 +578,7 @@ def model_index_to_eval_results(model_index: list[dict[str, Any]]) -> tuple[str,
 
     Example:
         ```python
-        >>> from huggingface_hub.repocard_data import model_index_to_eval_results
+        >>> from iantirta.models.vendor.huggingface_hub.repocard_data import model_index_to_eval_results
         >>> # Define a minimal model index
         >>> model_index = [
         ...     {
@@ -692,7 +692,7 @@ def eval_results_to_model_index(model_name: str, eval_results: list[EvalResult])
 
     Example:
         ```python
-        >>> from huggingface_hub.repocard_data import eval_results_to_model_index, EvalResult
+        >>> from iantirta.models.vendor.huggingface_hub.repocard_data import eval_results_to_model_index, EvalResult
         >>> # Define minimal eval_results
         >>> eval_results = [
         ...     EvalResult(

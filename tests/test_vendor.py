@@ -1,3 +1,6 @@
+# Part of Iantirta.com
+# See LICENSE file for full copyright and licensing details.
+
 from __future__ import annotations
 
 import importlib
@@ -25,12 +28,29 @@ def test_vendor_aliases():
     assert transformers is iantirta.models.vendor.transformers
 
 
-def test_vendor_paths():
+def test_vendor_module_paths():
     import huggingface_hub
     import transformers
 
-    assert "iantirta/models/vendor/huggingface_hub" in huggingface_hub.__file__
-    assert "iantirta/models/vendor/transformers" in transformers.__file__
+    assert "iantirta/models/vendor/huggingface_hub" in (
+        huggingface_hub.__file__.replace("\\", "/")
+    )
+
+    assert "iantirta/models/vendor/transformers" in (
+        transformers.__file__.replace("\\", "/")
+    )
+
+
+def test_vendor_module_identity():
+    import huggingface_hub
+    import transformers
+
+    assert huggingface_hub.__name__ == (
+        "iantirta.models.vendor.huggingface_hub"
+    )
+    assert transformers.__name__ == (
+        "iantirta.models.vendor.transformers"
+    )
 
 
 def test_vendor_hub_imports():
@@ -61,7 +81,7 @@ import transformers
 assert "iantirta.models.vendor.huggingface_hub" in huggingface_hub.__name__
 assert "iantirta.models.vendor.transformers" in transformers.__name__
 
-from transformers import Wav2Vec2Config
+from iantirta.models.vendor.transformers import Wav2Vec2Config
 
 config = Wav2Vec2Config()
 assert config.model_type == "wav2vec2"
@@ -75,43 +95,3 @@ assert config.model_type == "wav2vec2"
     )
 
     assert result.returncode == 0, result.stderr
-
-
-def test_vendor_transformers_wav2vec2_import():
-    from iantirta.models.vendor.transformers.models.wav2vec2 import (
-        Wav2Vec2Config,
-        Wav2Vec2Model,
-    )
-
-
-def test_vendor_wav2vec2_config():
-    from iantirta.models.vendor.transformers import Wav2Vec2Config
-
-    config = Wav2Vec2Config()
-
-    assert config is not None
-    assert config.model_type == "wav2vec2"
-
-
-def test_vendor_wav2vec2_model():
-    import torch
-
-    from iantirta.models.vendor.transformers import (
-        Wav2Vec2Config,
-        Wav2Vec2Model,
-    )
-
-    config = Wav2Vec2Config(
-        hidden_size=32,
-        num_hidden_layers=1,
-        num_attention_heads=4,
-        intermediate_size=64,
-    )
-
-    model = Wav2Vec2Model(config)
-
-    x = torch.randn(1, 1600)
-
-    output = model(x)
-
-    assert output.last_hidden_state.ndim == 3

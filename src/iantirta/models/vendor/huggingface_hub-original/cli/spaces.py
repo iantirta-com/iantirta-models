@@ -31,16 +31,16 @@ import click
 from packaging import version
 from typing_extensions import assert_never
 
-from huggingface_hub._hot_reload.client import multi_replica_reload_events
-from huggingface_hub._hot_reload.types import ApiGetReloadEventSourceData, ReloadRegion
-from huggingface_hub._space_api import SpaceHardware, SpaceStage
-from huggingface_hub.cli._cli_utils import SoftChoice
-from huggingface_hub.errors import CLIError, RemoteEntryNotFoundError, RepositoryNotFoundError, RevisionNotFoundError
-from huggingface_hub.file_download import hf_hub_download
-from huggingface_hub.hf_api import ExpandSpaceProperty_T, HfApi, SpaceSort_T
-from huggingface_hub.repocard import SpaceCard
-from huggingface_hub.utils import disable_progress_bars
-from huggingface_hub.utils._parsing import parse_duration
+from iantirta.models.vendor.huggingface_hub._hot_reload.client import multi_replica_reload_events
+from iantirta.models.vendor.huggingface_hub._hot_reload.types import ApiGetReloadEventSourceData, ReloadRegion
+from iantirta.models.vendor.huggingface_hub._space_api import SpaceHardware, SpaceStage
+from iantirta.models.vendor.huggingface_hub.cli._cli_utils import SoftChoice
+from iantirta.models.vendor.huggingface_hub.errors import CLIError, RemoteEntryNotFoundError, RepositoryNotFoundError, RevisionNotFoundError
+from iantirta.models.vendor.huggingface_hub.file_download import hf_hub_download
+from iantirta.models.vendor.huggingface_hub.hf_api import ExpandSpaceProperty_T, HfApi, SpaceSort_T
+from iantirta.models.vendor.huggingface_hub.repocard import SpaceCard
+from iantirta.models.vendor.huggingface_hub.utils import disable_progress_bars
+from iantirta.models.vendor.huggingface_hub.utils._parsing import parse_duration
 
 from ._cli_utils import (
     REPO_LIST_DEFAULT_LIMIT,

@@ -437,7 +437,7 @@ class HFCacheInfo:
 
         Examples:
         ```py
-        >>> from huggingface_hub import scan_cache_dir
+        >>> from iantirta.models.vendor.huggingface_hub import scan_cache_dir
         >>> cache_info = scan_cache_dir()
         >>> delete_strategy = cache_info.delete_revisions(
         ...     "81fd1d6e7847c99f5862c9fb81387956d99ec7aa"
@@ -449,7 +449,7 @@ class HFCacheInfo:
         ```
 
         ```py
-        >>> from huggingface_hub import scan_cache_dir
+        >>> from iantirta.models.vendor.huggingface_hub import scan_cache_dir
         >>> scan_cache_dir().delete_revisions(
         ...     "81fd1d6e7847c99f5862c9fb81387956d99ec7aa",
         ...     "e2983b237dccf3ab4937c97fa717319a9ca1a96d",
@@ -552,7 +552,7 @@ class HFCacheInfo:
 
         Example:
         ```py
-        >>> from huggingface_hub import scan_cache_dir
+        >>> from iantirta.models.vendor.huggingface_hub import scan_cache_dir
         >>> cache_info = scan_cache_dir()
         >>> files = [
         ...     file
@@ -603,7 +603,7 @@ class HFCacheInfo:
 
         Example:
         ```py
-        >>> from huggingface_hub.utils import scan_cache_dir
+        >>> from iantirta.models.vendor.huggingface_hub.utils import scan_cache_dir
 
         >>> hf_cache_info = scan_cache_dir()
         HFCacheInfo(...)
@@ -696,7 +696,7 @@ def scan_cache_dir(cache_dir: str | Path | None = None) -> HFCacheInfo:
     structure. Only valid repos get a proper report.
 
     ```py
-    >>> from huggingface_hub import scan_cache_dir
+    >>> from iantirta.models.vendor.huggingface_hub import scan_cache_dir
 
     >>> hf_cache_info = scan_cache_dir()
     HFCacheInfo(

@@ -13,7 +13,7 @@
 # limitations under the License.
 import io
 
-from huggingface_hub.utils import httpx
+from iantirta.models.vendor.huggingface_hub.utils import httpx
 from PIL import Image
 
 from ..masking_utils import create_causal_mask

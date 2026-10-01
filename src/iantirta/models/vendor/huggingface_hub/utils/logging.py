@@ -87,7 +87,7 @@ def get_logger(name: str | None = None) -> logging.Logger:
         Example:
 
     ```python
-    >>> from huggingface_hub import get_logger
+    >>> from iantirta.models.vendor.huggingface_hub import get_logger
 
     >>> logger = get_logger(__file__)
     >>> logger.set_verbosity_info()

@@ -27,9 +27,9 @@ from urllib.parse import urlsplit
 
 import httpx2
 
-from huggingface_hub import constants
-from huggingface_hub.errors import CLIError
-from huggingface_hub.utils import SoftTemporaryDirectory, get_session
+from iantirta.models.vendor.huggingface_hub import constants
+from iantirta.models.vendor.huggingface_hub.errors import CLIError
+from iantirta.models.vendor.huggingface_hub.utils import SoftTemporaryDirectory, get_session
 
 
 # Reference regex from PEP 723 (https://peps.python.org/pep-0723/#reference-implementation)

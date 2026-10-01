@@ -1079,7 +1079,7 @@ def sync_bucket_internal(
 
     Example:
         ```python
-        >>> from huggingface_hub import HfApi
+        >>> from iantirta.models.vendor.huggingface_hub import HfApi
         >>> api = HfApi()
 
         # Upload local directory to bucket

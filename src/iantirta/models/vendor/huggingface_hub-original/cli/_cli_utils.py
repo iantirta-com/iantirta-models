@@ -28,9 +28,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Annotated, Any, Literal, TypeVar, cast
 
 import click
-from huggingface_hub import __version__, constants
-from huggingface_hub.errors import CLIError
-from huggingface_hub.utils._dotenv import load_dotenv
+from iantirta.models.vendor.huggingface_hub import __version__, constants
+from iantirta.models.vendor.huggingface_hub.errors import CLIError
+from iantirta.models.vendor.huggingface_hub.utils._dotenv import load_dotenv
 
 from ._framework import Argument, HfCommand, HfGroup, Option, build_command
 from ._help_formatter import StyledContext
@@ -42,19 +42,19 @@ logger = logging.getLogger(__name__)
 REPO_LIST_DEFAULT_LIMIT = 30
 
 if TYPE_CHECKING:
-    from huggingface_hub import Volume
-    from huggingface_hub.hf_api import HfApi
+    from iantirta.models.vendor.huggingface_hub import Volume
+    from iantirta.models.vendor.huggingface_hub.hf_api import HfApi
 
 
 def installation_method() -> str:
-    from huggingface_hub.utils import installation_method as _installation_method
+    from iantirta.models.vendor.huggingface_hub.utils import installation_method as _installation_method
 
     return _installation_method()
 
 
 def get_hf_api(token: str | None = None) -> "HfApi":
     # Import here to avoid circular import
-    from huggingface_hub.hf_api import HfApi
+    from iantirta.models.vendor.huggingface_hub.hf_api import HfApi
 
     return HfApi(token=token, library_name="huggingface-cli", library_version=__version__)
 
@@ -945,7 +945,7 @@ SecretsFileOpt = Annotated[
 
 def _get_extended_environ() -> dict[str, str]:
     """Return a copy of ``os.environ`` with the user's HF token injected (if available)."""
-    from huggingface_hub import get_token
+    from iantirta.models.vendor.huggingface_hub import get_token
 
     extended_environ = os.environ.copy()
     if (token := get_token()) is not None:
@@ -1032,8 +1032,8 @@ def parse_volumes(volumes: list[str] | None) -> "list[Volume] | None":
     if not volumes:
         return None
 
-    from huggingface_hub import Volume
-    from huggingface_hub.utils import parse_hf_mount
+    from iantirta.models.vendor.huggingface_hub import Volume
+    from iantirta.models.vendor.huggingface_hub.utils import parse_hf_mount
 
     result: list[Volume] = []
     for raw_spec in volumes:
@@ -1174,7 +1174,7 @@ def _check_cli_update(library: Literal["huggingface_hub", "transformers"]) -> No
 def _fetch_latest_pypi_version(library: str) -> str | None:
     """Fetch the latest version of a library from PyPI. Returns None if the request fails."""
     try:
-        from huggingface_hub.utils import get_session, hf_raise_for_status
+        from iantirta.models.vendor.huggingface_hub.utils import get_session, hf_raise_for_status
 
         response = get_session().get(f"https://pypi.org/pypi/{library}/json", timeout=2)
         hf_raise_for_status(response)
@@ -1187,7 +1187,7 @@ def _fetch_latest_pypi_version(library: str) -> str | None:
 def _fetch_latest_brew_version() -> str | None:
     """Fetch the latest version of the `hf` formula from the Homebrew registry. Returns None if the request fails."""
     try:
-        from huggingface_hub.utils import get_session, hf_raise_for_status
+        from iantirta.models.vendor.huggingface_hub.utils import get_session, hf_raise_for_status
 
         response = get_session().get("https://formulae.brew.sh/api/formula/hf.json", timeout=2)
         hf_raise_for_status(response)

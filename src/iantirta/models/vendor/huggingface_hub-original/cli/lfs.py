@@ -22,8 +22,8 @@ import subprocess
 import sys
 from typing import Annotated
 
-from huggingface_hub.errors import CLIError
-from huggingface_hub.lfs import LFS_MULTIPART_UPLOAD_COMMAND
+from iantirta.models.vendor.huggingface_hub.errors import CLIError
+from iantirta.models.vendor.huggingface_hub.lfs import LFS_MULTIPART_UPLOAD_COMMAND
 
 from ..utils import get_session, hf_raise_for_status, logging
 from ..utils._lfs import SliceFileObj

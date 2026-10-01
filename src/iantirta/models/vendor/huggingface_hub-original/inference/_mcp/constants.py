@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from huggingface_hub import ChatCompletionInputTool
+from iantirta.models.vendor.huggingface_hub import ChatCompletionInputTool
 
 
 FILENAME_CONFIG = "agent.json"

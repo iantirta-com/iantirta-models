@@ -209,7 +209,7 @@ def is_pydantic_available() -> bool:
     # by the user in an environment that we don't control.
     #
     # Usually we won't need to do this kind of check on optional dependencies. However, pydantic is a special case
-    # as it is automatically imported when doing `from huggingface_hub import ...` even if the user doesn't use it.
+    # as it is automatically imported when doing `from iantirta.models.vendor.huggingface_hub import ...` even if the user doesn't use it.
     #
     # See https://github.com/huggingface/huggingface_hub/pull/1829 for more details.
     try:

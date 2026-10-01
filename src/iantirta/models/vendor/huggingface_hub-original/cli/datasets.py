@@ -18,10 +18,10 @@ from typing import Annotated, get_args
 
 import click
 
-from huggingface_hub._dataset_viewer import execute_raw_sql_query
-from huggingface_hub.errors import CLIError, RepositoryNotFoundError, RevisionNotFoundError
-from huggingface_hub.hf_api import DatasetSort_T, ExpandDatasetProperty_T
-from huggingface_hub.repocard import DatasetCard
+from iantirta.models.vendor.huggingface_hub._dataset_viewer import execute_raw_sql_query
+from iantirta.models.vendor.huggingface_hub.errors import CLIError, RepositoryNotFoundError, RevisionNotFoundError
+from iantirta.models.vendor.huggingface_hub.hf_api import DatasetSort_T, ExpandDatasetProperty_T
+from iantirta.models.vendor.huggingface_hub.repocard import DatasetCard
 
 from ._cli_utils import (
     REPO_LIST_DEFAULT_LIMIT,

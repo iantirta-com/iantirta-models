@@ -28,9 +28,9 @@ from typing import TYPE_CHECKING, Any, AsyncIterable, Literal, Optional, Union, 
 
 import httpx2
 
-from huggingface_hub import constants
-from huggingface_hub.errors import BadRequestError, HfHubHTTPError, InferenceTimeoutError
-from huggingface_hub.inference._common import (
+from iantirta.models.vendor.huggingface_hub import constants
+from iantirta.models.vendor.huggingface_hub.errors import BadRequestError, HfHubHTTPError, InferenceTimeoutError
+from iantirta.models.vendor.huggingface_hub.inference._common import (
     TASKS_EXPECTING_IMAGES,
     ContentT,
     RequestParameters,
@@ -46,7 +46,7 @@ from huggingface_hub.inference._common import (
     _set_unsupported_text_generation_kwargs,
     raise_text_generation_error,
 )
-from huggingface_hub.inference._generated.types import (
+from iantirta.models.vendor.huggingface_hub.inference._generated.types import (
     AudioClassificationOutputElement,
     AudioClassificationOutputTransform,
     AudioToAudioOutputElement,
@@ -88,8 +88,8 @@ from huggingface_hub.inference._generated.types import (
     ZeroShotClassificationOutputElement,
     ZeroShotImageClassificationOutputElement,
 )
-from huggingface_hub.inference._providers import PROVIDER_OR_POLICY_T, get_provider_helper
-from huggingface_hub.utils import (
+from iantirta.models.vendor.huggingface_hub.inference._providers import PROVIDER_OR_POLICY_T, get_provider_helper
+from iantirta.models.vendor.huggingface_hub.utils import (
     build_hf_headers,
     get_async_session,
     hf_raise_for_status,
@@ -346,7 +346,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.audio_classification("audio.flac")
         [
@@ -398,7 +398,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> audio_output = await client.audio_to_audio("audio.flac")
         >>> async for i, item in enumerate(audio_output):
@@ -452,7 +452,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.automatic_speech_recognition("hello_world.flac").text
         "hello world"
@@ -657,7 +657,7 @@ class AsyncInferenceClient:
 
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> messages = [{"role": "user", "content": "What is the capital of France?"}]
         >>> client = AsyncInferenceClient("meta-llama/Meta-Llama-3-8B-Instruct")
         >>> await client.chat_completion(messages, max_tokens=100)
@@ -691,7 +691,7 @@ class AsyncInferenceClient:
         Example using streaming:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> messages = [{"role": "user", "content": "What is the capital of France?"}]
         >>> client = AsyncInferenceClient("meta-llama/Meta-Llama-3-8B-Instruct")
         >>> async for token in await client.chat_completion(messages, max_tokens=10, stream=True):
@@ -706,7 +706,7 @@ class AsyncInferenceClient:
         ```py
         # Must be run in an async context
         # instead of `from openai import OpenAI`
-        from huggingface_hub import AsyncInferenceClient
+        from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
 
         # instead of `client = OpenAI(...)`
         client = AsyncInferenceClient(
@@ -730,7 +730,7 @@ class AsyncInferenceClient:
 
         Example using a third-party provider directly with extra (provider-specific) parameters. Usage will be billed on your Together AI account.
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> client = InferenceClient(
         ...     provider="together",  # Use Together AI provider
         ...     api_key="<together_api_key>",  # Pass your Together API key directly
@@ -744,7 +744,7 @@ class AsyncInferenceClient:
 
         Example using a third-party provider through Hugging Face Routing. Usage will be billed on your Hugging Face account.
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> client = InferenceClient(
         ...     provider="novita",  # Use Novita provider
         ...     api_key="hf_...",  # Pass your HF token
@@ -758,7 +758,7 @@ class AsyncInferenceClient:
         Example using Image + Text as input:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
 
         # provide a remote URL
         >>> image_url ="https://cdn.britannica.com/61/93061-050-99147DCE/Statue-of-Liberty-Island-New-York-Bay.jpg"
@@ -877,7 +877,7 @@ class AsyncInferenceClient:
         Example using response_format:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient("meta-llama/Meta-Llama-3-70B-Instruct")
         >>> messages = [
         ...     {
@@ -1017,7 +1017,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.document_question_answering(image="https://huggingface.co/spaces/impira/docquery/resolve/2359223c1837a7587402bda0f2643382a6eefeab/invoice.png", question="What is the invoice number?")
         [DocumentQuestionAnsweringOutputElement(answer='us-001', end=16, score=0.9999666213989258, start=16)]
@@ -1100,7 +1100,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.feature_extraction("Hi, who are you?")
         array([[ 2.424802  ,  2.93384   ,  1.1750331 , ...,  1.240499, -0.13776633, -0.7889173 ],
@@ -1165,7 +1165,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.fill_mask("The goal of life is <mask>.")
         [
@@ -1219,7 +1219,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.image_classification("https://upload.wikimedia.org/wikipedia/commons/thumb/4/43/Cute_dog.jpg/320px-Cute_dog.jpg")
         [ImageClassificationOutputElement(label='Blenheim spaniel', score=0.9779096841812134), ...]
@@ -1279,7 +1279,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.image_segmentation("cat.jpg")
         [ImageSegmentationOutputElement(score=0.989008, label='LABEL_184', mask=<PIL.PngImagePlugin.PngImageFile image mode=L size=400x300 at 0x7FDD2B129CC0>), ...]
@@ -1356,7 +1356,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> image = await client.image_to_image("cat.jpg", prompt="turn the cat into a tiger")
         >>> image.save("tiger.jpg")
@@ -1434,7 +1434,7 @@ class AsyncInferenceClient:
         Examples:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> video = await client.image_to_video("cat.jpg", model="Wan-AI/Wan2.2-I2V-A14B", prompt="turn the cat into a tiger")
         >>> with open("tiger.mp4", "wb") as f:
@@ -1489,7 +1489,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.image_to_text("cat.jpg")
         'a cat standing in a grassy field '
@@ -1541,7 +1541,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.object_detection("people.jpg")
         [ObjectDetectionOutputElement(score=0.9486683011054993, label='person', box=ObjectDetectionBoundingBox(xmin=59, ymin=39, xmax=420, ymax=510)), ...]
@@ -1616,7 +1616,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.question_answering(question="What's my name?", context="My name is Clara and I live in Berkeley.")
         QuestionAnsweringOutputElement(answer='Clara', end=16, score=0.9326565265655518, start=11)
@@ -1672,7 +1672,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.sentence_similarity(
         ...     "Machine learning is so easy.",
@@ -1734,7 +1734,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.summarization("The Eiffel tower...")
         SummarizationOutput(generated_text="The Eiffel tower is one of the most famous landmarks in the world....")
@@ -1800,7 +1800,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> query = "How many stars does the transformers repository have?"
         >>> table = {"Repository": ["Transformers", "Datasets", "Tokenizers"], "Stars": ["36542", "4512", "3934"]}
@@ -1844,7 +1844,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> table = {
         ...     "fixed_acidity": ["7.4", "7.8", "10.3"],
@@ -1900,7 +1900,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> table = {
         ...     "Height": ["11.52", "12.48", "12.3778"],
@@ -1962,7 +1962,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.text_classification("I like you")
         [
@@ -2241,7 +2241,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
 
         # Case 1: generate text
@@ -2521,7 +2521,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
 
         >>> image = await client.text_to_image("An astronaut riding a horse on the moon.")
@@ -2536,7 +2536,7 @@ class AsyncInferenceClient:
         ```
         Example using a third-party provider directly. Usage will be billed on your fal.ai account.
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> client = InferenceClient(
         ...     provider="fal-ai",  # Use fal.ai provider
         ...     api_key="fal-ai-api-key",  # Pass your fal.ai API key
@@ -2550,7 +2550,7 @@ class AsyncInferenceClient:
 
         Example using a third-party provider through Hugging Face Routing. Usage will be billed on your Hugging Face account.
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> client = InferenceClient(
         ...     provider="replicate",  # Use replicate provider
         ...     api_key="hf_...",  # Pass your HF token
@@ -2564,7 +2564,7 @@ class AsyncInferenceClient:
 
         Example using Replicate provider with extra parameters
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> client = InferenceClient(
         ...     provider="replicate",  # Use replicate provider
         ...     api_key="hf_...",  # Pass your HF token
@@ -2648,7 +2648,7 @@ class AsyncInferenceClient:
 
         Example using a third-party provider directly. Usage will be billed on your fal.ai account.
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> client = InferenceClient(
         ...     provider="fal-ai",  # Using fal.ai provider
         ...     api_key="fal-ai-api-key",  # Pass your fal.ai API key
@@ -2663,7 +2663,7 @@ class AsyncInferenceClient:
 
         Example using a third-party provider through Hugging Face Routing. Usage will be billed on your Hugging Face account.
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> client = InferenceClient(
         ...     provider="replicate",  # Using replicate provider
         ...     api_key="hf_...",  # Pass your HF token
@@ -2795,7 +2795,7 @@ class AsyncInferenceClient:
         ```py
         # Must be run in an async context
         >>> from pathlib import Path
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
 
         >>> audio = await client.text_to_speech("Hello world")
@@ -2804,7 +2804,7 @@ class AsyncInferenceClient:
 
         Example using a third-party provider directly. Usage will be billed on your Replicate account.
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> client = InferenceClient(
         ...     provider="replicate",
         ...     api_key="your-replicate-api-key",  # Pass your Replicate API key directly
@@ -2818,7 +2818,7 @@ class AsyncInferenceClient:
 
         Example using a third-party provider through Hugging Face Routing. Usage will be billed on your Hugging Face account.
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> client = InferenceClient(
         ...     provider="replicate",
         ...     api_key="hf_...",  # Pass your HF token
@@ -2831,7 +2831,7 @@ class AsyncInferenceClient:
         ```
         Example using Replicate provider with extra parameters
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> client = InferenceClient(
         ...     provider="replicate",  # Use replicate provider
         ...     api_key="hf_...",  # Pass your HF token
@@ -2846,7 +2846,7 @@ class AsyncInferenceClient:
 
         Example music-gen using "YuE-s1-7B-anneal-en-cot" on fal.ai
         ```py
-        >>> from huggingface_hub import InferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import InferenceClient
         >>> lyrics = '''
         ... [verse]
         ... In the town where I was born
@@ -2945,7 +2945,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.token_classification("My name is Sarah Jessica Parker but you can call me Jessica")
         [
@@ -3033,7 +3033,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.translation("My name is Wolfgang and I live in Berlin")
         'Mein Name ist Wolfgang und ich lebe in Berlin.'
@@ -3107,7 +3107,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.visual_question_answering(
         ...     image="https://huggingface.co/datasets/mishig/sample_images/resolve/main/tiger.jpg",
@@ -3173,7 +3173,7 @@ class AsyncInferenceClient:
         Example with `multi_label=False`:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> text = (
         ...     "A new model offers an explanation for how the Galilean satellites formed around the solar system's"
@@ -3202,7 +3202,7 @@ class AsyncInferenceClient:
         Example with `multi_label=True` and a custom `hypothesis_template`:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
         >>> await client.zero_shot_classification(
         ...    text="I really like our dinner and I'm very happy. I don't like the weather though.",
@@ -3270,7 +3270,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient()
 
         >>> await client.zero_shot_image_classification(
@@ -3317,7 +3317,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient("meta-llama/Meta-Llama-3-70B-Instruct")
         >>> await client.get_endpoint_info()
         {
@@ -3375,7 +3375,7 @@ class AsyncInferenceClient:
         Example:
         ```py
         # Must be run in an async context
-        >>> from huggingface_hub import AsyncInferenceClient
+        >>> from iantirta.models.vendor.huggingface_hub import AsyncInferenceClient
         >>> client = AsyncInferenceClient("https://jzgu0buei5.us-east-1.aws.endpoints.huggingface.cloud")
         >>> await client.health_check()
         True

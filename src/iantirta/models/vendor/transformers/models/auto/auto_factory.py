@@ -84,9 +84,9 @@ FROM_CONFIG_DOCSTRING = """
         Examples:
 
         ```python
-        >>> from transformers import AutoConfig, BaseAutoModelClass
+        >>> from iantirta.models.vendor.transformers import AutoConfig, BaseAutoModelClass
 
-        >>> # Download configuration from huggingface.co and cache.
+        >>> # Download configuration from iantirta.models.vendor.huggingface.co and cache.
         >>> config = AutoConfig.from_pretrained("checkpoint_placeholder")
         >>> model = BaseAutoModelClass.from_config(config)
         ```
@@ -172,9 +172,9 @@ FROM_PRETRAINED_TORCH_DOCSTRING = """
         Examples:
 
         ```python
-        >>> from transformers import AutoConfig, BaseAutoModelClass
+        >>> from iantirta.models.vendor.transformers import AutoConfig, BaseAutoModelClass
 
-        >>> # Download model and configuration from huggingface.co and cache.
+        >>> # Download model and configuration from iantirta.models.vendor.huggingface.co and cache.
         >>> model = BaseAutoModelClass.from_pretrained("checkpoint_placeholder")
 
         >>> # Update configuration during loading

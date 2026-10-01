@@ -10,7 +10,7 @@ import shutil
 import sys
 import time
 
-from huggingface_hub.hf_api import RepoStorageInfo
+from iantirta.models.vendor.huggingface_hub.hf_api import RepoStorageInfo
 
 from ._file_listing import format_size
 

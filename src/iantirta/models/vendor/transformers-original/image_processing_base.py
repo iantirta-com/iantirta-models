@@ -18,7 +18,7 @@ import os
 from typing import Any, TypeVar
 
 import numpy as np
-from huggingface_hub import is_offline_mode
+from iantirta.models.vendor.huggingface_hub import is_offline_mode
 
 from .dynamic_module_utils import custom_object_save
 from .feature_extraction_utils import BatchFeature as BaseBatchFeature
@@ -153,7 +153,7 @@ class ImageProcessingMixin(PushToHubMixin):
         # derived class: *CLIPImageProcessor*
         image_processor = CLIPImageProcessor.from_pretrained(
             "openai/clip-vit-base-patch32"
-        )  # Download image_processing_config from huggingface.co and cache.
+        )  # Download image_processing_config from iantirta.models.vendor.huggingface.co and cache.
         image_processor = CLIPImageProcessor.from_pretrained(
             "./test/saved_model/"
         )  # E.g. image processor (or model) was saved using *save_pretrained('./test/saved_model/')*
@@ -479,7 +479,7 @@ class ImageProcessingMixin(PushToHubMixin):
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
-        import transformers.models.auto as auto_module
+        import iantirta.models.vendor.transformers.models.auto as auto_module
 
         if not hasattr(auto_module, auto_class):
             raise ValueError(f"{auto_class} is not a valid auto class.")

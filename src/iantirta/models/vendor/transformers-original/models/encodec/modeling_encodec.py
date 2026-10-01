@@ -761,7 +761,7 @@ class EncodecModel(EncodecPreTrainedModel):
 
         ```python
         >>> from datasets import load_dataset
-        >>> from transformers import AutoProcessor, EncodecModel
+        >>> from iantirta.models.vendor.transformers import AutoProcessor, EncodecModel
 
         >>> dataset = load_dataset("hf-internal-testing/ashraq-esc50-1-dog-example")
         >>> audio_sample = dataset["train"]["audio"][0]["array"]

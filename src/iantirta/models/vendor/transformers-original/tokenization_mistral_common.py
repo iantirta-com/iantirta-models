@@ -21,9 +21,9 @@ from typing import Any, Literal, Union, overload
 
 import numpy as np
 
-from transformers.audio_utils import load_audio_as
-from transformers.image_utils import get_image_size
-from transformers.tokenization_utils_base import (
+from iantirta.models.vendor.transformers.audio_utils import load_audio_as
+from iantirta.models.vendor.transformers.image_utils import get_image_size
+from iantirta.models.vendor.transformers.tokenization_utils_base import (
     VERY_LARGE_INTEGER,
     AddedToken,
     BatchEncoding,
@@ -33,7 +33,7 @@ from transformers.tokenization_utils_base import (
     TextInput,
     TruncationStrategy,
 )
-from transformers.utils import (
+from iantirta.models.vendor.transformers.utils import (
     PaddingStrategy,
     TensorType,
     add_end_docstrings,
@@ -42,7 +42,7 @@ from transformers.utils import (
     resolve_revision,
     to_py_obj,
 )
-from transformers.utils.import_utils import is_mistral_common_available, is_torch_available, requires
+from iantirta.models.vendor.transformers.utils.import_utils import is_mistral_common_available, is_torch_available, requires
 
 
 if is_mistral_common_available():
@@ -212,7 +212,7 @@ class MistralCommonBackend(PreTrainedTokenizerBase):
 
     - Pair of sequences are not supported. The signature has been kept for compatibility but all arguments related to pair of sequences are ignored. The return values for pairs are returned as `None`.
     - The `is_split_into_words` argument is not supported.
-    - It is not possible to add new tokens to the tokenizer. Special tokens are handled differently from Transformers. In `mistral-common`, special tokens are never encoded directly. This means that: `tokenizer.encode("<s>")` will not return the ID of the `<s>` token. Instead, it will return a list of IDs corresponding to the tokenization of the string `"<s>"`. For more information, see the [mistral-common documentation](https://mistralai.github.io/mistral-common/usage/tokenizers/#special-tokens).
+    - It is not possible to add new tokens to the tokenizer. Special tokens are handled differently from iantirta.models.vendor.transformers. In `mistral-common`, special tokens are never encoded directly. This means that: `tokenizer.encode("<s>")` will not return the ID of the `<s>` token. Instead, it will return a list of IDs corresponding to the tokenization of the string `"<s>"`. For more information, see the [mistral-common documentation](https://mistralai.github.io/mistral-common/usage/tokenizers/#special-tokens).
 
     If you have suggestions to improve this class, please open an issue on the [mistral-common GitHub repository](https://github.com/mistralai/mistral-common/issues) if it is related to the tokenizer or on the [Transformers GitHub repository](https://github.com/huggingface/transformers/issues) if it is related to the Hugging Face interface.
     """
@@ -1600,7 +1600,7 @@ class MistralCommonBackend(PreTrainedTokenizerBase):
             return
 
         if save_format == "hf":
-            from transformers.integrations.mistral import convert_tekken_tokenizer
+            from iantirta.models.vendor.transformers.integrations.mistral import convert_tekken_tokenizer
 
             if not self._tokenizer_path.is_file():
                 raise OSError(

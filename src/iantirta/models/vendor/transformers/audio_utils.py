@@ -27,8 +27,9 @@ from typing import TYPE_CHECKING, Any, Union
 from urllib.parse import urlparse
 
 import numpy as np
-from huggingface_hub.utils import httpx
 from packaging import version
+
+from iantirta.models.vendor.huggingface_hub.utils import httpx
 
 from .utils import (
     is_librosa_available,
@@ -40,7 +41,6 @@ from .utils import (
     requires_backends,
 )
 from .utils.generic import retry
-
 
 if TYPE_CHECKING:
     import torch

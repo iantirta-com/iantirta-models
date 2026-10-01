@@ -1,10 +1,10 @@
 from typing import Literal, Union
 
-from huggingface_hub.inference._providers.featherless_ai import (
+from iantirta.models.vendor.huggingface_hub.inference._providers.featherless_ai import (
     FeatherlessConversationalTask,
     FeatherlessTextGenerationTask,
 )
-from huggingface_hub.utils import logging
+from iantirta.models.vendor.huggingface_hub.utils import logging
 
 from ._common import AutoRouterConversationalTask, TaskProviderHelper, _fetch_inference_provider_mapping
 from .baseten import BasetenConversationalTask

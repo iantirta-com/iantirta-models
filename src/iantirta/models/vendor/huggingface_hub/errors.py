@@ -102,7 +102,7 @@ class HfHubHTTPError(HTTPError, OSError):
     Example:
     ```py
         import httpx2
-        from huggingface_hub.utils import get_session, hf_raise_for_status, HfHubHTTPError
+        from iantirta.models.vendor.huggingface_hub.utils import get_session, hf_raise_for_status, HfHubHTTPError
 
         response = get_session().post(...)
         try:
@@ -266,7 +266,7 @@ class BucketNotFoundError(HfHubHTTPError):
     Example:
 
     ```py
-    >>> from huggingface_hub import bucket_info
+    >>> from iantirta.models.vendor.huggingface_hub import bucket_info
     >>> bucket_info("<non_existent_bucket>")
     (...)
     huggingface_hub.errors.BucketNotFoundError: 404 Client Error. (Request ID: XXX)
@@ -324,7 +324,7 @@ class RepositoryNotFoundError(HfHubHTTPError):
     Example:
 
     ```py
-    >>> from huggingface_hub import model_info
+    >>> from iantirta.models.vendor.huggingface_hub import model_info
     >>> model_info("<non_existent_repository>")
     (...)
     huggingface_hub.errors.RepositoryNotFoundError: 401 Client Error. (Request ID: PvMw_VjBMjVdMz53WKIzP)
@@ -350,7 +350,7 @@ class GatedRepoError(RepositoryNotFoundError):
     Example:
 
     ```py
-    >>> from huggingface_hub import model_info
+    >>> from iantirta.models.vendor.huggingface_hub import model_info
     >>> model_info("<gated_repository>")
     (...)
     huggingface_hub.errors.GatedRepoError: 403 Client Error. (Request ID: ViT1Bf7O_026LGSQuVqfa)
@@ -369,7 +369,7 @@ class DisabledRepoError(HfHubHTTPError):
     Example:
 
     ```py
-    >>> from huggingface_hub import dataset_info
+    >>> from iantirta.models.vendor.huggingface_hub import dataset_info
     >>> dataset_info("laion/laion-art")
     (...)
     huggingface_hub.errors.DisabledRepoError: 403 Client Error. (Request ID: Root=1-659fc3fa-3031673e0f92c71a2260dbe2;bc6f4dfb-b30a-4862-af0a-5cfe827610d8)
@@ -397,7 +397,7 @@ class RevisionNotFoundError(HfHubHTTPError):
     Example:
 
     ```py
-    >>> from huggingface_hub import hf_hub_download
+    >>> from iantirta.models.vendor.huggingface_hub import hf_hub_download
     >>> hf_hub_download('bert-base-cased', 'config.json', revision='<non-existent-revision>')
     (...)
     huggingface_hub.errors.RevisionNotFoundError: 404 Client Error. (Request ID: Mwhe_c3Kt650GcdKEFomX)
@@ -426,7 +426,7 @@ class EntryNotFoundError(Exception):
     Example:
 
     ```py
-    >>> from huggingface_hub import hf_hub_download
+    >>> from iantirta.models.vendor.huggingface_hub import hf_hub_download
     >>> hf_hub_download('bert-base-cased', '<non-existent-file>')
     (...)
     huggingface_hub.errors.RemoteEntryNotFoundError (...)
@@ -451,7 +451,7 @@ class RemoteEntryNotFoundError(HfHubHTTPError, EntryNotFoundError):
     Example:
 
     ```py
-    >>> from huggingface_hub import hf_hub_download
+    >>> from iantirta.models.vendor.huggingface_hub import hf_hub_download
     >>> hf_hub_download('bert-base-cased', '<non-existent-file>')
     (...)
     huggingface_hub.errors.EntryNotFoundError: 404 Client Error. (Request ID: 53pNl6M0MxsnG5Sw8JA6x)
@@ -472,7 +472,7 @@ class LocalEntryNotFoundError(FileNotFoundError, EntryNotFoundError):
     Example:
 
     ```py
-    >>> from huggingface_hub import hf_hub_download
+    >>> from iantirta.models.vendor.huggingface_hub import hf_hub_download
     >>> hf_hub_download('bert-base-cased', '<non-cached-file>',  local_files_only=True)
     (...)
     huggingface_hub.errors.LocalEntryNotFoundError: Cannot find the requested files in the disk cache and outgoing traffic has been disabled. To enable hf.co look-ups and downloads online, set 'local_files_only' to False.

@@ -67,7 +67,7 @@ class WebhooksServer:
 
         ```python
         import gradio as gr
-        from huggingface_hub import WebhooksServer, WebhookPayload
+        from iantirta.models.vendor.huggingface_hub import WebhooksServer, WebhookPayload
 
         with gr.Blocks() as ui:
             ...
@@ -121,7 +121,7 @@ class WebhooksServer:
 
         Example:
             ```python
-            from huggingface_hub import WebhooksServer, WebhookPayload
+            from iantirta.models.vendor.huggingface_hub import WebhooksServer, WebhookPayload
 
             app = WebhooksServer()
 
@@ -245,7 +245,7 @@ def webhook_endpoint(path: str | None = None) -> Callable:
         The server will be started automatically at exit (i.e. at the end of the script).
 
         ```python
-        from huggingface_hub import webhook_endpoint, WebhookPayload
+        from iantirta.models.vendor.huggingface_hub import webhook_endpoint, WebhookPayload
 
         @webhook_endpoint
         async def trigger_training(payload: WebhookPayload):
@@ -260,7 +260,7 @@ def webhook_endpoint(path: str | None = None) -> Callable:
         are running it in a notebook.
 
         ```python
-        from huggingface_hub import webhook_endpoint, WebhookPayload
+        from iantirta.models.vendor.huggingface_hub import webhook_endpoint, WebhookPayload
 
         @webhook_endpoint
         async def trigger_training(payload: WebhookPayload):

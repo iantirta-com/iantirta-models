@@ -19,8 +19,8 @@ from typing import Sequence
 
 import click
 
-from huggingface_hub._buckets import BucketFile, BucketFolder
-from huggingface_hub.hf_api import RepoFile, RepoFolder
+from iantirta.models.vendor.huggingface_hub._buckets import BucketFile, BucketFolder
+from iantirta.models.vendor.huggingface_hub.hf_api import RepoFile, RepoFolder
 
 from ._cli_utils import get_hf_api
 from ._output import OutputFormat, _ascii_safe, _dataclass_to_dict, _escape_control_chars, out

@@ -32,7 +32,7 @@ if is_scipy_available():
 
 
 if is_vision_available():
-    from transformers.image_transforms import center_to_corners_format
+    from iantirta.models.vendor.transformers.image_transforms import center_to_corners_format
 
 
 logger = logging.get_logger(__name__)

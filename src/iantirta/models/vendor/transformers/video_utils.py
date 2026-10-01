@@ -22,10 +22,15 @@ from typing import NewType, Union
 from urllib.parse import urlparse
 
 import numpy as np
-from huggingface_hub.utils import httpx
+
+from iantirta.models.vendor.huggingface_hub.utils import httpx
 
 from .image_transforms import PaddingMode, to_channel_dimension_format
-from .image_utils import ChannelDimension, infer_channel_dimension_format, is_valid_image
+from .image_utils import (
+    ChannelDimension,
+    infer_channel_dimension_format,
+    is_valid_image,
+)
 from .utils import (
     is_av_available,
     is_cv2_available,
@@ -41,7 +46,6 @@ from .utils import (
     logging,
     requires_backends,
 )
-
 
 if is_vision_available():
     import PIL.Image

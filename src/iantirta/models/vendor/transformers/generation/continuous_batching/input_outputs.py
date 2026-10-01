@@ -18,8 +18,8 @@ from typing import TypedDict
 
 import torch
 
-from transformers.configuration_utils import PretrainedConfig
-from transformers.generation.configuration_utils import ContinuousBatchingConfig
+from iantirta.models.vendor.transformers.configuration_utils import PretrainedConfig
+from iantirta.models.vendor.transformers.generation.configuration_utils import ContinuousBatchingConfig
 
 from ...utils import get_available_devices
 from .cache import PagedAttentionCache

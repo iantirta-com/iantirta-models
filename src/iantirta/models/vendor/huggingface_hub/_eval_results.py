@@ -51,7 +51,7 @@ class EvalResultEntry:
 
     Example:
         ```python
-        >>> from huggingface_hub import EvalResultEntry
+        >>> from iantirta.models.vendor.huggingface_hub import EvalResultEntry
         >>> # Minimal example with required fields only
         >>> result = EvalResultEntry(
         ...     dataset_id="Idavidrein/gpqa",
@@ -110,7 +110,7 @@ def eval_result_entries_to_yaml(entries: list[EvalResultEntry]) -> list[dict[str
 
     Example:
         ```python
-        >>> from huggingface_hub import EvalResultEntry, eval_result_entries_to_yaml
+        >>> from iantirta.models.vendor.huggingface_hub import EvalResultEntry, eval_result_entries_to_yaml
         >>> entries = [
         ...     EvalResultEntry(dataset_id="cais/hle", task_id="default", value=20.90),
         ...     EvalResultEntry(dataset_id="Idavidrein/gpqa", task_id="gpqa_diamond", value=0.412),
@@ -124,7 +124,7 @@ def eval_result_entries_to_yaml(entries: list[EvalResultEntry]) -> list[dict[str
         To upload eval results to the Hub:
         ```python
         >>> import yaml
-        >>> from huggingface_hub import upload_file, EvalResultEntry, eval_result_entries_to_yaml
+        >>> from iantirta.models.vendor.huggingface_hub import upload_file, EvalResultEntry, eval_result_entries_to_yaml
         >>> entries = [
         ...     EvalResultEntry(dataset_id="cais/hle", task_id="default", value=20.90),
         ... ]
@@ -181,7 +181,7 @@ def parse_eval_result_entries(data: list[dict[str, Any]]) -> list[EvalResultEntr
 
     Example:
         ```python
-        >>> from huggingface_hub import parse_eval_result_entries
+        >>> from iantirta.models.vendor.huggingface_hub import parse_eval_result_entries
         >>> data = [
         ...     {"dataset": {"id": "cais/hle", "task_id": "default"}, "value": 20.90},
         ...     {"dataset": {"id": "Idavidrein/gpqa", "task_id": "gpqa_diamond"}, "value": 0.412},

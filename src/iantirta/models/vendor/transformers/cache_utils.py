@@ -1789,7 +1789,7 @@ class DynamicCache(Cache):
     Example:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, DynamicCache
+    >>> from iantirta.models.vendor.transformers import AutoTokenizer, AutoModelForCausalLM, DynamicCache
 
     >>> model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2-0.5B-Instruct")
     >>> tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2-0.5B-Instruct")
@@ -1874,7 +1874,7 @@ class StaticCache(Cache):
     Example:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, StaticCache
+    >>> from iantirta.models.vendor.transformers import AutoTokenizer, AutoModelForCausalLM, StaticCache
 
     >>> model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
     >>> tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-chat-hf")
@@ -1986,7 +1986,7 @@ class EncoderDecoderCache(Cache):
     Example:
 
     ```python
-    >>> from transformers import AutoProcessor, AutoModelForCausalLM, DynamicCache, EncoderDecoderCache
+    >>> from iantirta.models.vendor.transformers import AutoProcessor, AutoModelForCausalLM, DynamicCache, EncoderDecoderCache
 
     >>> model = AutoModelForCausalLM.from_pretrained("openai/whisper-small")
     >>> processor = AutoProcessor.from_pretrained("openai/whisper-small")

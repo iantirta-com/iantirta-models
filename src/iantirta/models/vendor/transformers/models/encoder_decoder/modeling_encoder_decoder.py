@@ -224,7 +224,7 @@ class EncoderDecoderModel(PreTrainedModel, GenerationMixin):
         Example:
 
         ```python
-        >>> from transformers import EncoderDecoderModel
+        >>> from iantirta.models.vendor.transformers import EncoderDecoderModel
 
         >>> # initialize a bert2bert from two pretrained BERT models. Note that the cross-attention layers will be randomly initialized
         >>> model = EncoderDecoderModel.from_encoder_decoder_pretrained("google-bert/bert-base-uncased", "google-bert/bert-base-uncased")
@@ -356,7 +356,7 @@ class EncoderDecoderModel(PreTrainedModel, GenerationMixin):
         Examples:
 
         ```python
-        >>> from transformers import EncoderDecoderModel, BertTokenizer
+        >>> from iantirta.models.vendor.transformers import EncoderDecoderModel, BertTokenizer
         >>> import torch
 
         >>> tokenizer = BertTokenizer.from_pretrained("google-bert/bert-base-uncased")

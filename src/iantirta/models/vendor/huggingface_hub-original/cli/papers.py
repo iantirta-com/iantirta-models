@@ -17,8 +17,8 @@ import datetime
 import enum
 from typing import Annotated, get_args
 
-from huggingface_hub.errors import CLIError, HfHubHTTPError
-from huggingface_hub.hf_api import DailyPapersSort_T
+from iantirta.models.vendor.huggingface_hub.errors import CLIError, HfHubHTTPError
+from iantirta.models.vendor.huggingface_hub.hf_api import DailyPapersSort_T
 
 from ._cli_utils import (
     LimitOpt,

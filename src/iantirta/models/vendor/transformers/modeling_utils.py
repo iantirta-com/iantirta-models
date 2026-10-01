@@ -1377,7 +1377,7 @@ class PreTrainedModel(
         Examples:
 
         ```python
-        from transformers import AutoModel
+        from iantirta.models.vendor.transformers import AutoModel
 
         model = AutoModel.from_pretrained("google-bert/bert-base-cased")
 
@@ -3725,9 +3725,9 @@ class PreTrainedModel(
         Examples:
 
         ```python
-        >>> from transformers import BertConfig, BertModel
+        >>> from iantirta.models.vendor.transformers import BertConfig, BertModel
 
-        >>> # Download model and configuration from huggingface.co and cache.
+        >>> # Download model and configuration from iantirta.models.vendor.huggingface.co and cache.
         >>> model = BertModel.from_pretrained("google-bert/bert-base-uncased")
         >>> # Model was saved using *save_pretrained('./test/saved_model/')* (for example purposes, not runnable).
         >>> model = BertModel.from_pretrained("./test/saved_model/")
@@ -4239,7 +4239,7 @@ class PreTrainedModel(
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
-        import transformers.models.auto as auto_module
+        import iantirta.models.vendor.transformers.models.auto as auto_module
 
         if not hasattr(auto_module, auto_class):
             raise ValueError(f"{auto_class} is not a valid auto class.")

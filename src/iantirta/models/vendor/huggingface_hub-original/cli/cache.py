@@ -23,7 +23,7 @@ from typing import Annotated, Any
 
 import click
 
-from huggingface_hub.errors import CLIError
+from iantirta.models.vendor.huggingface_hub.errors import CLIError
 
 from ..utils import (
     ANSI,

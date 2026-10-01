@@ -73,7 +73,7 @@ def strict(cls: type[T] | None = None, *, accept_kwargs: bool = False) -> type[T
     Example:
     ```py
     >>> from dataclasses import dataclass
-    >>> from huggingface_hub.dataclasses import as_validated_field, strict, validated_field
+    >>> from iantirta.models.vendor.huggingface_hub.dataclasses import as_validated_field, strict, validated_field
 
     >>> @as_validated_field
     >>> def positive_int(value: int):
@@ -299,7 +299,7 @@ def validate_typed_dict(schema: type[TypedDictType], data: dict) -> None:
     Example:
     ```py
     >>> from typing import Annotated, TypedDict
-    >>> from huggingface_hub.dataclasses import validate_typed_dict
+    >>> from iantirta.models.vendor.huggingface_hub.dataclasses import validate_typed_dict
 
     >>> def positive_int(value: int):
     ...     if not value >= 0:

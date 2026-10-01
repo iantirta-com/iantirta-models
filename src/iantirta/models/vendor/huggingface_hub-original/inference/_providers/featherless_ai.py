@@ -1,7 +1,7 @@
 from typing import Any
 
-from huggingface_hub.hf_api import InferenceProviderMapping
-from huggingface_hub.inference._common import RequestParameters, _as_dict
+from iantirta.models.vendor.huggingface_hub.hf_api import InferenceProviderMapping
+from iantirta.models.vendor.huggingface_hub.inference._common import RequestParameters, _as_dict
 
 from ._common import BaseConversationalTask, BaseTextGenerationTask, filter_none
 

@@ -24,7 +24,7 @@ from functools import wraps
 from pathlib import Path
 from typing import Any
 
-from huggingface_hub.utils import httpx
+from iantirta.models.vendor.huggingface_hub.utils import httpx
 
 from .generic import strtobool
 

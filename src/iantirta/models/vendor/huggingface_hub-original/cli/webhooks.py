@@ -18,8 +18,8 @@ from typing import Annotated, get_args, get_type_hints
 
 import click
 
-from huggingface_hub.constants import WEBHOOK_DOMAIN_T
-from huggingface_hub.hf_api import WebhookWatchedItem
+from iantirta.models.vendor.huggingface_hub.constants import WEBHOOK_DOMAIN_T
+from iantirta.models.vendor.huggingface_hub.hf_api import WebhookWatchedItem
 
 from ._cli_utils import (
     SecretsFileOpt,

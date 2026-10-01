@@ -247,7 +247,7 @@ class JobInfo:
     Example:
 
     ```python
-    >>> from huggingface_hub import run_job
+    >>> from iantirta.models.vendor.huggingface_hub import run_job
     >>> job = run_job(
     ...     image="python:3.12",
     ...     command=["python", "-c", "print('Hello from the cloud!')"]
@@ -423,7 +423,7 @@ class ScheduledJobInfo:
     Example:
 
     ```python
-    >>> from huggingface_hub import run_job
+    >>> from iantirta.models.vendor.huggingface_hub import run_job
     >>> scheduled_job = create_scheduled_job(
     ...     image="python:3.12",
     ...     command=["python", "-c", "print('Hello from the cloud!')"],
@@ -522,7 +522,7 @@ class JobHardwareInfo:
     Example:
 
     ```python
-    >>> from huggingface_hub import list_jobs_hardware
+    >>> from iantirta.models.vendor.huggingface_hub import list_jobs_hardware
     >>> hardware_list = list_jobs_hardware()
     >>> hardware_list[0]
     JobHardwareInfo(name='cpu-basic', pretty_name='CPU Basic', cpu='2 vCPU', ram='16 GB', ephemeral_storage='20 GB', accelerator=None, unit_cost_micro_usd=167, unit_cost_usd=0.000167, unit_label='minute')

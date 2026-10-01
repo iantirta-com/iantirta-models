@@ -49,7 +49,7 @@ def git_hash(data: bytes) -> str:
 
     Example:
     ```python
-    >>> from huggingface_hub.utils.sha import git_hash
+    >>> from iantirta.models.vendor.huggingface_hub.utils.sha import git_hash
     >>> git_hash(b"Hello, World!")
     'b45ef6fec89518d314f546fd6c3025367b721684'
     ```

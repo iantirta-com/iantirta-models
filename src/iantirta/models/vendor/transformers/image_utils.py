@@ -21,7 +21,7 @@ from typing import Any, Union
 
 import numpy as np
 
-from huggingface_hub.utils import httpx
+from iantirta.models.vendor.huggingface_hub.utils import httpx
 from .utils import (
     ExplicitEnum,
     is_numpy_array,

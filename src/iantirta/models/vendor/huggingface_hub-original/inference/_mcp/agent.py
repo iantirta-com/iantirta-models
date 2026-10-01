@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from typing import AsyncGenerator, Iterable, Optional, Union
 
-from huggingface_hub import ChatCompletionInputMessage, ChatCompletionStreamOutput, MCPClient
+from iantirta.models.vendor.huggingface_hub import ChatCompletionInputMessage, ChatCompletionStreamOutput, MCPClient
 
 from .._providers import PROVIDER_OR_POLICY_T
 from .constants import DEFAULT_SYSTEM_PROMPT, EXIT_LOOP_TOOLS, MAX_NUM_TURNS

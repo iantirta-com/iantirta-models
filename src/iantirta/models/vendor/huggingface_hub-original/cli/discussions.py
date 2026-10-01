@@ -20,7 +20,7 @@ from typing import Annotated
 
 import click
 
-from huggingface_hub import constants
+from iantirta.models.vendor.huggingface_hub import constants
 
 from ._cli_utils import (
     AuthorOpt,

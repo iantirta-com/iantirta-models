@@ -19,9 +19,9 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from huggingface_hub import is_offline_mode
-from huggingface_hub.errors import OfflineModeIsEnabled
-from huggingface_hub.utils import HFValidationError, httpx
+from iantirta.models.vendor.huggingface_hub import is_offline_mode
+from iantirta.models.vendor.huggingface_hub.errors import OfflineModeIsEnabled
+from iantirta.models.vendor.huggingface_hub.utils import HFValidationError, httpx
 
 from . import __version__
 from .models.auto.modeling_auto import (

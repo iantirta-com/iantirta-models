@@ -18,14 +18,17 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 
 from ..pytorch_utils import prune_linear_layer
 from ..utils import ModelOutput, is_sklearn_available
 from ..utils.deprecation import deprecate_kwarg
 from .configuration_utils import GenerationConfig
-from .logits_process import LogitsProcessorList, MinLengthLogitsProcessor, SuppressTokensLogitsProcessor
-
+from .logits_process import (
+    LogitsProcessorList,
+    MinLengthLogitsProcessor,
+    SuppressTokensLogitsProcessor,
+)
 
 if is_sklearn_available():
     from sklearn.metrics import roc_curve

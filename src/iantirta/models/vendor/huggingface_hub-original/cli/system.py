@@ -19,7 +19,7 @@ import sys
 
 import click
 
-from huggingface_hub import __version__, constants
+from iantirta.models.vendor.huggingface_hub import __version__, constants
 
 from ..utils import dump_environment_info, installation_method
 from ._cli_utils import _fetch_latest_pypi_version, run_update

@@ -24,7 +24,7 @@ NOTE: Environment variable `HF_HUB_DISABLE_PROGRESS_BARS` has the priority.
 
 Example:
     ```py
-    >>> from huggingface_hub.utils import are_progress_bars_disabled, disable_progress_bars, enable_progress_bars, tqdm
+    >>> from iantirta.models.vendor.huggingface_hub.utils import are_progress_bars_disabled, disable_progress_bars, enable_progress_bars, tqdm
 
     # Disable progress bars globally
     >>> disable_progress_bars()

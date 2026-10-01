@@ -2988,7 +2988,7 @@ def get_model_name(obj):
             model_name_lowercase_from_file = file_name[len(start) : -len(end)]
             break
     if model_name_lowercase_from_file and model_name_lowercase_from_folder != model_name_lowercase_from_file:
-        from transformers.models.auto.configuration_auto import SPECIAL_MODEL_TYPE_TO_MODULE_NAME
+        from iantirta.models.vendor.transformers.models.auto.configuration_auto import SPECIAL_MODEL_TYPE_TO_MODULE_NAME
 
         if (
             model_name_lowercase_from_file in SPECIAL_MODEL_TYPE_TO_MODULE_NAME
@@ -3061,7 +3061,7 @@ def get_placeholders_dict(placeholders: set[str], model_name: str) -> Mapping[st
     Get the dictionary of placeholders for the given model name.
     """
     # import here to avoid circular import
-    from transformers.models import auto as auto_module
+    from iantirta.models.vendor.transformers.models import auto as auto_module
 
     placeholders_dict = {}
     for placeholder in placeholders:
@@ -3176,7 +3176,7 @@ def _get_model_info(func, parent_class):
         parent_class (`class`): Optional parent class of the function
     """
     # import here to avoid circular import
-    from transformers.models import auto as auto_module
+    from iantirta.models.vendor.transformers.models import auto as auto_module
 
     # Get model name from either parent class or function
     if parent_class is not None:
@@ -3769,7 +3769,7 @@ def _get_base_kwargs_class(cls):
             if base_name is not None:
                 global _BASIC_KWARGS_CLASSES
                 if _BASIC_KWARGS_CLASSES is None:
-                    from transformers.processing_utils import (
+                    from iantirta.models.vendor.transformers.processing_utils import (
                         AudioKwargs,
                         ImagesKwargs,
                         ProcessingKwargs,
@@ -4275,7 +4275,7 @@ def _process_example_section(
         indent_level (`int`): Indentation level
     """
     # Import here to avoid circular import
-    from transformers.models import auto as auto_module
+    from iantirta.models.vendor.transformers.models import auto as auto_module
 
     example_docstring = ""
 
@@ -4434,7 +4434,7 @@ def auto_class_docstring(cls, custom_intro=None, custom_args=None, checkpoint=No
     Wrapper that automatically generates a docstring for classes based on their attributes and methods.
     """
     # import here to avoid circular import
-    from transformers.models import auto as auto_module
+    from iantirta.models.vendor.transformers.models import auto as auto_module
 
     is_dataclass = False
     docstring_init = ""

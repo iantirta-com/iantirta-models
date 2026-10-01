@@ -415,7 +415,7 @@ def model_addition_debugger_context(
     import torch
 
     from PIL import Image
-    from transformers import LlavaProcessor, LlavaForConditionalGeneration, model_addition_debugger_context
+    from iantirta.models.vendor.transformers import LlavaProcessor, LlavaForConditionalGeneration, model_addition_debugger_context
 
     torch.random.manual_seed(673)
 

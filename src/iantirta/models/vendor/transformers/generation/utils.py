@@ -116,7 +116,6 @@ from .stopping_criteria import (
     StopStringCriteria,
 )
 
-
 if TYPE_CHECKING:
     from .._typing import GenerativePreTrainedModel
     from ..modeling_utils import PreTrainedModel
@@ -1742,7 +1741,7 @@ class GenerationMixin(ContinuousMixin):
         Examples:
 
         ```python
-        >>> from transformers import GPT2Tokenizer, AutoModelForCausalLM
+        >>> from iantirta.models.vendor.transformers import GPT2Tokenizer, AutoModelForCausalLM
         >>> import numpy as np
 
         >>> tokenizer = GPT2Tokenizer.from_pretrained("gpt2")

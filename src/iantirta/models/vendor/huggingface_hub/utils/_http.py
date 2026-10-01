@@ -88,7 +88,7 @@ def parse_ratelimit_headers(headers: Mapping[str, str]) -> RateLimitInfo | None:
 
     Example:
     ```python
-    >>> from huggingface_hub.utils import parse_ratelimit_headers
+    >>> from iantirta.models.vendor.huggingface_hub.utils import parse_ratelimit_headers
     >>> headers = {
     ...     "ratelimit": '"api";r=0;t=55',
     ...     "ratelimit-policy": '"fixed window";"api";q=500;w=300',
@@ -612,7 +612,7 @@ def http_backoff(
 
     Example:
     ```
-    >>> from huggingface_hub.utils import http_backoff
+    >>> from iantirta.models.vendor.huggingface_hub.utils import http_backoff
 
     # Same usage as "httpx2.request".
     >>> response = http_backoff("GET", "https://www.google.com")
@@ -693,7 +693,7 @@ def http_stream_backoff(
 
     Example:
     ```
-    >>> from huggingface_hub.utils import http_stream_backoff
+    >>> from iantirta.models.vendor.huggingface_hub.utils import http_stream_backoff
 
     # Same usage as "httpx2.stream".
     >>> with http_stream_backoff("GET", "https://www.google.com") as response:

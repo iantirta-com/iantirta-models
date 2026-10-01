@@ -16,11 +16,11 @@
 import warnings
 from typing import Annotated
 
-from huggingface_hub import constants
-from huggingface_hub._snapshot_download import snapshot_download
-from huggingface_hub.errors import CLIError
-from huggingface_hub.file_download import DryRunFileInfo, hf_hub_download
-from huggingface_hub.utils import _format_size, parse_hf_uri
+from iantirta.models.vendor.huggingface_hub import constants
+from iantirta.models.vendor.huggingface_hub._snapshot_download import snapshot_download
+from iantirta.models.vendor.huggingface_hub.errors import CLIError
+from iantirta.models.vendor.huggingface_hub.file_download import DryRunFileInfo, hf_hub_download
+from iantirta.models.vendor.huggingface_hub.utils import _format_size, parse_hf_uri
 
 from ._cli_utils import RepoIdArg, RepoType, RepoTypeOptionalOpt, RevisionOpt, TokenOpt
 from ._framework import Argument, Option

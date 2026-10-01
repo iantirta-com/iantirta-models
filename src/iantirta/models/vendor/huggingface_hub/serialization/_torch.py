@@ -113,14 +113,14 @@ def save_torch_model(
     Example:
 
     ```py
-    >>> from huggingface_hub import save_torch_model
+    >>> from iantirta.models.vendor.huggingface_hub import save_torch_model
     >>> model = ... # A PyTorch model
 
     # Save state dict to "path/to/folder". The model will be split into shards of 5GB each and saved as safetensors.
     >>> save_torch_model(model, "path/to/folder")
 
     # Load model back
-    >>> from huggingface_hub import load_torch_model  # TODO
+    >>> from iantirta.models.vendor.huggingface_hub import load_torch_model  # TODO
     >>> load_torch_model(model, "path/to/folder")
     >>>
     ```
@@ -207,7 +207,7 @@ def save_torch_state_dict(
     Example:
 
     ```py
-    >>> from huggingface_hub import save_torch_state_dict
+    >>> from iantirta.models.vendor.huggingface_hub import save_torch_state_dict
     >>> model = ... # A PyTorch model
 
     # Save state dict to "path/to/folder". The model will be split into shards of 5GB each and saved as safetensors.
@@ -340,7 +340,7 @@ def split_torch_state_dict_into_shards(
     >>> import json
     >>> import os
     >>> from safetensors.torch import save_file as safe_save_file
-    >>> from huggingface_hub import split_torch_state_dict_into_shards
+    >>> from iantirta.models.vendor.huggingface_hub import split_torch_state_dict_into_shards
 
     >>> def save_state_dict(state_dict: dict[str, torch.Tensor], save_directory: str):
     ...     state_dict_split = split_torch_state_dict_into_shards(state_dict)
@@ -429,7 +429,7 @@ def load_torch_model(
 
     Example:
     ```python
-    >>> from huggingface_hub import load_torch_model
+    >>> from iantirta.models.vendor.huggingface_hub import load_torch_model
     >>> model = ... # A PyTorch model
     >>> load_torch_model(model, "path/to/checkpoint")
     ```
@@ -682,7 +682,7 @@ def load_state_dict_from_file(
 
     Example:
     ```python
-    >>> from huggingface_hub import load_state_dict_from_file
+    >>> from iantirta.models.vendor.huggingface_hub import load_state_dict_from_file
 
     # Load a safetensors checkpoint (safe by default)
     >>> state_dict = load_state_dict_from_file("path/to/model.safetensors", safe=True)

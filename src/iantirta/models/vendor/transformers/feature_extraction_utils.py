@@ -353,7 +353,7 @@ class FeatureExtractionMixin(PushToHubMixin):
         # derived class: *Wav2Vec2FeatureExtractor*
         feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(
             "facebook/wav2vec2-base-960h"
-        )  # Download feature_extraction_config from huggingface.co and cache.
+        )  # Download feature_extraction_config from iantirta.models.vendor.huggingface.co and cache.
         feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained(
             "./test/saved_model/"
         )  # E.g. feature_extractor (or model) was saved using *save_pretrained('./test/saved_model/')*
@@ -673,7 +673,7 @@ class FeatureExtractionMixin(PushToHubMixin):
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
-        import transformers.models.auto as auto_module
+        import iantirta.models.vendor.transformers.models.auto as auto_module
 
         if not hasattr(auto_module, auto_class):
             raise ValueError(f"{auto_class} is not a valid auto class.")

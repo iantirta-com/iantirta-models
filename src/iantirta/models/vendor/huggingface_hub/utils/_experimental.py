@@ -38,7 +38,7 @@ def experimental(fn: Callable) -> Callable:
     Example:
 
     ```python
-    >>> from huggingface_hub.utils import experimental
+    >>> from iantirta.models.vendor.huggingface_hub.utils import experimental
 
     >>> @experimental
     ... def my_function():

@@ -1114,7 +1114,7 @@ class Adafactor(Optimizer):
     scheduler as following:
 
     ```python
-    from transformers.optimization import Adafactor, AdafactorSchedule
+    from iantirta.models.vendor.transformers.optimization import Adafactor, AdafactorSchedule
 
     optimizer = Adafactor(model.parameters(), scale_parameter=True, relative_step=True, warmup_init=True, lr=None)
     lr_scheduler = AdafactorSchedule(optimizer)

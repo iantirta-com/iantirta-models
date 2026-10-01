@@ -2,10 +2,10 @@ import time
 from abc import ABC
 from typing import Any
 
-from huggingface_hub.hf_api import InferenceProviderMapping
-from huggingface_hub.inference._common import RequestParameters, _as_dict
-from huggingface_hub.inference._providers._common import BaseConversationalTask, TaskProviderHelper, filter_none
-from huggingface_hub.utils import get_session
+from iantirta.models.vendor.huggingface_hub.hf_api import InferenceProviderMapping
+from iantirta.models.vendor.huggingface_hub.inference._common import RequestParameters, _as_dict
+from iantirta.models.vendor.huggingface_hub.inference._providers._common import BaseConversationalTask, TaskProviderHelper, filter_none
+from iantirta.models.vendor.huggingface_hub.utils import get_session
 
 
 _PROVIDER = "zai-org"

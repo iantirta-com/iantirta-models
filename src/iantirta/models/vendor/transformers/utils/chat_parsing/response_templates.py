@@ -23,7 +23,6 @@ import regex as re
 from ...utils import logging
 from .content_parsers import CONTENT_PARSERS, validate_transform_strings
 
-
 logger = logging.get_logger(__name__)
 
 

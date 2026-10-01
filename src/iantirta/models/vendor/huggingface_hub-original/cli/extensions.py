@@ -30,8 +30,8 @@ from typing import Annotated, Literal
 import click
 import httpx2
 
-from huggingface_hub.errors import CLIError, CLIExtensionInstallError, ConfirmationError
-from huggingface_hub.utils import get_session, logging
+from iantirta.models.vendor.huggingface_hub.errors import CLIError, CLIExtensionInstallError, ConfirmationError
+from iantirta.models.vendor.huggingface_hub.utils import get_session, logging
 
 from ._cli_utils import typer_factory
 from ._framework import Argument, Option

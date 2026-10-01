@@ -20,7 +20,7 @@ from typing import Annotated, Any, Iterator
 
 import click
 
-from huggingface_hub._sandbox import (
+from iantirta.models.vendor.huggingface_hub._sandbox import (
     DEFAULT_IDLE_TIMEOUT,
     DEFAULT_IMAGE,
     DEFAULT_SANDBOXES_PER_HOST,
@@ -34,8 +34,8 @@ from huggingface_hub._sandbox import (
     SandboxProcess,
     _split_sandbox_id,
 )
-from huggingface_hub._sandbox_cache import delete_pool_cache
-from huggingface_hub.errors import CLIError, SandboxError
+from iantirta.models.vendor.huggingface_hub._sandbox_cache import delete_pool_cache
+from iantirta.models.vendor.huggingface_hub.errors import CLIError, SandboxError
 
 from ._cli_utils import (
     EnvFileOpt,

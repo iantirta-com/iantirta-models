@@ -1,6 +1,6 @@
 from typing import Any
 
-from huggingface_hub.inference._common import RequestParameters, _as_dict
+from iantirta.models.vendor.huggingface_hub.inference._common import RequestParameters, _as_dict
 
 from ._common import BaseConversationalTask, InferenceProviderMapping, TaskProviderHelper, filter_none
 

@@ -170,13 +170,13 @@ def get_feature_extractor_config(
     Examples:
 
     ```python
-    # Download configuration from huggingface.co and cache.
+    # Download configuration from iantirta.models.vendor.huggingface.co and cache.
     feature_extractor_config = get_feature_extractor_config("facebook/wav2vec2-base-960h")
     # This model does not have a feature extractor config so the result will be an empty dict.
     feature_extractor_config = get_feature_extractor_config("FacebookAI/xlm-roberta-base")
 
     # Save a pretrained feature extractor locally and you can reload its config
-    from transformers import AutoFeatureExtractor
+    from iantirta.models.vendor.transformers import AutoFeatureExtractor
 
     feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/wav2vec2-base-960h")
     feature_extractor.save_pretrained("feature-extractor-test")
@@ -303,9 +303,9 @@ class AutoFeatureExtractor:
         Examples:
 
         ```python
-        >>> from transformers import AutoFeatureExtractor
+        >>> from iantirta.models.vendor.transformers import AutoFeatureExtractor
 
-        >>> # Download feature extractor from huggingface.co and cache.
+        >>> # Download feature extractor from iantirta.models.vendor.huggingface.co and cache.
         >>> feature_extractor = AutoFeatureExtractor.from_pretrained("facebook/wav2vec2-base-960h")
 
         >>> # If feature extractor files are in a directory (e.g. feature extractor was saved using *save_pretrained('./test/saved_model/')*)

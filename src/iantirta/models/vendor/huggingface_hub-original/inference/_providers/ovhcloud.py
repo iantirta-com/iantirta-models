@@ -1,4 +1,4 @@
-from huggingface_hub.inference._providers._common import BaseConversationalTask
+from iantirta.models.vendor.huggingface_hub.inference._providers._common import BaseConversationalTask
 
 
 _PROVIDER = "ovhcloud"

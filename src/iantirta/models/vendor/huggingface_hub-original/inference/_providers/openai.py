@@ -1,5 +1,5 @@
-from huggingface_hub.hf_api import InferenceProviderMapping
-from huggingface_hub.inference._providers._common import BaseConversationalTask
+from iantirta.models.vendor.huggingface_hub.hf_api import InferenceProviderMapping
+from iantirta.models.vendor.huggingface_hub.inference._providers._common import BaseConversationalTask
 
 
 class OpenAIConversationalTask(BaseConversationalTask):

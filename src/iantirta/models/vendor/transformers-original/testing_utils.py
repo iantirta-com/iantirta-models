@@ -47,11 +47,11 @@ from typing import TYPE_CHECKING, Any
 from unittest import mock
 from unittest.mock import patch
 
-from huggingface_hub import create_repo, delete_repo
-from huggingface_hub.utils import httpx
+from iantirta.models.vendor.huggingface_hub import create_repo, delete_repo
+from iantirta.models.vendor.huggingface_hub.utils import httpx
 from packaging import version
 
-from transformers import logging as transformers_logging
+from iantirta.models.vendor.transformers import logging as transformers_logging
 
 
 if TYPE_CHECKING:
@@ -2143,8 +2143,8 @@ class CaptureLogger:
     Example:
 
     ```python
-    >>> from transformers import logging
-    >>> from transformers.testing_utils import CaptureLogger
+    >>> from iantirta.models.vendor.transformers import logging
+    >>> from iantirta.models.vendor.transformers.testing_utils import CaptureLogger
 
     >>> msg = "Testing 1, 2, 3"
     >>> logging.set_verbosity_info()
@@ -2501,7 +2501,7 @@ class TestCasePlus(unittest.TestCase):
         Example:
 
         ```
-        one_liner_str = 'from transformers import AutoModel; AutoModel.from_pretrained("google-t5/t5-large")'
+        one_liner_str = 'from iantirta.models.vendor.transformers import AutoModel; AutoModel.from_pretrained("google-t5/t5-large")'
         max_rss = self.python_one_liner_max_rss(one_liner_str)
         ```
         """

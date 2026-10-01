@@ -146,7 +146,7 @@ class InferenceEndpoint:
 
     Example:
         ```python
-        >>> from huggingface_hub import get_inference_endpoint
+        >>> from iantirta.models.vendor.huggingface_hub import get_inference_endpoint
         >>> endpoint = get_inference_endpoint("my-text-to-image")
         >>> endpoint
         InferenceEndpoint(name='my-text-to-image', ...)
@@ -556,7 +556,7 @@ class InferenceEndpointHardware:
 
     Example:
         ```python
-        >>> from huggingface_hub import list_inference_endpoints_hardware
+        >>> from iantirta.models.vendor.huggingface_hub import list_inference_endpoints_hardware
         >>> hardware = list_inference_endpoints_hardware()
         >>> hardware[0]
         InferenceEndpointHardware(id='aws-us-east-1-nvidia-l4-x1', vendor='aws', region='us-east-1', ...)

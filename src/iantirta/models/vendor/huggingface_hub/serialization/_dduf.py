@@ -109,7 +109,7 @@ def read_dduf_file(dduf_path: os.PathLike | str) -> dict[str, DDUFEntry]:
         ```python
         >>> import json
         >>> import safetensors.torch
-        >>> from huggingface_hub import read_dduf_file
+        >>> from iantirta.models.vendor.huggingface_hub import read_dduf_file
 
         # Read DDUF metadata
         >>> dduf_entries = read_dduf_file("FLUX.1-dev.dduf")
@@ -177,7 +177,7 @@ def export_entries_as_dduf(dduf_path: str | os.PathLike, entries: Iterable[tuple
     Example:
         ```python
         # Export specific files from the local disk.
-        >>> from huggingface_hub import export_entries_as_dduf
+        >>> from iantirta.models.vendor.huggingface_hub import export_entries_as_dduf
         >>> export_entries_as_dduf(
         ...     dduf_path="stable-diffusion-v1-4-FP16.dduf",
         ...     entries=[ # List entries to add to the DDUF file (here, only FP16 weights)
@@ -196,7 +196,7 @@ def export_entries_as_dduf(dduf_path: str | os.PathLike, entries: Iterable[tuple
         >>> from diffusers import DiffusionPipeline
         >>> from typing import Generator, Tuple
         >>> import safetensors.torch
-        >>> from huggingface_hub import export_entries_as_dduf
+        >>> from iantirta.models.vendor.huggingface_hub import export_entries_as_dduf
         >>> pipe = DiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4")
         ... # ... do some work with the pipeline
 
@@ -260,7 +260,7 @@ def export_folder_as_dduf(dduf_path: str | os.PathLike, folder_path: str | os.Pa
 
     Example:
         ```python
-        >>> from huggingface_hub import export_folder_as_dduf
+        >>> from iantirta.models.vendor.huggingface_hub import export_folder_as_dduf
         >>> export_folder_as_dduf(dduf_path="FLUX.1-dev.dduf", folder_path="path/to/FLUX.1-dev")
         ```
     """

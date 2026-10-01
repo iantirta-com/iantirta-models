@@ -50,7 +50,7 @@ def validate_hf_hub_args(fn: CallableT) -> CallableT:
 
     Example:
     ```py
-    >>> from huggingface_hub.utils import validate_hf_hub_args
+    >>> from iantirta.models.vendor.huggingface_hub.utils import validate_hf_hub_args
 
     >>> @validate_hf_hub_args
     ... def my_cool_method(repo_id: str):
@@ -108,7 +108,7 @@ def validate_repo_id(repo_id: str | None) -> None:
 
     Example:
     ```py
-    >>> from huggingface_hub.utils import validate_repo_id
+    >>> from iantirta.models.vendor.huggingface_hub.utils import validate_repo_id
     >>> validate_repo_id(repo_id="valid_repo_id")
     >>> validate_repo_id(repo_id="other..repo..id")
     huggingface_hub.utils._validators.HFValidationError: Cannot have -- or .. in repo_id: 'other..repo..id'.

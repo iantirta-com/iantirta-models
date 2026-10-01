@@ -95,7 +95,7 @@ class BaseImageProcessor(ImageProcessingMixin):
     For processors that only need standard operations (resize, center crop, rescale, normalize), inherit from
     a backend and define class attributes:
 
-        from transformers.image_processing_backends import PilBackend
+        from iantirta.models.vendor.transformers.image_processing_backends import PilBackend
 
         class MyImageProcessorPil(PilBackend):
             resample = PILImageResampling.BILINEAR
@@ -152,7 +152,7 @@ class BaseImageProcessor(ImageProcessingMixin):
 
     To customize operations for a specific backend, subclass the backend and override its methods:
 
-        from transformers.image_processing_backends import TorchvisionBackend, PilBackend
+        from iantirta.models.vendor.transformers.image_processing_backends import TorchvisionBackend, PilBackend
 
         class MyTorchvisionProcessor(TorchvisionBackend):
             def resize(self, image, size, **kwargs):

@@ -12,7 +12,6 @@ from torch.nn import functional as F
 from ..tokenization_utils_base import PreTrainedTokenizerBase
 from ..utils import add_start_docstrings, logging
 
-
 logger = logging.get_logger(__name__)
 # We maintain a module-level cache of the embedding vectors for the stop string criterion
 # because they are slow to compute
@@ -223,7 +222,7 @@ class StopStringCriteria(StoppingCriteria):
     Examples:
 
     ```python
-    >>> from transformers import AutoModelForCausalLM, AutoTokenizer
+    >>> from iantirta.models.vendor.transformers import AutoModelForCausalLM, AutoTokenizer
 
     >>> tokenizer = AutoTokenizer.from_pretrained("microsoft/phi-2")
     >>> model = AutoModelForCausalLM.from_pretrained("microsoft/phi-2")

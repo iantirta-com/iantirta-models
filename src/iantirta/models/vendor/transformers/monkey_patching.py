@@ -104,8 +104,8 @@ def register_patch_mapping(mapping: dict[str, type[nn.Module]], overwrite: bool 
 
     Example:
         ```python
-        from transformers import AutoModelForCausalLM
-        from transformers.monkey_patching import register_patch_mapping
+        from iantirta.models.vendor.transformers import AutoModelForCausalLM
+        from iantirta.models.vendor.transformers.monkey_patching import register_patch_mapping
 
         # Define custom expert implementation
         class SequentialExperts(nn.Module):
@@ -168,8 +168,8 @@ def unregister_patch_mapping(keys: list[str]) -> None:
 
     Example:
         ```python
-        from transformers import AutoModelForCausalLM
-        from transformers.monkey_patching import register_patch_mapping, unregister_patch_mapping
+        from iantirta.models.vendor.transformers import AutoModelForCausalLM
+        from iantirta.models.vendor.transformers.monkey_patching import register_patch_mapping, unregister_patch_mapping
 
         # Register a patch
         register_patch_mapping(
@@ -213,7 +213,7 @@ def clear_patch_mapping() -> None:
 
     Example:
         ```python
-        from transformers.monkey_patching import register_patch_mapping, clear_patch_mapping
+        from iantirta.models.vendor.transformers.monkey_patching import register_patch_mapping, clear_patch_mapping
 
         # Register some patches
         register_patch_mapping(
@@ -238,8 +238,8 @@ def apply_patches():
 
     Example:
         ```python
-        from transformers import Qwen2MoeModel, Qwen2MoeConfig
-        from transformers.monkey_patching import register_patch_mapping, apply_patches
+        from iantirta.models.vendor.transformers import Qwen2MoeModel, Qwen2MoeConfig
+        from iantirta.models.vendor.transformers.monkey_patching import register_patch_mapping, apply_patches
 
         # Register a patch
         register_patch_mapping(
@@ -326,8 +326,8 @@ def patch_output_recorders(model: nn.Module) -> None:
 
     Example:
         ```python
-        from transformers import AutoModelForCausalLM
-        from transformers.monkey_patching import register_patch_mapping, patch_output_recorders
+        from iantirta.models.vendor.transformers import AutoModelForCausalLM
+        from iantirta.models.vendor.transformers.monkey_patching import register_patch_mapping, patch_output_recorders
 
         # Register a patch
         register_patch_mapping(mapping={"Qwen2MoeExperts": CustomExperts})

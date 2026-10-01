@@ -10,9 +10,9 @@ from dataclasses import dataclass, replace
 from pathlib import Path, PurePosixPath
 from typing import Any, Literal
 
-from huggingface_hub import __version__, constants
-from huggingface_hub._buckets import BucketFile
-from huggingface_hub.errors import CLIError
+from iantirta.models.vendor.huggingface_hub import __version__, constants
+from iantirta.models.vendor.huggingface_hub._buckets import BucketFile
+from iantirta.models.vendor.huggingface_hub.errors import CLIError
 
 from ..utils import disable_progress_bars, logging
 from ._cli_utils import get_hf_api

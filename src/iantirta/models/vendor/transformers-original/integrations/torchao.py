@@ -17,8 +17,8 @@ import types
 
 import torch
 
-from transformers.utils import logging
-from transformers.utils.import_utils import is_torch_accelerator_available, is_torch_available, is_torchao_available
+from iantirta.models.vendor.transformers.utils import logging
+from iantirta.models.vendor.transformers.utils.import_utils import is_torch_accelerator_available, is_torch_available, is_torchao_available
 
 
 if is_torch_available():

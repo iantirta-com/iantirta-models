@@ -23,7 +23,7 @@ class ResolvedRevision(str):
 
     Example:
     ```python
-    >>> from huggingface_hub import resolve_revision
+    >>> from iantirta.models.vendor.huggingface_hub import resolve_revision
     >>> revision = resolve_revision("openai-community/gpt2")
     >>> revision
     ResolvedRevision(initial=None, resolved='607a30d783dfa663caf39e06633721c8d4cfcd7e')

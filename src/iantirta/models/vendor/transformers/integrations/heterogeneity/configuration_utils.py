@@ -25,10 +25,10 @@ from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from transformers.utils import logging
+from iantirta.models.vendor.transformers.utils import logging
 
 if TYPE_CHECKING:
-    from transformers import PreTrainedConfig
+    from iantirta.models.vendor.transformers import PreTrainedConfig
 
 
 logger = logging.get_logger(__name__)

@@ -18,8 +18,8 @@ from typing import Annotated
 
 import click
 
-from huggingface_hub import logging
-from huggingface_hub._buckets import (
+from iantirta.models.vendor.huggingface_hub import logging
+from iantirta.models.vendor.huggingface_hub._buckets import (
     BUCKET_PREFIX,
     BucketFile,
     BucketFolder,

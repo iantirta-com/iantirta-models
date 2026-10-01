@@ -5,13 +5,13 @@ from typing import Annotated
 
 import click
 
-from huggingface_hub._inference_endpoints import (
+from iantirta.models.vendor.huggingface_hub._inference_endpoints import (
     InferenceEndpointHardware,
     InferenceEndpointScalingMetric,
     InferenceEndpointType,
     _set_parallelism_in_image,
 )
-from huggingface_hub.errors import CLIError, HfHubHTTPError
+from iantirta.models.vendor.huggingface_hub.errors import CLIError, HfHubHTTPError
 
 from ._cli_utils import (
     EnvFileOpt,

@@ -266,13 +266,13 @@ def get_image_processor_config(
     Examples:
 
     ```python
-    # Download configuration from huggingface.co and cache.
+    # Download configuration from iantirta.models.vendor.huggingface.co and cache.
     image_processor_config = get_image_processor_config("google-bert/bert-base-uncased")
     # This model does not have a image processor config so the result will be an empty dict.
     image_processor_config = get_image_processor_config("FacebookAI/xlm-roberta-base")
 
     # Save a pretrained image processor locally and you can reload its config
-    from transformers import AutoImageProcessor
+    from iantirta.models.vendor.transformers import AutoImageProcessor
 
     image_processor = AutoImageProcessor.from_pretrained("google/vit-base-patch16-224-in21k")
     image_processor.save_pretrained("image-processor-test")
@@ -582,9 +582,9 @@ class AutoImageProcessor:
         Examples:
 
         ```python
-        >>> from transformers import AutoImageProcessor
+        >>> from iantirta.models.vendor.transformers import AutoImageProcessor
 
-        >>> # Download image processor from huggingface.co and cache.
+        >>> # Download image processor from iantirta.models.vendor.huggingface.co and cache.
         >>> image_processor = AutoImageProcessor.from_pretrained("google/vit-base-patch16-224-in21k")
 
         >>> # If image processor files are in a directory (e.g. image processor was saved using *save_pretrained('./test/saved_model/')*)

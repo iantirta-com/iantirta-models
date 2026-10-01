@@ -29,7 +29,7 @@ class EncoderDecoderConfig(PreTrainedConfig):
     Examples:
 
     ```python
-    >>> from transformers import BertConfig, EncoderDecoderConfig, EncoderDecoderModel
+    >>> from iantirta.models.vendor.transformers import BertConfig, EncoderDecoderConfig, EncoderDecoderModel
 
     >>> # Initializing a BERT google-bert/bert-base-uncased style configuration
     >>> config_encoder = BertConfig()

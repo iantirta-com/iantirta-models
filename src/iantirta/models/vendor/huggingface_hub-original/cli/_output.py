@@ -26,10 +26,10 @@ from typing import Any, cast
 
 import click
 
-from huggingface_hub import constants
-from huggingface_hub.errors import ConfirmationError
-from huggingface_hub.repocard_data import CardData
-from huggingface_hub.utils import ANSI, StatusLine, disable_progress_bars, enable_progress_bars, is_agent, tabulate
+from iantirta.models.vendor.huggingface_hub import constants
+from iantirta.models.vendor.huggingface_hub.errors import ConfirmationError
+from iantirta.models.vendor.huggingface_hub.repocard_data import CardData
+from iantirta.models.vendor.huggingface_hub.utils import ANSI, StatusLine, disable_progress_bars, enable_progress_bars, is_agent, tabulate
 
 
 class OutputFormat(str, Enum):

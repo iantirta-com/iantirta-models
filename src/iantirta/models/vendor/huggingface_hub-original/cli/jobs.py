@@ -28,18 +28,18 @@ from queue import Empty, Queue
 from typing import Annotated, Any, TypeVar
 from urllib.parse import urlsplit
 
-from huggingface_hub import HfApi, JobHardware, JobInfo, JobNetwork, JobStage, Volume, constants
-from huggingface_hub._jobs_api import (
+from iantirta.models.vendor.huggingface_hub import HfApi, JobHardware, JobInfo, JobNetwork, JobStage, Volume, constants
+from iantirta.models.vendor.huggingface_hub._jobs_api import (
     DEFAULT_UV_IMAGE,
     TERMINAL_JOB_STAGES,
     _default_job_name_from_image,
     _default_job_name_from_script,
 )
-from huggingface_hub.errors import CLIError
-from huggingface_hub.utils import logging
-from huggingface_hub.utils._cache_manager import _format_size
-from huggingface_hub.utils._hf_uris import _split_mount
-from huggingface_hub.utils._parsing import format_duration, parse_duration
+from iantirta.models.vendor.huggingface_hub.errors import CLIError
+from iantirta.models.vendor.huggingface_hub.utils import logging
+from iantirta.models.vendor.huggingface_hub.utils._cache_manager import _format_size
+from iantirta.models.vendor.huggingface_hub.utils._hf_uris import _split_mount
+from iantirta.models.vendor.huggingface_hub.utils._parsing import format_duration, parse_duration
 
 from ._cli_utils import (
     EnvFileOpt,

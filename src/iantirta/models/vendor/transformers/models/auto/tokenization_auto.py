@@ -21,7 +21,7 @@ import sys
 from collections import OrderedDict
 from typing import Any
 
-from transformers.utils.import_utils import is_mistral_common_available
+from iantirta.models.vendor.transformers.utils.import_utils import is_mistral_common_available
 
 from ...configuration_utils import PreTrainedConfig
 from ...dynamic_module_utils import (
@@ -612,13 +612,13 @@ def get_tokenizer_config(
     Examples:
 
     ```python
-    # Download configuration from huggingface.co and cache.
+    # Download configuration from iantirta.models.vendor.huggingface.co and cache.
     tokenizer_config = get_tokenizer_config("google-bert/bert-base-uncased")
     # This model does not have a tokenizer config so the result will be an empty dict.
     tokenizer_config = get_tokenizer_config("FacebookAI/xlm-roberta-base")
 
     # Save a pretrained tokenizer locally and you can reload its config
-    from transformers import AutoTokenizer
+    from iantirta.models.vendor.transformers import AutoTokenizer
 
     tokenizer = AutoTokenizer.from_pretrained("google-bert/bert-base-cased")
     tokenizer.save_pretrained("tokenizer-test")
@@ -730,18 +730,18 @@ class AutoTokenizer:
         Examples:
 
         ```python
-        >>> from transformers import AutoTokenizer
+        >>> from iantirta.models.vendor.transformers import AutoTokenizer
 
-        >>> # Download vocabulary from huggingface.co and cache.
+        >>> # Download vocabulary from iantirta.models.vendor.huggingface.co and cache.
         >>> tokenizer = AutoTokenizer.from_pretrained("google-bert/bert-base-uncased")
 
-        >>> # Download vocabulary from huggingface.co (user-uploaded) and cache.
+        >>> # Download vocabulary from iantirta.models.vendor.huggingface.co (user-uploaded) and cache.
         >>> tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
 
         >>> # If vocabulary files are in a directory (e.g. tokenizer was saved using *save_pretrained('./test/saved_model/')*)
         >>> # tokenizer = AutoTokenizer.from_pretrained("./test/bert_saved_model/")
 
-        >>> # Download vocabulary from huggingface.co and define model-specific arguments
+        >>> # Download vocabulary from iantirta.models.vendor.huggingface.co and define model-specific arguments
         >>> tokenizer = AutoTokenizer.from_pretrained("FacebookAI/roberta-base", add_prefix_space=True)
 
         >>> # Explicitly use the tokenizers backend

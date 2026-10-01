@@ -14,12 +14,12 @@
 # Usage:
 #     ```python
 #     # Use
-#     from huggingface_hub.utils.insecure_hashlib import sha256
+#     from iantirta.models.vendor.huggingface_hub.utils.insecure_hashlib import sha256
 #     # instead of
 #     from hashlib import sha256
 #
 #     # Use
-#     from huggingface_hub.utils import insecure_hashlib
+#     from iantirta.models.vendor.huggingface_hub.utils import insecure_hashlib
 #     # instead of
 #     import hashlib
 #     ```

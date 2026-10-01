@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Any
 
-from transformers.convert_slow_tokenizer import TikTokenConverter
-from transformers.tokenization_utils_tokenizers import TIKTOKEN_VOCAB_FILE, TOKENIZER_FILE
+from iantirta.models.vendor.transformers.convert_slow_tokenizer import TikTokenConverter
+from iantirta.models.vendor.transformers.tokenization_utils_tokenizers import TIKTOKEN_VOCAB_FILE, TOKENIZER_FILE
 
 
 def convert_tiktoken_to_fast(encoding: Any, output_dir: str):

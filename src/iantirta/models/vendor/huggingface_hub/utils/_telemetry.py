@@ -46,7 +46,7 @@ def send_telemetry(
 
     Example:
     ```py
-    >>> from huggingface_hub.utils import send_telemetry
+    >>> from iantirta.models.vendor.huggingface_hub.utils import send_telemetry
 
     # Send telemetry without library information
     >>> send_telemetry("ping")

@@ -863,7 +863,7 @@ class PushToHubMixin:
         Examples:
 
         ```python
-        from transformers import {object_class}
+        from iantirta.models.vendor.transformers import {object_class}
 
         {object} = {object_class}.from_pretrained("google-bert/bert-base-cased")
 

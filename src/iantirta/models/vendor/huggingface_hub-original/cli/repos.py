@@ -16,10 +16,10 @@
 import enum
 from typing import Annotated, cast
 
-from huggingface_hub import SpaceHardware
-from huggingface_hub.cli._cli_utils import SoftChoice
-from huggingface_hub.errors import CLIError, HfHubHTTPError, RepositoryNotFoundError, RevisionNotFoundError
-from huggingface_hub.hf_api import REPO_REGIONS
+from iantirta.models.vendor.huggingface_hub import SpaceHardware
+from iantirta.models.vendor.huggingface_hub.cli._cli_utils import SoftChoice
+from iantirta.models.vendor.huggingface_hub.errors import CLIError, HfHubHTTPError, RepositoryNotFoundError, RevisionNotFoundError
+from iantirta.models.vendor.huggingface_hub.hf_api import REPO_REGIONS
 
 from ._city_game import run_city_game
 from ._cli_utils import (

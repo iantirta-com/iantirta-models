@@ -1,6 +1,6 @@
 from typing import Any
 
-from huggingface_hub.hf_api import InferenceProviderMapping
+from iantirta.models.vendor.huggingface_hub.hf_api import InferenceProviderMapping
 
 from ._common import BaseConversationalTask
 

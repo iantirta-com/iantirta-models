@@ -18,10 +18,10 @@ from typing import Annotated, cast, get_args
 
 import click
 
-from huggingface_hub.errors import CLIError, RepositoryNotFoundError, RevisionNotFoundError
-from huggingface_hub.hf_api import ExpandModelProperty_T, ModelSort_T
-from huggingface_hub.inference._providers import PROVIDER_T
-from huggingface_hub.repocard import ModelCard
+from iantirta.models.vendor.huggingface_hub.errors import CLIError, RepositoryNotFoundError, RevisionNotFoundError
+from iantirta.models.vendor.huggingface_hub.hf_api import ExpandModelProperty_T, ModelSort_T
+from iantirta.models.vendor.huggingface_hub.inference._providers import PROVIDER_T
+from iantirta.models.vendor.huggingface_hub.repocard import ModelCard
 
 from ._cli_utils import (
     REPO_LIST_DEFAULT_LIMIT,

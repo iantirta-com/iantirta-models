@@ -16,7 +16,7 @@
 import math
 
 import numpy as np
-from huggingface_hub.dataclasses import strict
+from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 
 from ...configuration_utils import PreTrainedConfig
 from ...utils import auto_docstring
@@ -70,7 +70,7 @@ class EncodecConfig(PreTrainedConfig):
     Example:
 
     ```python
-    >>> from transformers import EncodecModel, EncodecConfig
+    >>> from iantirta.models.vendor.transformers import EncodecModel, EncodecConfig
 
     >>> # Initializing a "facebook/encodec_24khz" style configuration
     >>> configuration = EncodecConfig()

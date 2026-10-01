@@ -3,8 +3,8 @@ import mimetypes
 import uuid
 from typing import Any
 
-from huggingface_hub.hf_api import InferenceProviderMapping
-from huggingface_hub.inference._common import MimeBytes, RequestParameters, _as_dict, _open_as_mime_bytes
+from iantirta.models.vendor.huggingface_hub.hf_api import InferenceProviderMapping
+from iantirta.models.vendor.huggingface_hub.inference._common import MimeBytes, RequestParameters, _as_dict, _open_as_mime_bytes
 
 from ._common import BaseConversationalTask, BaseTextGenerationTask, TaskProviderHelper, filter_none
 

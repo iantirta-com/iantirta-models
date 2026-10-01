@@ -242,7 +242,7 @@ def hf_hub_url(
     Example:
 
     ```python
-    >>> from huggingface_hub import hf_hub_url
+    >>> from iantirta.models.vendor.huggingface_hub import hf_hub_url
 
     >>> hf_hub_url(
     ...     repo_id="julien-c/EsperBERTo-small", filename="pytorch_model.bin"
@@ -1554,7 +1554,7 @@ def try_to_load_from_cache(
     Example:
 
     ```python
-    from huggingface_hub import try_to_load_from_cache, _CACHED_NO_EXIST
+    from iantirta.models.vendor.huggingface_hub import try_to_load_from_cache, _CACHED_NO_EXIST
 
     filepath = try_to_load_from_cache()
     if isinstance(filepath, str):

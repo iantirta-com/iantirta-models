@@ -13,7 +13,7 @@
 # limitations under the License.
 """Qwen3 model configuration"""
 
-from huggingface_hub.dataclasses import strict
+from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 
 from ...configuration_utils import PreTrainedConfig
 from ...modeling_rope_utils import RopeParameters
@@ -25,7 +25,7 @@ from ...utils import auto_docstring
 class Qwen3Config(PreTrainedConfig):
     r"""
     ```python
-    >>> from transformers import Qwen3Model, Qwen3Config
+    >>> from iantirta.models.vendor.transformers import Qwen3Model, Qwen3Config
 
     >>> # Initializing a Qwen3 style configuration
     >>> configuration = Qwen3Config()

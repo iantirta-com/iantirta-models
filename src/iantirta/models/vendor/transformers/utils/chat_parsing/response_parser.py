@@ -21,7 +21,11 @@ from typing import Any
 
 from ..chat_template_utils import get_json_schema
 from .content_parsers import STREAMABLE_PARSERS, process_field
-from .response_templates import ResponseTemplate, ResponseTemplateField, load_response_template
+from .response_templates import (
+    ResponseTemplate,
+    ResponseTemplateField,
+    load_response_template,
+)
 
 
 def _schema_types(schema: Any) -> tuple[str, ...]:

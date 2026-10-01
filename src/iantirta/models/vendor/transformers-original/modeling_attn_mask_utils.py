@@ -45,7 +45,7 @@ class AttentionMaskConverter:
 
     ```python
     >>> import torch
-    >>> from transformers.modeling_attn_mask_utils import AttentionMaskConverter
+    >>> from iantirta.models.vendor.transformers.modeling_attn_mask_utils import AttentionMaskConverter
 
     >>> converter = AttentionMaskConverter(True)
     >>> converter.to_4d(torch.tensor([[0, 0, 0, 1, 1]]), 5, key_value_length=5, dtype=torch.float32)

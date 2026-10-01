@@ -67,7 +67,7 @@ class CommitScheduler:
     Example:
     ```py
     >>> from pathlib import Path
-    >>> from huggingface_hub import CommitScheduler
+    >>> from iantirta.models.vendor.huggingface_hub import CommitScheduler
 
     # Scheduler uploads every 10 minutes
     >>> csv_path = Path("watched_folder/data.csv")
@@ -84,7 +84,7 @@ class CommitScheduler:
     Example using a context manager:
     ```py
     >>> from pathlib import Path
-    >>> from huggingface_hub import CommitScheduler
+    >>> from iantirta.models.vendor.huggingface_hub import CommitScheduler
 
     >>> with CommitScheduler(repo_id="test_scheduler", repo_type="dataset", folder_path="watched_folder", every=10) as scheduler:
     ...     csv_path = Path("watched_folder/data.csv")
