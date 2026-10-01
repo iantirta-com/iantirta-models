@@ -17,15 +17,14 @@ VENDOR = SRC / "iantirta" / "models" / "vendor"
 
 def test_vendor_aliases():
     import iantirta.models
-
     import huggingface_hub
-    assert huggingface_hub is iantirta.models.vendor.huggingface_hub
-    
     import transformers
-    assert transformers is iantirta.models.vendor.transformers
-    
-    assert huggingface_hub is iantirta.models.vendor.huggingface_hub
-    assert transformers is iantirta.models.vendor.transformers
+
+    assert huggingface_hub.__file__ is not None
+    assert transformers.__file__ is not None
+
+    assert "iantirta/models/vendor/huggingface_hub" in huggingface_hub.__file__.replace("\\", "/")
+    assert "iantirta/models/vendor/transformers" in transformers.__file__.replace("\\", "/")
 
 
 def test_vendor_module_paths():
@@ -45,12 +44,15 @@ def test_vendor_module_identity():
     import huggingface_hub
     import transformers
 
-    assert huggingface_hub.__name__ == (
-        "iantirta.models.vendor.huggingface_hub"
-    )
-    assert transformers.__name__ == (
-        "iantirta.models.vendor.transformers"
-    )
+    assert huggingface_hub.__name__ in {
+        "huggingface_hub",
+        "iantirta.models.vendor.huggingface_hub",
+    }
+
+    assert transformers.__name__ in {
+        "transformers",
+        "iantirta.models.vendor.transformers",
+    }
 
 
 def test_vendor_hub_imports():

@@ -523,9 +523,9 @@ def tokenizer_class_from_name(class_name: str) -> type[Any] | None:
                 module_name in ["mistral", "mistral3", "mixtral", "ministral", "ministral3", "pixtral", "voxtral"]
                 and class_name == "MistralCommonBackend"
             ):
-                module = importlib.import_module(".tokenization_mistral_common", "transformers")
+                module = importlib.import_module(".tokenization_mistral_common", "iantirta.models.vendor.transformers")
             else:
-                module = importlib.import_module(f".{module_name}", "transformers.models")
+                module = importlib.import_module(f".{module_name}", "iantirta.models.vendor.transformers.models")
             try:
                 result = getattr(module, class_name)
                 # BC v5: expose XxxFast alias and tokenization_*_fast submodule for pre-v5 remote code.
@@ -544,7 +544,7 @@ def tokenizer_class_from_name(class_name: str) -> type[Any] | None:
     # We did not find the class, but maybe it's because a dep is missing. In that case, the class will be in the main
     # We did not find the class, but maybe it's because a dep is missing. In that case, the class will be in the main
     # init and we return the proper dummy to get an appropriate error message.
-    main_module = importlib.import_module("transformers")
+    main_module = importlib.import_module("iantirta.models.vendor.transformers")
     if hasattr(main_module, class_name):
         return getattr(main_module, class_name)
 

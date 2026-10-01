@@ -199,14 +199,14 @@ def get_image_processor_class_from_name(class_name: str):
     for model_type, extractors_dict in IMAGE_PROCESSOR_MAPPING_NAMES.items():
         if class_name in extractors_dict.values():
             module_name = model_type_to_module_name(model_type)
-            module = importlib.import_module(f".{module_name}", "transformers.models")
+            module = importlib.import_module(f".{module_name}", "iantirta.models.vendor.transformers.models")
             try:
                 return getattr(module, class_name)
             except AttributeError:
                 continue
 
     # Fallback: class may be in main init (e.g. when dep is missing, returns dummy)
-    main_module = importlib.import_module("transformers")
+    main_module = importlib.import_module("iantirta.models.vendor.transformers")
     if hasattr(main_module, class_name):
         return getattr(main_module, class_name)
 

@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "iantirta-models"
-version = "0.1.0a1"
+version = "0.1.0rc1"
 
 authors = [
     { name = "Iantirta.com", email = "ian@iantirta.com" },
@@ -14,7 +14,7 @@ maintainers = [
     { name = "Iantirta.com", email = "ian@iantirta.com" }
 ]
 
-description = " utilities for Python"
+description = "Model utilities and implementations for Python"
 readme = "README.md"
 
 requires-python = ">=3.10"
@@ -23,11 +23,16 @@ license = "Apache-2.0"
 license-files = ["LICENSE"]
 
 keywords = [
+    "machine-learning",
+    "deep-learning",
+    "models",
+    "model-loading",
+    "pytorch",
+    "safetensors",
     "audio",
     "speech",
     "asr",
-    "audio-processing",
-    "machine-learning",
+    "automatic-speech-recognition",
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",

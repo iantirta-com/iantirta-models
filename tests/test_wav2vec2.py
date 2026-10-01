@@ -7,6 +7,46 @@ import pytest
 import torch
 
 
+
+def test_wav2vec2_import():
+    from iantirta.models import (
+        Wav2Vec2Config,
+    )
+
+    assert Wav2Vec2Config.model_type == "wav2vec2"
+
+
+def test_wav2vec2_config():
+    from iantirta.models.vendor.transformers.models.wav2vec2 import (
+        Wav2Vec2Config,
+    )
+
+    config = Wav2Vec2Config()
+
+    assert config.model_type == "wav2vec2"
+
+
+def test_wav2vec2_model_import():
+    from iantirta.models.vendor.transformers.models.wav2vec2 import (
+        Wav2Vec2ForCTC,
+    )
+
+    assert Wav2Vec2ForCTC is not None
+
+
+def test_wav2vec2_small_model():
+    from iantirta.models.vendor.transformers.models.wav2vec2 import (
+        Wav2Vec2ForCTC,
+        Wav2Vec2Config,
+    )
+
+    config = Wav2Vec2Config()
+
+    model = Wav2Vec2ForCTC(config)
+
+    assert model is not None
+
+
 @pytest.mark.manual
 def test_wav2vec2_real_model_load():
     from iantirta.models import (

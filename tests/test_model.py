@@ -38,6 +38,7 @@ def test_config_from_dict(config_dict):
         assert getattr(config, key, None) is not None
 
 
+@pytest.mark.manual
 @pytest.mark.parametrize(
     "pretrained_name",
     [

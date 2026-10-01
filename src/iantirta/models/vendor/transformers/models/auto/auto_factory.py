@@ -542,7 +542,7 @@ def getattribute_from_module(module, attr):
         return getattr(module, attr)
     # Some of the mappings have entries model_type -> object of another model type. In that case we try to grab the
     # object at the top level.
-    transformers_module = importlib.import_module("transformers")
+    transformers_module = importlib.import_module("iantirta.models.vendor.transformers")
 
     if module != transformers_module:
         try:
@@ -625,7 +625,7 @@ class _LazyAutoMapping(OrderedDict[type[PreTrainedConfig], _LazyAutoMappingValue
     def _load_attr_from_module(self, model_type, attr):
         module_name = model_type_to_module_name(model_type)
         if module_name not in self._modules:
-            self._modules[module_name] = importlib.import_module(f".{module_name}", "transformers.models")
+            self._modules[module_name] = importlib.import_module(f".{module_name}", "iantirta.models.vendor.transformers.models")
         return getattribute_from_module(self._modules[module_name], attr)
 
     def keys(self) -> list[type[PreTrainedConfig]]:

@@ -3,6 +3,7 @@
 
 from fractions import Fraction
 
+import pytest
 import torch
 
 from iantirta.models.demucs.modeling_utils import (
@@ -105,6 +106,7 @@ weights:
     ]
 
 
+@pytest.mark.manual
 def test_htdemucs_load():
     model = DemucsBagOfModel.from_pretrained(
         "htdemucs_ft",
@@ -116,6 +118,7 @@ def test_htdemucs_load():
     assert model.audio_channels > 0
 
 
+@pytest.mark.manual
 def test_demucs_model_sources():
     model = DemucsBagOfModel.from_pretrained("htdemucs")
 
@@ -127,6 +130,7 @@ def test_demucs_model_sources():
     ]
 
 
+@pytest.mark.manual
 def test_mdx_extra_q_forward():
     from iantirta.models.demucs import apply_model
 

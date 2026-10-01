@@ -89,13 +89,13 @@ class _LazyConfigMapping(OrderedDict[str, type[PreTrainedConfig]]):
         value = self._mapping[key]
         module_name = model_type_to_module_name(key)
         if module_name not in self._modules:
-            self._modules[module_name] = importlib.import_module(f".{module_name}", "transformers.models")
+            self._modules[module_name] = importlib.import_module(f".{module_name}", "iantirta.models.vendor.transformers.models")
         if hasattr(self._modules[module_name], value):
             return getattr(self._modules[module_name], value)
 
         # Some of the mappings have entries model_type -> config of another model type. In that case we try to grab the
         # object at the top level.
-        transformers_module = importlib.import_module("transformers")
+        transformers_module = importlib.import_module("iantirta.models.vendor.transformers")
         return getattr(transformers_module, value)
 
     def keys(self) -> list[str]:
@@ -154,7 +154,7 @@ class _LazyLoadAllMappings(OrderedDict[str, str]):
 
         for model_type, map_name in self._mapping.items():
             module_name = model_type_to_module_name(model_type)
-            module = importlib.import_module(f".{module_name}", "transformers.models")
+            module = importlib.import_module(f".{module_name}", "iantirta.models.vendor.transformers.models")
             mapping = getattr(module, map_name)
             self._data.update(mapping)
 

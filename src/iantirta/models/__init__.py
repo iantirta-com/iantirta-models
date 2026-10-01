@@ -31,28 +31,6 @@ else:
     sys.modules["huggingface_hub"] = huggingface_hub
     sys.modules["transformers"] = transformers
 
-    def _create_module_alias(alias: str, target: str) -> None:
-        """
-        Lazily redirect legacy module paths to their replacements without importing heavy deps.
-        """
-        module = types.ModuleType(alias)
-        module.__doc__ = f"Alias module for backward compatibility with `{target}`."
-        # Set __file__ explicitly so that inspect.py's hasattr(module, '__file__') check
-        # never falls through to __getattr__ and triggers a premature (possibly circular) import.
-        module.__file__ = None
-
-        def _get_target():
-            return importlib.import_module(target, __name__)
-
-        module.__getattr__ = lambda name: getattr(_get_target(), name)
-        module.__dir__ = lambda: dir(_get_target())
-
-        sys.modules[alias] = module
-        setattr(sys.modules[__name__], alias.rsplit(".", 1)[-1], module)
-
-    _create_module_alias("transformers", ".vendor.transformers")
-    _create_module_alias("transformers.models", ".vendor.transformers.models")
-
     _file = globals()["__file__"]
     sys.modules[__name__] = _LazyModule(
         __name__,
