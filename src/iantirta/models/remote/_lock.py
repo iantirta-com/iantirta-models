@@ -8,65 +8,8 @@ import time
 from collections.abc import Generator
 from pathlib import Path
 
-from filelock import BaseFileLock, FileLock, SoftFileLock, Timeout
-
-# Timeout of acquiring file lock and logging the attempt
-FILELOCK_LOG_EVERY_SECONDS = 10
 
 logger = logging.getLogger(__name__)
-
-
-@contextlib.contextmanager
-def WeakFileLock(
-    lock_file: str | Path,
-    *, timeout: float | None = None
-) -> Generator[BaseFileLock, None, None]:
-    """A filelock with some custom logic.
-
-    This filelock is weaker than the default filelock in that:
-    1. It won't raise an exception if release fails.
-    2. It will default to a SoftFileLock if the filesystem does not support flock.
-    3. Lock files are created with mode 0o664 (group-writable) instead of the default 0o644.
-       This allows multiple users sharing a cache directory to wait for locks.
-
-    An INFO log message is emitted every 10 seconds if the lock is not acquired immediately.
-    If a timeout is provided, a `filelock.Timeout` exception is raised if the lock is not acquired within the timeout.
-    """
-    log_interval = FILELOCK_LOG_EVERY_SECONDS
-    lock = FileLock(lock_file, timeout=log_interval, mode=0o664)
-    start_time = time.time()
-
-    while True:
-        elapsed_time = time.time() - start_time
-        if timeout is not None and elapsed_time >= timeout:
-            raise Timeout(str(lock_file))
-
-        try:
-            lock.acquire(timeout=min(log_interval, timeout - elapsed_time) if timeout else log_interval)
-        except Timeout:
-            logger.info(
-                f"Still waiting to acquire lock on {lock_file} (elapsed: {time.time() - start_time:.1f} seconds)"
-            )
-        except NotImplementedError as e:
-            if "use SoftFileLock instead" in str(e):
-                logger.warning(
-                    "FileSystem does not appear to support flock. Falling back to SoftFileLock for %s", lock_file
-                )
-                lock = SoftFileLock(lock_file, timeout=log_interval)
-                continue
-        else:
-            break
-
-    try:
-        yield lock
-    finally:
-        try:
-            lock.release()
-        except OSError:
-            try:
-                Path(lock_file).unlink()
-            except OSError:
-                pass
 
 
 class FileLockTimeout(TimeoutError):
@@ -91,13 +34,12 @@ def file_lock(
 
     start = time.monotonic()
     fd: int | None = None
-
+    flags = os.O_CREAT | os.O_WRONLY
+    if hasattr(os, "O_NOFOLLOW"):
+        flags |= os.O_NOFOLLOW
     while True:
         try:
-            fd = os.open(
-                path,
-                os.O_CREAT | os.O_EXCL | os.O_WRONLY,
-            )
+            fd = os.open(path, flags, 0o666)
             break
         except FileExistsError:
             if timeout is not None and time.monotonic() - start >= timeout:

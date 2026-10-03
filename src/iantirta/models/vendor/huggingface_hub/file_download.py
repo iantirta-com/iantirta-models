@@ -982,6 +982,10 @@ def hf_hub_download(
             If some parameter value is invalid.
 
     """
+    warnings.warn(
+        "Using vendored huggingface hub download is deprecated. "
+        "as it will be removed in the next version."
+    )
     if constants.HF_HUB_ETAG_TIMEOUT != constants.DEFAULT_ETAG_TIMEOUT:
         # Respect environment variable above user value
         etag_timeout = constants.HF_HUB_ETAG_TIMEOUT

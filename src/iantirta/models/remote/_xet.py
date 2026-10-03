@@ -10,8 +10,11 @@ from typing import Any
 
 from ._http import request
 from ._types import XetFileData
+from ._progress import XetDownloadProgressReporter
+
 
 logger = logging.getLogger(__name__)
+
 
 @lru_cache
 def available() -> bool:
@@ -124,8 +127,10 @@ def get_xet_session():
     """
     return GLOBAL_XET_SESS.get()
 
+
 def abort_xet_session():
     return GLOBAL_XET_SESS.sigint_abort()
+
 
 def _parse_xet_connection_info(headers):
     try:
@@ -149,6 +154,12 @@ def _cache_key(url: str, headers: dict[str, str]) -> str:
     return f"{url}|{auth_header}"
 
 
+def _key_lock(cache_key: str) -> threading.Lock:
+    """Return the lock guarding token fetches for `cache_key`, creating it if needed."""
+    with GLOBAL_XET_LOCK:
+        return XET_LOCKS.setdefault(cache_key, threading.Lock())
+
+
 def get_xet_connection_info(
     xet_fd: XetFileData,
     headers: dict[str, str] = {},
@@ -158,12 +169,7 @@ def get_xet_connection_info(
     if cached_info is not None and not cached_info.expired:
         return cached_info
 
-    with GLOBAL_XET_LOCK:
-        if cache_key not in XET_LOCKS:
-            XET_LOCKS[cache_key] = threading.Lock()
-        key_lock = XET_LOCKS[cache_key]
-
-    with key_lock:
+    with _key_lock(cache_key):
         cached_info = XET_INFO_CACHE.get(cache_key)
         if cached_info is not None and not cached_info.expired:
             return cached_info

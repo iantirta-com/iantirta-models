@@ -21,6 +21,7 @@ from ._cache import (
 from ._http import http_download, request_follow_redirect
 from ._lock import file_lock
 from ._types import HFFileMeta
+from ._shared import link_from_shared, publish_to_shared
 
 logger = logging.getLogger(__name__)
 
@@ -124,6 +125,9 @@ def _download_file(
         f"{uuid.uuid4().hex[:8]}."
         ".incomplete"
     )
+
+    headers = headers or {}
+    
     try:
         with tmp_path.open("wb") as f:
             if (metadata.xet is not None and _xet.available()):
@@ -258,7 +262,9 @@ def hf_hub_download(
     outdir = Path(outdir).expanduser().resolve()
 
     if subfolder is not None:
-        filename = f"{subfolder.rstrip('/')}/{filename.lstrip('/')}"
+        subfolder = subfolder.strip("/")
+        if subfolder.strip():
+            filename = f"{subfolder.strip('/')}/{filename.lstrip('/')}"
 
     if Path(filename).is_file():
         return Path(filename)
@@ -323,7 +329,7 @@ def hf_hub_download(
 
         blob_is_shared = False
         if not blob.is_file():
-            if shared_blob_hash is not None and try_link_from_shared_store(
+            if shared_blob_hash is not None and link_from_shared(
                 blob_path=blob, xet_hash=shared_blob_hash, cache_dir=outdir, expected_size=metadata.size
             ):
                 blob_is_shared = True
@@ -336,7 +342,7 @@ def hf_hub_download(
                     headers=headers,
                 )
                 if shared_blob_hash is not None and metadata.xet is not None:
-                    blob_is_shared = publish_blob_to_shared_store(
+                    blob_is_shared = publish_to_shared(
                         blob_path=blob,
                         xet_hash=shared_blob_hash,
                         cache_dir=outdir,
@@ -350,5 +356,5 @@ def hf_hub_download(
                 snapshot,
                 move_source=not blob_is_shared,
             )
-    
+
     return snapshot

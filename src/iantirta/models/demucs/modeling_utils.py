@@ -1813,7 +1813,7 @@ class DemucsHTDemucs(DemucsModel):
 
 class DemucsBagOfModel(DemucsPreTrainedModel):
     def __init__(self, config: DemucsConfig, *inputs, **kwargs):
-        from iantirta.models.vendor.huggingface_hub import hf_hub_download
+        from iantirta.models.remote import hf_hub_download
 
         models = [
             load_safetensors_model(
