@@ -11,7 +11,6 @@ from pathlib import Path
 from urllib.parse import quote
 
 from . import _xet
-from .hf import repo_folder_name
 from ._cache import (
     CACHE_DIR,
     create_cache_tag,
@@ -21,13 +20,18 @@ from ._cache import (
 )
 from ._http import http_download, request_follow_redirect
 from ._lock import file_lock
-from ._types import HFFileMeta
 from ._shared import link_from_shared, publish_to_shared
+from ._types import HFFileMeta
+from .hf import repo_folder_name
+
+__all__ = [
+    "hf_hub_download"
+]
+
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_ENDPOINT = "https://huggingface.co"
-
 
 def hf_hub_url(
     repo_id: str,

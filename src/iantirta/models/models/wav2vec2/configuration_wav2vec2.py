@@ -1,11 +1,23 @@
-
+# Copyright 2021 The Fairseq Authors and The HuggingFace Inc. team. All rights reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 """Wav2Vec2 model configuration"""
 
 import functools
 import operator
 
-from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 from iantirta.models.common import PreTrainedConfig
+from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 
 
 @strict
@@ -74,19 +86,15 @@ class Wav2Vec2Config(PreTrainedConfig):
         super().__post_init__(**kwargs)
 
     def validate_architecture(self):
-        """Part of `@strict`-powered validation.
-        Validates the architecture of the config.
-        """
+        """Part of `@strict`-powered validation. Validates the architecture of the config."""
         if (
             (len(self.conv_stride) != self.num_feat_extract_layers)
             or (len(self.conv_kernel) != self.num_feat_extract_layers)
             or (len(self.conv_dim) != self.num_feat_extract_layers)
         ):
             raise ValueError(
-                "Configuration for convolutional layers is incorrect. "
-                "It is required that `len(config.conv_dim)` == "
-                "`len(config.conv_stride)` == `len(config.conv_kernel)`, "
-                "but is `len(config.conv_dim) ="
+                "Configuration for convolutional layers is incorrect. It is required that `len(config.conv_dim)` =="
+                " `len(config.conv_stride)` == `len(config.conv_kernel)`, but is `len(config.conv_dim) ="
                 f" {len(self.conv_dim)}`, `len(config.conv_stride) = {len(self.conv_stride)}`,"
                 f" `len(config.conv_kernel) = {len(self.conv_kernel)}`."
             )

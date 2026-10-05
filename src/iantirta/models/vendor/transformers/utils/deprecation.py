@@ -128,7 +128,7 @@ def deprecate_kwarg(
             message = None
 
             # deprecated kwarg and its new version are set for function call -> replace it with new name
-            if old_name in kwargs and new_name in kwargs:
+            if old_name in kwargs and new_name in kwargs:   
                 minimum_action = Action.RAISE if raise_if_both_names else Action.NOTIFY_ALWAYS
                 message = f"Both `{old_name}` and `{new_name}` are set for `{func_name}`. Using `{new_name}={kwargs[new_name]}` and ignoring deprecated `{old_name}={kwargs[old_name]}`."
                 kwargs.pop(old_name)

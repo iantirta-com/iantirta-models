@@ -4,6 +4,11 @@ from pathlib import Path
 from ._cache import try_to_load_from_cache
 from .api import hf_hub_download
 
+__all__ = [
+    "cached_file",
+    "cached_files",
+]
+
 
 def _get_cache_file_to_return(
     path_or_repo_id: str,
@@ -136,6 +141,7 @@ def cached_files(
                 revision=revision,
                 cache_dir=cache_dir,
             )
+            result = str(result)
         else:
             raise NotImplementedError()
     except Exception:

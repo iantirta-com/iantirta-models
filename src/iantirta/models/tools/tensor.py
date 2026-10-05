@@ -1,6 +1,14 @@
 
-from ._torch import _is_torch_available
-from ._mlx import _is_mlx_available
+from collections import UserDict
+
+import numpy as np
+
+from ._mlx import is_mlx_available
+from ._torch import is_torch_available
+
+_is_torch_available = False
+if is_torch_available():
+    _is_torch_available = True
 
 
 def is_numpy_array(x) -> bool:
@@ -30,10 +38,10 @@ def is_mlx_array(x) -> bool:
     Tests if `x` is a mlx array or not.
     Safe to call even when mlx is not installed.
     """
-    if not _is_mlx_available:
+    if not is_mlx_available():
         return False
 
-    import mlx.core as mx
+    import mlx.core as mx  # type: ignore
 
     return isinstance(x, mx.array)
 
@@ -43,7 +51,7 @@ def is_torch_fx_proxy(x) -> bool:
         import torch.fx
 
         return isinstance(x, torch.fx.Proxy)
-    except Exception:
+    except Exception:  # noqa: BLE001
         return False
 
 
@@ -110,7 +118,58 @@ def is_tensor(x) -> bool:
             return True
 
     # Tracers
-    if is_torch_fx_proxy(x):
+    return bool(is_torch_fx_proxy(x))
+
+
+def _is_tensor_or_array_like(value):
+    """
+    Check if a value is array-like (includes ragged arrays)
+    """
+    if is_numpy_array(value):
+        return True
+    if is_torch_tensor(value):
+        return True
+    if isinstance(value, (int, float, bool, np.number)):
         return True
 
+    if isinstance(value, (list, tuple)):
+        if len(value) == 0:
+            # consider empty list or nested list as array-like
+            return True
+        return _is_tensor_or_array_like(value[0])
+
     return False
+
+
+def to_py_obj(obj):
+    """
+    Convert a PyTorch tensor, Numpy array or python list to a python list.
+    """
+    if isinstance(obj, (int, float)):
+        return obj
+    elif isinstance(obj, (dict, UserDict)):
+        return {k: to_py_obj(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        # Only convert directly if all elements are numeric scalars
+        if all(isinstance(x, (int, float, np.number)) for x in obj):
+            return list(obj)
+
+        # Otherwise recurse element-wise
+        return [to_py_obj(o) for o in obj]
+
+    framework_to_py_obj = {
+        "pt": lambda obj: obj.tolist(),
+        "np": lambda obj: obj.tolist(),
+    }
+
+    # This gives us a smart order to test the frameworks with the corresponding tests.
+    framework_to_test_func = _get_frameworks_test_func(obj)
+    for framework, test_func in framework_to_test_func.items():
+        if test_func(obj):
+            return framework_to_py_obj[framework](obj)
+
+    # tolist also works on 0d np arrays
+    if isinstance(obj, np.number):
+        return obj.tolist()
+    else:
+        return obj

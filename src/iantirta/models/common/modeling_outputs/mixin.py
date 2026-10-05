@@ -1,14 +1,20 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any
-from typing_extensions import Self
-from functools import partial, wraps
 from collections.abc import Iterable
 from dataclasses import fields, is_dataclass
-from iantirta.models.tools.tensor import is_tensor
+from functools import partial
+from typing import Any
 
 import torch
+from typing_extensions import Self
+
+from iantirta.models.tools.tensor import is_tensor
+
+__all__ = [
+    "ModelOutputMixin",
+]
+
 
 OUTPUT_TYPES: set[type[Any]] = set()
 
