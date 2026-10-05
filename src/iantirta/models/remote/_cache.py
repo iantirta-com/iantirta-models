@@ -6,6 +6,8 @@ from pathlib import Path
 import shutil
 import tempfile
 
+from .hf import repo_folder_name
+
 CACHE_DIR = Path("~/.cache/iantirta").expanduser().resolve()
 CACHEDIR_TAG_CONTENT = (
     "Signature: 8a477f597d28d172789f06886806bc55\n"
@@ -117,3 +119,47 @@ def pointer_path(
         raise ValueError("Invalid snapshot path.")
 
     return path
+
+
+def try_to_load_from_cache(
+    repo_id: str,
+    filename: str,
+    cache_dir: str | Path = CACHE_DIR,
+    revision: str = "main",
+    repo_type: str = "model",
+) -> str | None:
+    if repo_type != "model":
+        raise NotImplementedError()
+
+    cache_dir = Path(cache_dir).expanduser().resolve()
+
+    repo_cache = cache_dir / repo_folder_name(
+        repo_id=repo_id, repo_type=repo_type
+    )
+    if not repo_cache.is_dir():
+        # No cache for this model
+        return None
+
+    refs_dir = repo_cache / "refs"
+    snapshots_dir = repo_cache / "snapshots"
+    no_exist_dir = repo_cache / ".no_exist"
+
+    # Resolve refs (for instance to convert main to the associated commit sha)
+    revision_file = refs_dir / revision
+    if revision_file.is_file():
+        revision = revision_file.read_text().strip()
+
+    if (no_exist_dir / revision / filename).is_file():
+        return None
+
+    if not snapshots_dir.exists():
+        return None
+
+    snapshots_dir = snapshots_dir / revision
+    if not snapshots_dir.is_dir():
+        return None
+
+    if (cached_file := (snapshots_dir / filename)).is_file():
+        return str(cached_file)
+
+    return None

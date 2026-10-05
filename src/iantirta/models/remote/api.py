@@ -11,6 +11,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from . import _xet
+from .hf import repo_folder_name
 from ._cache import (
     CACHE_DIR,
     create_cache_tag,
@@ -41,21 +42,6 @@ def hf_hub_url(
         f"{repo_id}/resolve/"
         f"{quote(revision, safe='')}/"
         f"{quote(filename)}"
-    )
-
-
-def repo_folder_name(
-    repo_id: str,
-    repo_type: str = "model"
-) -> str:
-    """Return a serialized version of a hf.co
-    repo name and type, safe for disk storage
-    as a single non-nested folder.
-
-    Example: models--julien-c--EsperBERTo-small
-    """
-    return "--".join(
-        [f"{repo_type}s", *repo_id.split("/")]
     )
 
 
