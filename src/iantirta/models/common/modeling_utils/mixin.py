@@ -1,3 +1,7 @@
+# Part of Iantirta.com
+# See LICENSE file for full copyright and licensing details.
+#
+# Partial code of transformers, improved by iantirta.com
 
 import logging
 from functools import partial
@@ -7,7 +11,7 @@ import torch
 from torch import nn
 
 if TYPE_CHECKING:
-    from .pretrained import PreTrainedModel
+    from ...core.model.pretrained import PreTrainedModel
 
 
 logger = logging.getLogger(__name__)

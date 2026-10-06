@@ -3,10 +3,7 @@
 
 from typing import TYPE_CHECKING
 
-from iantirta.models.vendor.transformers.utils import _LazyModule
-from iantirta.models.vendor.transformers.utils.import_utils import (
-    define_import_structure,
-)
+from iantirta.models._lazy_import import _LazyModule, define_import_structure
 
 if TYPE_CHECKING:
     from .apply import *

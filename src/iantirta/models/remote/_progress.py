@@ -1,34 +1,12 @@
 
 import logging
 import os
-import sys
 from contextlib import AbstractContextManager, nullcontext
 from typing import Any
 
+from typing_extensions import Self
 
-class _FallbackTqdm:
-    def __init__(self, *args, **kwargs):
-        self.n = 0
-
-    def update(self, n: int, *args, **kwargs):
-        self.n += n
-        sys.stderr.write(f"\r[ ]: {self.n}")
-        sys.stderr.flush()
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        return
-
-    def format_sizeof(self, *args, **kwargs):
-        return "Unknown"
-
-
-try:
-    from tqdm import tqdm
-except ImportError:
-    tqdm = _FallbackTqdm
+from iantirta.models.tools._tqdm import tqdm
 
 
 def is_tqdm_disabled(log_level: int) -> bool | None:
@@ -250,7 +228,7 @@ class XetDownloadProgressReporter:
         if self._owns_reconstruction_bar and hasattr(self.reconstruction_bar, "close"):
             self.reconstruction_bar.close()
 
-    def __enter__(self) -> "XetDownloadProgressReporter":
+    def __enter__(self) -> Self:
         return self
 
     def __exit__(self, *args) -> None:

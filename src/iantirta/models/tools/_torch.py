@@ -1,14 +1,17 @@
 
-from collections.abc import Callable
 import logging
 import os
+from collections.abc import Callable
 from functools import lru_cache
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import packaging.version
 from packaging import version
 
 from ._deps import _is_package_available, _make_compile_constant
+
+if TYPE_CHECKING:
+    import torch
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +20,7 @@ ENV_VARS_TRUE_VALUES = {"1", "ON", "YES", "TRUE"}
 
 # Try to run a native pytorch job in an environment with TorchXLA installed by setting this value to 0.
 USE_TORCH_XLA = os.environ.get("USE_TORCH_XLA", "1").upper()
+TORCHAO_MIN_VERSION = "0.15.0"
 
 
 @lru_cache
@@ -338,12 +342,30 @@ def is_torchvision_available() -> bool:
 
 @lru_cache
 @_make_compile_constant
+def is_torchao_available(min_version: str = TORCHAO_MIN_VERSION) -> bool:
+    if not is_torch_available():
+        return False
+    is_available, torchao_version = _is_package_available("torchao", return_version=True)
+    return is_available and version.parse(torchao_version) >= version.parse(min_version)
+
+
+@lru_cache
+@_make_compile_constant
 def is_torch_distributed_available() -> bool:
     if not is_torch_available():
         return False
     import torch
 
     return torch.distributed.is_available()
+
+
+@lru_cache
+def is_rocm_platform() -> bool:
+    if is_torch_available():
+        import torch
+
+        return torch.version.hip is not None
+    return False
 
 
 def is_torch_fx_proxy(x) -> bool:
@@ -535,3 +557,13 @@ def is_torch_dtype(x) -> bool:
         else:
             return False
     return isinstance(x, torch.dtype)
+
+
+def get_device_type(device: "torch.device | str | None" = None) -> str:
+    """Type of a device (the current accelerator by default, else cpu), with AMD GPUs reported as rocm."""
+    import torch
+
+    if device is None:
+        device = torch.accelerator.current_accelerator() or torch.device("cpu")
+    device_type = torch.device(device).type if isinstance(device, str) else device.type
+    return "rocm" if device_type == "cuda" and is_rocm_platform() else device_type

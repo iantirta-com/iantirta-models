@@ -23,7 +23,7 @@ from typing import Any
 import torch as th
 from torch.nn import functional as F
 
-from iantirta.models.vendor.transformers.utils.logging import tqdm
+from iantirta.models.tools._tqdm import tqdm
 
 from .modeling_utils import DemucsBagOfModel, DemucsHTDemucs, DemucsModel
 from .utils import DummyPoolExecutor, center_trim

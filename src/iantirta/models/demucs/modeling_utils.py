@@ -17,7 +17,7 @@ import os
 from collections.abc import Callable
 from fractions import Fraction
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import julius
 import torch
@@ -25,12 +25,10 @@ from einops import rearrange
 from torch import nn
 from torch.nn import functional as F
 
-from iantirta.models.vendor.transformers.configuration_utils import PreTrainedConfig
-from iantirta.models.vendor.transformers.modeling_utils import (
+from iantirta.models.common.configuration_utils import PreTrainedConfig
+from iantirta.models.common.modeling_utils import (
     PreTrainedModel,
-    SpecificPreTrainedModelType,
 )
-from iantirta.models.vendor.transformers.utils import resolve_revision
 
 from .configuration_utils import DemucsConfig
 from .spec import ispectro, spectro
@@ -572,7 +570,7 @@ class DemucsPreTrainedModel(PreTrainedModel):
 
     @classmethod
     def from_pretrained(
-        cls: type[SpecificPreTrainedModelType],
+        cls: type[Self],
         pretrained_model_name_or_path: str | os.PathLike | None,
         *model_args,
         config: PreTrainedConfig | str | os.PathLike | None = None,
@@ -587,7 +585,7 @@ class DemucsPreTrainedModel(PreTrainedModel):
         fusion_config: dict[str, bool | dict[str, Any]] | None = None,
         disable_mmap: bool | None = None,
         **kwargs,
-    ) -> SpecificPreTrainedModelType:
+    ) -> Self:
         state_dict = kwargs.pop("state_dict", None)
         proxies = kwargs.pop("proxies", None)
         tqdm_class = kwargs.pop("tqdm_class", None)
@@ -626,13 +624,13 @@ class DemucsPreTrainedModel(PreTrainedModel):
         # Resolve the revision once and for all: config, weights, generation config and adapters are then all loaded
         # from the exact same repository state, without any further call to the Hub to revalidate a mutable revision.
         requested_revision = revision
-        revision = resolve_revision(
-            pretrained_model_name_or_path,
-            revision,
-            token=token,
-            local_files_only=local_files_only,
-            cache_dir=cache_dir,
-        )
+        # revision = resolve_revision(
+        #     pretrained_model_name_or_path,
+        #     revision,
+        #     token=token,
+        #     local_files_only=local_files_only,
+        #     cache_dir=cache_dir,
+        # )
 
         download_kwargs = {
             "cache_dir": cache_dir,

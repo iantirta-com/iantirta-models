@@ -36,9 +36,9 @@ from iantirta.models.common.attentions.utils import (
     get_max_seqlen,
     is_flash_attention_requested,
 )
-from iantirta.models.common.auto import AutoModel
+from iantirta.models.core.auto import AutoModel
 from iantirta.models.common.cache_utils import Cache
-from iantirta.models.common.generation_utils import GenerationMixin
+from iantirta.models.common.generation_utils.mixin import GenerationMixin
 from iantirta.models.common.modeling_outputs import (
     BaseModelOutputWithPast,
     BaseModelOutputWithPooling,

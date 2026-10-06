@@ -11,7 +11,7 @@ Citation:
   year = {2024}
 }
 """
-from typing import Optional
+from typing import Optional, Union
 
 import torch
 from packaging import version
@@ -133,7 +133,7 @@ def flex_attention_forward(
     query: torch.Tensor,
     key: torch.Tensor,
     value: torch.Tensor,
-    attention_mask: torch.Tensor | "BlockMask",  # noqa: TC010
+    attention_mask: Union[torch.Tensor, "BlockMask"],
     scaling: float | None = None,
     softcap: float | None = None,
     s_aux: torch.Tensor | None = None,

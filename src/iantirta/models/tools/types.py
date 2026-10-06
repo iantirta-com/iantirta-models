@@ -1,4 +1,21 @@
 from enum import Enum
+from os import PathLike
+from typing import Any, Protocol, TypeAlias
+
+DeviceMeshLike: TypeAlias = Any  # PyTorch stubs do not model torch.distributed.device_mesh consistently yet.
+
+
+class StringValuedEnumLike(Protocol):
+    value: str
+
+
+class PeftConfigLike(Protocol):
+    peft_type: StringValuedEnumLike
+    is_prompt_learning: bool
+    base_model_name_or_path: str | PathLike[str] | None
+    inference_mode: bool
+
+    def save_pretrained(self, save_directory: str | PathLike[str], **kwargs: Any) -> None: ...
 
 
 class ExplicitEnum(str, Enum):

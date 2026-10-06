@@ -2566,7 +2566,7 @@ class PreTrainedTokenizerBase:
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
-        import iantirta.models.vendor.transformers.models.auto as auto_module
+        import iantirta.models.core.auto as auto_module
 
         if not hasattr(auto_module, auto_class):
             raise ValueError(f"{auto_class} is not a valid auto class.")

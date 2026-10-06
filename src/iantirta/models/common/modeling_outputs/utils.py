@@ -66,8 +66,6 @@ class CompileableContextVar:
             self.context_var.reset(token)
 
 
-_CAN_RECORD_REGISTRY = {}
-
 # Thread/context-safe global variable
 _active_collector = CompileableContextVar("output_collector")
 

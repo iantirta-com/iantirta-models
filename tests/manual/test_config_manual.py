@@ -1,12 +1,13 @@
 
 import pytest
-from iantirta.models.common.auto import AutoConfig
+
+from iantirta.models.core.auto import AutoConfig
 
 pytestmark = pytest.mark.manual
 
 
 def test_auto_config_mapping():
-    from iantirta.models.common.auto import CONFIG_MAPPING
+    from iantirta.models.core.auto import CONFIG_MAPPING
     print(CONFIG_MAPPING._modules)
     print(CONFIG_MAPPING["wav2vec2"])
 

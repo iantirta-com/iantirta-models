@@ -1,11 +1,30 @@
 
-import torch
 import inspect
-from math import ceil, lcm
 import logging
+from math import ceil, lcm
+from typing import TYPE_CHECKING, Any
 
+import torch
+
+from iantirta.models.common.attentions.utils import is_flash_attention_requested
 from iantirta.models.common.configuration_utils import PreTrainedConfig
-from iantirta.models.common.configuration_utils.mixin import ContinuousBatchingConfig
+
+from .cache_allocators import (
+    FULL_ATTENTION,
+    SLIDING_ATTENTION,
+    CacheAllocator,
+    CachePool,
+    FullAttentionCacheAllocator,
+    SlidingAttentionCacheAllocator,
+)
+from .distributed import DistributedHelper
+from .requests import RequestState, RequestStatus, get_device_and_memory_breakdown
+from .utils import find_head_dim, find_num_key_value_heads
+
+if TYPE_CHECKING:
+    from iantirta.models.common.generation_utils.continuous_batching.mixin import (
+        ContinuousBatchingConfig,
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -96,7 +115,7 @@ class PagedAttentionCache:
     def __init__(
         self,
         config: PreTrainedConfig,
-        continuous_batching_config: ContinuousBatchingConfig,
+        continuous_batching_config: "ContinuousBatchingConfig",
         device: torch.device | str,
         distributed_helper: DistributedHelper,
         dtype: torch.dtype = torch.float16,
@@ -492,7 +511,7 @@ class PagedAttentionMemoryHandler:
     def __init__(
         self,
         config: PreTrainedConfig,
-        cb_config: ContinuousBatchingConfig,
+        cb_config: "ContinuousBatchingConfig",
         dtype: torch.dtype,
         bytes_per_sector: int,
         tokens_per_sector: int,

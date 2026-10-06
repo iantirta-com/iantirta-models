@@ -173,3 +173,27 @@ def to_py_obj(obj):
         return obj.tolist()
     else:
         return obj
+
+
+def to_numpy(obj):
+    """
+    Convert a PyTorch tensor, Numpy array or python list to a Numpy array.
+    """
+
+    framework_to_numpy = {
+        "pt": lambda obj: obj.detach().cpu().numpy(),
+        "np": lambda obj: obj,
+    }
+
+    if isinstance(obj, (dict, UserDict)):
+        return {k: to_numpy(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return np.array(obj)
+
+    # This gives us a smart order to test the frameworks with the corresponding tests.
+    framework_to_test_func = _get_frameworks_test_func(obj)
+    for framework, test_func in framework_to_test_func.items():
+        if test_func(obj):
+            return framework_to_numpy[framework](obj)
+
+    return obj

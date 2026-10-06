@@ -1,10 +1,30 @@
 
 import importlib
-from types import ModuleType
-from itertools import chain
+import importlib.machinery
+import logging
+import operator
 import os
-from typing import Any
+import re
+import sys
+from collections import OrderedDict
+from enum import Enum
 from functools import lru_cache
+from itertools import chain
+from types import ModuleType
+from typing import Any
+
+from packaging import version
+
+from .tools._deps import _is_package_available
+
+logger = logging.getLogger(__name__)
+
+
+BACKENDS_MAPPING = OrderedDict([])
+
+
+BACKENDS_T = frozenset[str]
+IMPORT_STRUCTURE_T = dict[BACKENDS_T, dict[str, set[str]]]
 
 
 class _LazyModule(ModuleType):
@@ -79,7 +99,10 @@ class _LazyModule(ModuleType):
                         else:
                             raise ValueError(
                                 "Backend should be defined in the "
-                                f"BACKENDS_MAPPING. Offending backend: {backend}"
+                                f"BACKENDS_MAPPING. Offending backend: {backend}.\n"
+                                f"From module_file: {module_file}.\n"
+                                f"All backends: {backends!r}.\n"
+                                f"Import Structure: {import_structure!r}.\n"
                             )
 
                     try:
@@ -170,7 +193,7 @@ class _LazyModule(ModuleType):
                         )
                         setattr(self, name, pil_value)
                         return pil_value
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         logger.debug(f"Could not load PIL fallback {pil_name}: {e}")
 
             class Placeholder(metaclass=DummyObject):
@@ -214,7 +237,7 @@ class _LazyModule(ModuleType):
                             fallback_value = getattr(module, fallback_name)
                         setattr(self, fallback_name, fallback_value)
                         value = fallback_value
-                    except Exception:
+                    except Exception:  # noqa: BLE001
                         # If we can't find the fallback here, try converter logic as a last resort
                         # before giving up
                         value = None
@@ -222,7 +245,9 @@ class _LazyModule(ModuleType):
                         if value is None and name.endswith("TokenizerFast"):
                             lookup_name = name[:-4]
                             try:
-                                from ..convert_slow_tokenizer import SLOW_TO_FAST_CONVERTERS
+                                from ..convert_slow_tokenizer import (
+                                    SLOW_TO_FAST_CONVERTERS,
+                                )
 
                                 if lookup_name in SLOW_TO_FAST_CONVERTERS:
                                     converter_class = SLOW_TO_FAST_CONVERTERS[lookup_name]
@@ -231,7 +256,7 @@ class _LazyModule(ModuleType):
 
                                     candidate_names = [preferred_tokenizer_name]
                                     for tokenizer_name, tokenizer_converter in SLOW_TO_FAST_CONVERTERS.items():
-                                        if tokenizer_converter is converter_class and tokenizer_name != lookup_name:
+                                        if tokenizer_converter is converter_class and tokenizer_name != lookup_name:  # noqa: SIM102
                                             if tokenizer_name not in candidate_names:
                                                 candidate_names.append(tokenizer_name)
 
@@ -245,11 +270,11 @@ class _LazyModule(ModuleType):
                                         # Remove "Tokenizer" suffix and convert to lowercase
                                         if candidate_name.endswith("Tokenizer"):
                                             model_name = candidate_name[:-10].lower()  # Remove "Tokenizer"
-                                            module_path = f"transformers.models.{model_name}.tokenization_{model_name}"
+                                            module_path = f"iantirta.models.{model_name}.tokenization_{model_name}"
                                             try:
                                                 module = importlib.import_module(module_path)
                                                 base_tokenizer_class = getattr(module, candidate_name)
-                                            except Exception:
+                                            except Exception:  # noqa: BLE001
                                                 logger.debug(f"{module_path} does not have {candidate_name} defined.")
 
                                         # Fallback: try via _class_to_module
@@ -258,7 +283,7 @@ class _LazyModule(ModuleType):
                                                 alias_module_name = self._class_to_module[candidate_name]
                                                 alias_module = self._get_module(alias_module_name)
                                                 base_tokenizer_class = getattr(alias_module, candidate_name)
-                                            except Exception:
+                                            except Exception:  # noqa: BLE001
                                                 logger.debug(
                                                     f"{alias_module_name} does not have {candidate_name} defined"
                                                 )
@@ -276,7 +301,7 @@ class _LazyModule(ModuleType):
                                             setattr(self, lookup_name, value)
                                         setattr(self, name, value)
                                         break
-                            except Exception as alias_error:
+                            except Exception as alias_error:  # noqa: BLE001
                                 logger.debug(f"Could not create tokenizer alias: {alias_error}")
 
                         if value is None:
@@ -304,7 +329,7 @@ class _LazyModule(ModuleType):
                         setattr(self, fallback_name, value)
                         setattr(self, name, value)
                         return value
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         logger.debug(f"Could not load fallback {fallback_name}: {e}")
             # V5: Handle *ImageProcessorFast backward compatibility
             # Similar to TokenizerFast, but for image processors
@@ -334,7 +359,7 @@ class _LazyModule(ModuleType):
                         Placeholder.__name__ = fallback_name
                         module_name = self._class_to_module[fallback_name]
                         Placeholder.__module__ = (
-                            module_name if module_name.startswith("transformers.") else f"transformers.{module_name}"
+                            module_name if module_name.startswith("iantirta.models.") else f"iantirta.models.{module_name}"
                         )
                         setattr(self, name, Placeholder)
                         return Placeholder
@@ -344,12 +369,12 @@ class _LazyModule(ModuleType):
                         setattr(self, fallback_name, value)
                         setattr(self, name, value)
                         return value
-                    except Exception as e:
+                    except Exception as e:  # noqa: BLE001
                         logger.debug(f"Could not load fallback {fallback_name}: {e}")
             # V5: If a tokenizer class doesn't exist, check if it should alias to another tokenizer
             # via the converter mapping (e.g., FNetTokenizer -> AlbertTokenizer via AlbertConverter)
             value = None
-            if name.endswith("Tokenizer") or name.endswith("TokenizerFast"):
+            if name.endswith(("Tokenizer", "TokenizerFast")):
                 # Strip "Fast" suffix for converter lookup if present
                 lookup_name = name[:-4] if name.endswith("TokenizerFast") else name
 
@@ -371,7 +396,7 @@ class _LazyModule(ModuleType):
                         candidate_names = [preferred_tokenizer_name]
                         # Then try all other tokenizers with the same converter
                         for tokenizer_name, tokenizer_converter in SLOW_TO_FAST_CONVERTERS.items():
-                            if tokenizer_converter is converter_class and tokenizer_name != lookup_name:
+                            if tokenizer_converter is converter_class and tokenizer_name != lookup_name:  # noqa: SIM102
                                 if tokenizer_name not in candidate_names:
                                     candidate_names.append(tokenizer_name)
 
@@ -389,7 +414,7 @@ class _LazyModule(ModuleType):
                                         setattr(self, lookup_name, value)
                                     setattr(self, name, value)
                                     break
-                                except Exception:
+                                except Exception:  # noqa: BLE001, S112
                                     # If this candidate fails, try the next one
                                     continue
                             else:
@@ -397,7 +422,7 @@ class _LazyModule(ModuleType):
                                 # Try importing it directly to trigger lazy loading
                                 try:
                                     # Try to get it from iantirta.models.vendor.transformers module to trigger lazy loading
-                                    transformers_module = sys.modules.get("transformers")
+                                    transformers_module = sys.modules.get("iantirta.models")
                                     if transformers_module and hasattr(transformers_module, candidate_name):
                                         base_tokenizer_class = getattr(transformers_module, candidate_name)
                                         value = base_tokenizer_class
@@ -406,7 +431,7 @@ class _LazyModule(ModuleType):
                                             setattr(self, lookup_name, value)
                                         setattr(self, name, value)
                                         break
-                                except Exception:
+                                except Exception:  # noqa: BLE001, S112
                                     continue
                 except (ImportError, AttributeError):
                     pass
@@ -433,10 +458,75 @@ class _LazyModule(ModuleType):
                 f"\n   module:  {module_name}"
                 f"\n   error:   {type(e).__name__}: {e}"
             )
-            raise e
+            raise
 
     def __reduce__(self):
         return (self.__class__, (self._name, self.__file__, self._import_structure))
+
+
+class VersionComparison(Enum):
+    EQUAL = operator.eq
+    NOT_EQUAL = operator.ne
+    GREATER_THAN = operator.gt
+    LESS_THAN = operator.lt
+    GREATER_THAN_OR_EQUAL = operator.ge
+    LESS_THAN_OR_EQUAL = operator.le
+
+    @staticmethod
+    def from_string(version_string: str) -> "VersionComparison":
+        string_to_operator = {
+            "=": VersionComparison.EQUAL,
+            "==": VersionComparison.EQUAL,
+            "!=": VersionComparison.NOT_EQUAL,
+            ">": VersionComparison.GREATER_THAN,
+            "<": VersionComparison.LESS_THAN,
+            ">=": VersionComparison.GREATER_THAN_OR_EQUAL,
+            "<=": VersionComparison.LESS_THAN_OR_EQUAL,
+        }
+
+        return string_to_operator[version_string]
+
+
+@lru_cache
+def split_package_version(package_version_str) -> tuple[str, str, str]:
+    pattern = r"([a-zA-Z0-9_-]+)([!<>=~]+)([0-9.]+)"
+    match = re.match(pattern, package_version_str)
+    if match:
+        return (match.group(1), match.group(2), match.group(3))
+    else:
+        raise ValueError(f"Invalid package version string: {package_version_str}")
+
+
+class Backend:
+    def __init__(self, backend_requirement: str):
+        self.package_name, self.version_comparison, self.version = split_package_version(backend_requirement)
+
+        if self.package_name not in BACKENDS_MAPPING:
+            raise ValueError(
+                f"Backends should be defined in the BACKENDS_MAPPING. Offending backend: {self.package_name}"
+            )
+
+    def get_installed_version(self) -> str:
+        """Return the currently installed version of the backend"""
+        is_available, current_version = _is_package_available(self.package_name, return_version=True)
+        if not is_available:
+            raise RuntimeError(f"Backend {self.package_name} is not available.")
+        return current_version
+
+    def is_satisfied(self) -> bool:
+        return VersionComparison.from_string(self.version_comparison).value(
+            version.parse(self.get_installed_version()), version.parse(self.version)
+        )
+
+    def __repr__(self) -> str:
+        return f'Backend("{self.package_name}", {VersionComparison[self.version_comparison]}, "{self.version}")'
+
+    @property
+    def error_message(self):
+        return (
+            f"{{0}} requires the {self.package_name} library version {self.version_comparison}{self.version}. That"
+            f" library was not found with this version in your environment."
+        )
 
 
 def fetch__all__(file_content) -> list[str]:

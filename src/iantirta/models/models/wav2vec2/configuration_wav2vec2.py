@@ -16,7 +16,7 @@
 import functools
 import operator
 
-from iantirta.models.common import PreTrainedConfig
+from iantirta.models.common.configuration_utils import PreTrainedConfig
 from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 
 

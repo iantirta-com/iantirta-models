@@ -25,7 +25,9 @@ from collections import OrderedDict
 import torch
 from torch import Tensor, nn
 
-from iantirta.models.tools._hub_kernels import use_kernel_forward_from_hub
+from iantirta.models.common.modeling_utils.integrations.hub_kernels import (
+    use_kernel_forward_from_hub,
+)
 from iantirta.models.tools._torch import is_torchdynamo_compiling
 
 logger = logging.getLogger(__name__)

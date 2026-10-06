@@ -12,9 +12,9 @@
 import os
 
 import yaml
-from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 
-from iantirta.models.vendor.transformers.configuration_utils import PreTrainedConfig
+from iantirta.models.common.configuration_utils import PreTrainedConfig
+from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 
 
 @strict

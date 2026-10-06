@@ -39,8 +39,10 @@ from iantirta.models.common.modeling_utils import (
     get_torch_context_manager_or_global_device,
     merge_with_config_defaults,
 )
+from iantirta.models.common.modeling_utils.integrations.deepspeed import (
+    is_deepspeed_zero3_enabled,
+)
 from iantirta.models.remote import cached_file
-from iantirta.models.tools._deepspeed import is_deepspeed_zero3_enabled
 from iantirta.models.tools._fsdp import is_fsdp_managed_module
 from iantirta.models.tools._torch import check_torch_load_is_safe
 from iantirta.models.tools.kwargs_types import (
