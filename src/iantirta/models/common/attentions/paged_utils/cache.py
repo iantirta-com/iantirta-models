@@ -1,8 +1,20 @@
 
+import torch
 import inspect
 from math import ceil, lcm
+import logging
 
 from iantirta.models.common.configuration_utils import PreTrainedConfig
+from iantirta.models.common.configuration_utils.mixin import ContinuousBatchingConfig
+
+logger = logging.getLogger(__name__)
+
+
+# Maps each attention type to the allocator class handling its cache
+ATTN_TYPE_TO_ALLOCATOR = {
+    FULL_ATTENTION: FullAttentionCacheAllocator,
+    SLIDING_ATTENTION: SlidingAttentionCacheAllocator,
+}
 
 
 def group_layers_by_attn_type(config: PreTrainedConfig) -> dict[str, list[int]]:

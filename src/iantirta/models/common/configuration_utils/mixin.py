@@ -12,8 +12,6 @@ from iantirta.models import __version__
 from iantirta.models.remote.files import cached_file
 from iantirta.models.tools.types import ExplicitEnum
 
-from .pretrained import PreTrainedConfig
-
 logger = logging.getLogger(__name__)
 
 
@@ -21,6 +19,7 @@ if TYPE_CHECKING:
     import torch
 
     from ..modeling_utils import PreTrainedModel
+    from .pretrained import PreTrainedConfig
 
 
 # -----
@@ -1316,7 +1315,6 @@ class GenerationConfig:
 # -----
 # RotaryEmbeddingConfig (RoPE)
 # -----
-
 
 class RotaryEmbeddingConfigMixin:
     """

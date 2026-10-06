@@ -36,11 +36,12 @@ from iantirta.models.tools._torch import (
     is_torch_cuda_available,
     is_torch_flex_attn_available,
     is_torch_npu_available,
+    is_tracing,
 )
 
 from ..configuration_utils import PreTrainedConfig
 from ..configuration_utils.mixin import GenerationConfig
-from ..modeling_outputs.utils import OutputRecorder
+from ..modeling_outputs.utils import OutputRecorder, _CAN_RECORD_REGISTRY
 from .mixin import EmbeddingAccessMixin, ModuleUtilsMixin
 
 logger = logging.getLogger(__name__)

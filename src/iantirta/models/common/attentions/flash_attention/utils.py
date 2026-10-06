@@ -1,3 +1,8 @@
+# Part of Iantirta.com
+# See LICENSE file for full copyright and licensing details.
+#
+# Partial code of transformers, improved by iantirta.com
+
 import inspect
 import logging
 import os
@@ -27,12 +32,26 @@ from ..utils import split_attention_implementation
 logger = logging.getLogger(__name__)
 
 
+# `globals()` is not compatible with dynamo,
+# hence we have do define them in global scope ourselves
+_loaded_implementation = None
+_flash_fn = None
+_flash_varlen_fn = None
+_flash_with_kvcache_fn = None
+_pad_fn = None
+_unpad_fn = None
+
+# function that processes kwargs,
+# generalized to handle any supported kwarg within the function
+_process_flash_kwargs_fn = None
+
 # exceptions where hf API doesn't match the original flash attention API
 _hf_api_to_flash_mapping = {
     "dropout": "dropout_p",
     "sliding_window": "window_size",
 }
-# alternative names within the different flash attention APIs, e.g. for attention sinks
+# alternative names within the different
+# flash attention APIs, e.g. for attention sinks
 _flash_api_alternative_names = {"s_aux": "learnable_sink"}
 
 
@@ -125,7 +144,9 @@ def flash_attn_supports_top_left_mask():
 
 
 def _lazy_imports(
-    implementation: str | None, attention_wrapper: Callable | None = None, allow_all_kernels: bool = False
+    implementation: str | None,
+    attention_wrapper: Callable | None = None,
+    allow_all_kernels: bool = False
 ):
     """
     Lazy loads the respective flash attention implementations.
@@ -248,30 +269,54 @@ def _lazy_define_process_function(flash_function):
 
 
 def lazy_import_flash_attention(
-    implementation: str | None, attention_wrapper: Callable | None = None, allow_all_kernels: bool = False
+    implementation: str | None,
+    attention_wrapper: Callable | None = None,
+    allow_all_kernels: bool = False
 ):
     """
     Lazily import flash attention and return the respective functions + flags.
 
-    NOTE: For fullgraph, this needs to be called before compile, while no fullgraph can
-    work without preloading. See `load_and_register_attn_kernel` in `integrations.hub_kernels`.
+    NOTE: For fullgraph, this needs to be called before compile,
+    while no fullgraph can work without preloading.
+    See `load_and_register_attn_kernel` in `integrations.hub_kernels`.
     """
     global _loaded_implementation
     if implementation is None and _loaded_implementation is None:
-        raise ValueError("Could not find any flash attn implementation based on your environment.")
+        raise ValueError(
+            "Could not find any flash attn implementation "
+            "based on your environment."
+        )
 
     global _flash_fn, _flash_varlen_fn, _flash_with_kvcache_fn, _pad_fn, _unpad_fn, _process_flash_kwargs_fn
     if implementation is not None and _loaded_implementation != implementation:
         _loaded_implementation = implementation
 
-        _flash_fn, _flash_varlen_fn, _flash_with_kvcache_fn, _pad_fn, _unpad_fn = _lazy_imports(
-            implementation, attention_wrapper, allow_all_kernels=allow_all_kernels
+        (
+            _flash_fn,
+            _flash_varlen_fn,
+            _flash_with_kvcache_fn,
+            _pad_fn,
+            _unpad_fn
+        ) = _lazy_imports(
+            implementation,
+            attention_wrapper,
+            allow_all_kernels=allow_all_kernels
         )
-        # Block-sparse kernels register their own attention interface and expose no varlen fn to introspect;
-        # skip building the kwargs-support map (it is only consumed by the flash varlen path they never take).
-        _process_flash_kwargs_fn = _lazy_define_process_function(_flash_varlen_fn) if _flash_varlen_fn else None
+        # Block-sparse kernels register their own attention
+        # interface and expose no varlen fn to introspect;
+        # skip building the kwargs-support map
+        # (it is only consumed by the flash varlen path they never take).
+        _process_flash_kwargs_fn = _lazy_define_process_function(
+            _flash_varlen_fn
+        ) if _flash_varlen_fn else None
 
-    return (_flash_fn, _flash_varlen_fn, _flash_with_kvcache_fn, _pad_fn, _unpad_fn), _process_flash_kwargs_fn
+    return (
+        _flash_fn,
+        _flash_varlen_fn,
+        _flash_with_kvcache_fn,
+        _pad_fn,
+        _unpad_fn
+    ), _process_flash_kwargs_fn
 
 
 def lazy_import_paged_flash_attention(implementation: str | None, allow_all_kernels: bool = False):
@@ -315,7 +360,10 @@ def fa_peft_integration_check(
     This might slowdown training & inference so it is recommended to not cast the LayerNorms!
     """
     if target_dtype and q.dtype == torch.float32:
-        logger.warning_once(f"Casting fp32 inputs back to {target_dtype} for flash-attn compatibility.")
+        logger.warning_once(
+            f"Casting fp32 inputs back to {target_dtype} "
+            "for flash-attn compatibility."
+        )
         q, k, v = q.to(target_dtype), k.to(target_dtype), v.to(target_dtype)
     return q, k, v
 
@@ -628,22 +676,34 @@ def _process_flash_attention_kwargs(
     if supports_mapping["dropout_p"]:
         flash_kwargs["dropout_p"] = dropout
 
-    if supports_mapping["window_size"] and sliding_window is not None and key_length > sliding_window:
+    if (
+        supports_mapping["window_size"]
+        and sliding_window is not None
+        and key_length > sliding_window
+    ):
         # The flash attention API sets inclusive boundaries, i.e. (4, 0) would take 4 tokens to the left
         # and the current token for a total size of 5. However, we usually define our window sizes by
         # their total window size (when causal). Encoder models as of now seldom use SWA and when they
         # do, they must align with this symmetric logic, i.e. for a total of `2*sliding_window + 1`.
-        flash_kwargs["window_size"] = (sliding_window - 1, sliding_window - 1)
+        flash_kwargs["window_size"] = (
+            sliding_window - 1,
+            sliding_window - 1
+        )
 
     if supports_mapping["deterministic"]:
         flash_kwargs["deterministic"] = (
-            deterministic if deterministic is not None else os.getenv("FLASH_ATTENTION_DETERMINISTIC", "0") == "1"
+            deterministic
+            if deterministic is not None
+            else os.getenv("FLASH_ATTENTION_DETERMINISTIC", "0") == "1"
         )
 
     if supports_mapping["softcap"] and softcap is not None:
         flash_kwargs["softcap"] = softcap
 
-    if ((legacy_sink_param := supports_mapping["s_aux"]) or supports_mapping["learnable_sink"]) and s_aux is not None:
+    if (
+        (legacy_sink_param := supports_mapping["s_aux"])
+        or supports_mapping["learnable_sink"]
+    ) and s_aux is not None:
         if legacy_sink_param:
             flash_kwargs["s_aux"] = s_aux  # e.g. FA3 (vllm)
         else:
@@ -794,7 +854,12 @@ def _flash_attention_forward(
 
     # No padding
     else:
-        out = flash_fn(query_states, key_states, value_states, **flash_kwargs())
+        out = flash_fn(
+            query_states,
+            key_states,
+            value_states,
+            **flash_kwargs()
+        )
         if isinstance(out, tuple):
             out = out[0]
 

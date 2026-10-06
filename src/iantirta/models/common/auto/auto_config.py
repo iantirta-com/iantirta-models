@@ -2,7 +2,12 @@
 import os
 import importlib
 from collections import OrderedDict
+from iantirta.models.common.configuration_utils import PreTrainedConfig
 
+__all__ = [
+    "CONFIG_MAPPING",
+    "AutoConfig",
+]
 
 CONFIG_MAPPING_NAMES = OrderedDict(
     [
@@ -102,14 +107,14 @@ class AutoConfig:
 
         if model_type := config_dict.get("model_type", False):
             try:
-                config_class = CONFIG_MAP[model_type]
+                config_class = CONFIG_MAPPING[model_type]
             except KeyError:
                 raise ValueError(
                     f"Unknown model_type: '{model_type}'"
                 )
-            
+
             return config_class.from_dict(config_dict, **unused_kwargs)
-            
+
         raise ValueError(
             f"Unrecognized model in {pretrained_model_name_or_path}. "
             f"Should have a `model_type` key in its 'config.json'."

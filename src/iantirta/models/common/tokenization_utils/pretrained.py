@@ -5,6 +5,9 @@ import torch
 
 from ..modeling_utils import PreTrainedModel
 
+__all__ = [
+    "PreTrainedAudioTokenizerBase",
+]
 
 class PreTrainedAudioTokenizerBase(PreTrainedModel):
     """

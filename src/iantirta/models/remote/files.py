@@ -54,6 +54,9 @@ def cached_files(
     **kwargs,
 ) -> list[str] | None:
 
+    if not revision:
+        revision = "main"
+
     subfolder = subfolder.strip("/")
 
     # Add folder to filenames
