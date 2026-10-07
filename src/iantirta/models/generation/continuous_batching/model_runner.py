@@ -23,7 +23,13 @@ from .cache import PagedAttentionCache
 from .cb_logits_processors import ContinuousBatchingLogitsProcessorList
 from .input_outputs import ContinuousBatchingAsyncIOs, ContinuousBatchingIOs
 from .requests import RequestState, RequestStatus, logger
-from .utils import create_warmup_future_states, get_cuda_pools, mem_pool_ctx, pad_to_interval, pad_to_pow2
+from .utils import (
+    create_warmup_future_states,
+    get_cuda_pools,
+    mem_pool_ctx,
+    pad_to_interval,
+    pad_to_pow2,
+)
 
 
 def infer_max_single_request_tokens(cache: PagedAttentionCache) -> int:
@@ -248,7 +254,7 @@ class ModelRunner:
         force_warmup flag is set, the warmup is only performed if the CUDA graphs or compile are enabled."""
         # Early return if the warmup is not needed
         if not self.pad_inputs:
-            return None
+            return
 
         # In async mode, each IO pair has its own graph buffer and static tensors, so we warm up both
         total_duration = 0
@@ -320,7 +326,7 @@ class ModelRunner:
             logger.debug(f"Warmup completed in {duration:.2f}s")
 
         # Exception handling
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             duration = 0.0
             logger.warning(f"Failed to warm up: {e}.\nGraph pool may fragment and OOM under load.")
 

@@ -19,15 +19,16 @@ from math import ceil
 
 import torch
 
-from ...configuration_utils import PretrainedConfig
+from ...core.config import PreTrainedConfig
 from ...generation.configuration_utils import CompileConfig, ContinuousBatchingConfig
-from ...modeling_flash_attention_utils import lazy_import_paged_flash_attention
-from ...utils import is_torch_xpu_available
-from ...utils.generic import is_flash_attention_requested
+from ...nn.attention.flash_utils import (
+    is_flash_attention_requested,
+    lazy_import_paged_flash_attention,
+)
+from ...tools._torch import is_torch_xpu_available
 from .cache import ATTN_TYPE_TO_ALLOCATOR, group_layers_by_attn_type
 from .requests import logger
 from .utils import WorkloadHints
-
 
 FALLBACK_DEFAULTS = {
     "max_requests_per_batch": 1024,
@@ -41,7 +42,7 @@ BOUNDS = {
 
 
 def resolve_continuous_batching_config(
-    config: PretrainedConfig,
+    config: PreTrainedConfig,
     cb_config: ContinuousBatchingConfig,
     workload_hints: WorkloadHints | None,
     has_logit_processors: bool,
@@ -94,7 +95,7 @@ def resolve_using_hints(cb_config: ContinuousBatchingConfig, workload_hints: Wor
     if cb_config.max_blocks_per_request is None and workload_hints is not None:
         max_sequence_length = workload_hints.max_prompt_length + workload_hints.max_generated_length
         if max_sequence_length > 0:
-            blocks_per_request = int(ceil(max_sequence_length / cb_config.page_size)) + 1
+            blocks_per_request = ceil(max_sequence_length / cb_config.page_size) + 1
             cb_config.max_blocks_per_request = blocks_per_request + (blocks_per_request % 2)
     # The maximum number of requests per batch is the minimum of the workload hints and the fallback default
     if cb_config.max_requests_per_batch is None and workload_hints is not None:
@@ -118,7 +119,7 @@ def resolve_without_hints(cb_config: ContinuousBatchingConfig) -> None:
 
 
 def ensure_decode_fast_path_is_available(
-    config: PretrainedConfig, cb_config: ContinuousBatchingConfig, user_requested: bool
+    config: PreTrainedConfig, cb_config: ContinuousBatchingConfig, user_requested: bool
 ) -> None:
     """Ensures the decode fast path is available. If it is not, set the max blocks per request to 0. If it is
     available, and no user-provided max blocks per request, set it to the fallback default."""

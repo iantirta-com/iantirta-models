@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import collections
+import logging
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any, Union
@@ -22,17 +23,19 @@ import torch
 from torch import nn
 from torch.nn import BCELoss
 
-from .. import initialization as init
-from ..configuration_utils import PreTrainedConfig
-from ..modeling_utils import PreTrainedModel
-from ..utils import ModelOutput, logging
-from .logits_process import SynthIDTextWatermarkLogitsProcessor, WatermarkLogitsProcessor
-
+from ..core import initialization as init
+from ..core.config import PreTrainedConfig
+from ..core.model import PreTrainedModel
+from ..core.outputs.mixin import ModelOutput
+from .logits_process import (
+    SynthIDTextWatermarkLogitsProcessor,
+    WatermarkLogitsProcessor,
+)
 
 if TYPE_CHECKING:
     from .configuration_utils import WatermarkingConfig
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @dataclass

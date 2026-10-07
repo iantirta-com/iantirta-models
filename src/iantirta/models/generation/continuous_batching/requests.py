@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 import time
 from copy import deepcopy
 from dataclasses import dataclass, field
@@ -18,9 +19,8 @@ from enum import IntEnum
 
 import torch
 
-from ...utils import is_psutil_available, is_torch_xpu_available
-from ...utils.logging import logging
-
+from ...tools._psutil import is_psutil_available
+from ...tools._torch import is_torch_xpu_available
 
 if is_psutil_available():
     import psutil
@@ -356,7 +356,7 @@ class FutureRequestState:
     """Tracks the current state of a request and the relevant information to update it."""
 
     # This makes instantiating this class faster
-    __slots__ = ("state", "has_new_token", "complete_blocks", "query_length")
+    __slots__ = ("complete_blocks", "has_new_token", "query_length", "state")
 
     def __init__(
         self, state: RequestState, has_new_token: bool, complete_blocks: dict[str, int], query_length: int
@@ -371,7 +371,7 @@ class FutureBatch:
     """A container to describe a batch to be scheduled."""
 
     # This makes instantiating this class faster
-    __slots__ = ("requests", "token_budget", "cache_budget")
+    __slots__ = ("cache_budget", "requests", "token_budget")
 
     def __init__(self, requests: list[FutureRequestState], token_budget: int, cache_budget: int) -> None:
         self.requests = requests

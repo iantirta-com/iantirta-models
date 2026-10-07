@@ -17,10 +17,8 @@ from iantirta.models.tools._torch import is_torch_available
 from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 
 from ...generation import GenerationConfig
-from .mixin import (
-    HeterogeneousConfigMixin,
-    RotaryEmbeddingConfigMixin,
-)
+from ...integrations.heterogeneity import HeterogeneousConfigMixin
+from ...nn.positional.rope import RotaryEmbeddingConfigMixin
 from .utils import (
     _FLOAT_TAG_KEY,
     _FLOAT_TAG_VALUES,
@@ -587,13 +585,13 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
 
         """
         # Resolve the revision once, so that both config files below are read from the exact same repository state.
-        kwargs["revision"] = resolve_revision(
-            pretrained_model_name_or_path,
-            kwargs.get("revision"),
-            token=kwargs.get("token"),
-            local_files_only=kwargs.get("local_files_only", False),
-            cache_dir=kwargs.get("cache_dir"),
-        )
+        # kwargs["revision"] = resolve_revision(
+        #     pretrained_model_name_or_path,
+        #     kwargs.get("revision"),
+        #     token=kwargs.get("token"),
+        #     local_files_only=kwargs.get("local_files_only", False),
+        #     cache_dir=kwargs.get("cache_dir"),
+        # )
 
         original_kwargs = copy.deepcopy(kwargs)
         # Get config dict associated with the base config file
@@ -678,19 +676,22 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
 
         try:
             if gguf_file:
+                raise NotImplementedError()
                 # A GGUF repo ships no `config.json`: the metadata is the config. Architectures the fast
                 # reader covers rebuild it from those keys; the rest go to the legacy reader.
-                from .integrations.gguf import (
-                    GGUF_CONFIG_ARCHS,
-                    get_gguf_config,
-                    read_gguf_metadata,
-                )
+                # from ...integrations.gguf import (
+                #     GGUF_CONFIG_ARCHS,
+                #     get_gguf_config,
+                #     read_gguf_metadata,
+                # )
+                # def load_gguf_checkpoint(*args, **kwargs):
+                #     pass
 
-                metadata, tensor_names = read_gguf_metadata(resolved_config_file)
-                if metadata["general.architecture"] in GGUF_CONFIG_ARCHS:
-                    config_dict = get_gguf_config(metadata, tensor_names)
-                else:
-                    config_dict = load_gguf_checkpoint(resolved_config_file, return_tensors=False)["config"]
+                # metadata, tensor_names = read_gguf_metadata(resolved_config_file)
+                # if metadata["general.architecture"] in GGUF_CONFIG_ARCHS:
+                #     config_dict = get_gguf_config(metadata, tensor_names)
+                # else:
+                #     config_dict = load_gguf_checkpoint(resolved_config_file, return_tensors=False)["config"]
             else:
                 # Load config dict
                 config_dict = cls._dict_from_json_file(resolved_config_file)

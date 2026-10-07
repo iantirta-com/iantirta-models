@@ -14,11 +14,10 @@
 
 from typing import TYPE_CHECKING
 
-from ..utils import _LazyModule
-
+from iantirta.models._lazy_import import _LazyModule
 
 _import_structure = {
-    "configuration_utils": ["DistributedConfig"],
+    "distributed_config": ["DistributedConfig"],
     "fsdp": ["is_fsdp_enabled", "is_fsdp_managed_module", "verify_fsdp_plan"],
     "mixin": ["DistributedMixin"],
     "utils": [

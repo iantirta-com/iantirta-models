@@ -11,18 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any
 
-from ..utils import is_torch_available, logging
-from ..utils.quantization_config import QuantizationConfigMixin, QuantizationMethod
+from ..tools._torch import is_torch_available
+from .config import QuantizationConfigMixin, QuantizationMethod
 from .quantizers_utils import get_module_from_name
-
 
 if TYPE_CHECKING:
     from torch.nn import ModuleList
 
-    from ..modeling_utils import PreTrainedModel
+    from ..core.model import PreTrainedModel
 
 if is_torch_available():
     import torch
@@ -63,7 +63,7 @@ def get_keys_to_not_convert(model) -> list:
 
 
 def _assign_is_quantized(model):
-    from ..modeling_utils import PreTrainedModel
+    from ..core.model import PreTrainedModel
 
     for module in model.modules():
         if isinstance(module, PreTrainedModel):
@@ -168,8 +168,8 @@ class HfQuantizer(ABC):
             kwargs (`dict`, *optional*):
                 The keyword arguments that are passed along `_process_model_before_weight_loading`.
         """
-        setattr(model, "is_quantized", True)
-        setattr(model, "quantization_method", self.quantization_config.quant_method)
+        model.is_quantized = True
+        model.quantization_method = self.quantization_config.quant_method
         if self.pre_quantized:
             self._convert_model_for_quantization(model)
         self._process_model_before_weight_loading(model, **kwargs)

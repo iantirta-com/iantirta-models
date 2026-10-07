@@ -1,4 +1,5 @@
 import json
+import logging
 import time
 import warnings
 from abc import ABC
@@ -9,40 +10,12 @@ import numpy as np
 import torch
 from torch.nn import functional as F
 
-from ..tokenization_utils_base import PreTrainedTokenizerBase
-from ..utils import add_start_docstrings, logging
+from ..core.tokenizer.base import PreTrainedTokenizerBase
 
-
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 # We maintain a module-level cache of the embedding vectors for the stop string criterion
 # because they are slow to compute
 STOP_STRING_EMBEDDING_CACHE = OrderedDict()
-
-
-STOPPING_CRITERIA_INPUTS_DOCSTRING = r"""
-    Args:
-        input_ids (`torch.LongTensor` of shape `(batch_size, sequence_length)`):
-            Indices of input sequence tokens in the vocabulary.
-
-            Indices can be obtained using [`AutoTokenizer`]. See [`PreTrainedTokenizer.encode`] and
-            [`PreTrainedTokenizer.__call__`] for details.
-
-            [What are input IDs?](../glossary#input-ids)
-        scores (`tuple(torch.FloatTensor)`):
-            Prediction scores of a language modeling head, as a tuple with one tensor per generation step, each of
-            shape `(batch_size, config.vocab_size)`. These can be scores for each vocabulary token before SoftMax or
-            scores for each vocabulary token after SoftMax. If this stopping criteria depends on the `scores` input,
-            make sure you pass `return_dict_in_generate=True, output_scores=True` to `generate`, otherwise `None` is
-            passed.
-        kwargs (`dict[str, Any]`, *optional*):
-            Additional stopping criteria specific kwargs.
-
-    Return:
-        `torch.BoolTensor`. (`torch.BoolTensor` of shape `(batch_size, 1)`):
-            `True` indicates we stop generation for a particular row.
-            `False` indicates we should continue.
-
-"""
 
 
 class StoppingCriteria(ABC):
@@ -52,7 +25,6 @@ class StoppingCriteria(ABC):
     output_scores=True` to `generate`.
     """
 
-    @add_start_docstrings(STOPPING_CRITERIA_INPUTS_DOCSTRING)
     def __call__(
         self, input_ids: torch.LongTensor, scores: tuple[torch.FloatTensor] | None, **kwargs
     ) -> torch.BoolTensor:
@@ -75,7 +47,6 @@ class MaxLengthCriteria(StoppingCriteria):
         self.max_length = max_length
         self.max_position_embeddings = max_position_embeddings
 
-    @add_start_docstrings(STOPPING_CRITERIA_INPUTS_DOCSTRING)
     def __call__(
         self, input_ids: torch.LongTensor, scores: tuple[torch.FloatTensor] | None, **kwargs
     ) -> torch.BoolTensor:
@@ -107,7 +78,6 @@ class MaxTimeCriteria(StoppingCriteria):
         self.max_time = max_time
         self.initial_timestamp = time.time() if initial_timestamp is None else initial_timestamp
 
-    @add_start_docstrings(STOPPING_CRITERIA_INPUTS_DOCSTRING)
     def __call__(
         self, input_ids: torch.LongTensor, scores: tuple[torch.FloatTensor] | None, **kwargs
     ) -> torch.BoolTensor:
@@ -348,14 +318,13 @@ class StopStringCriteria(StoppingCriteria):
             if byte_decoder is not None and all(char in byte_decoder for char in token):
                 return bytes(byte_decoder[char] for char in token)
             return None
-        if stop_string_matching_mode == "byte_fallback":
-            if (
-                len(token) == 6
-                and token.startswith("<0x")
-                and token.endswith(">")
-                and all(char in "0123456789abcdefABCDEF" for char in token[3:5])
-            ):
-                return bytes([int(token[3:5], 16)])
+        if stop_string_matching_mode == "byte_fallback" and (
+            len(token) == 6
+            and token.startswith("<0x")
+            and token.endswith(">")
+            and all(char in "0123456789abcdefABCDEF" for char in token[3:5])
+        ):
+            return bytes([int(token[3:5], 16)])
         return None
 
     @staticmethod
@@ -478,7 +447,6 @@ class StopStringCriteria(StoppingCriteria):
 
         return gather_vec, max_valid_positions, max_valid_end_lens
 
-    @add_start_docstrings(STOPPING_CRITERIA_INPUTS_DOCSTRING)
     def __call__(self, input_ids: torch.LongTensor, scores: tuple[torch.FloatTensor] | None, **kwargs) -> torch.Tensor:
         self.embedding_vec = self.embedding_vec.to(input_ids.device)
         self.target_lens = self.target_lens.to(input_ids.device)
@@ -610,13 +578,10 @@ class ConfidenceCriteria(StoppingCriteria):
     ) -> torch.BoolTensor:
         probs = scores[-1].softmax(-1)
         p = probs[0, input_ids[0, -1]].item()
-        if p < self.assistant_confidence_threshold:
-            return True
-        return False
+        return p < self.assistant_confidence_threshold
 
 
 class StoppingCriteriaList(list):
-    @add_start_docstrings(STOPPING_CRITERIA_INPUTS_DOCSTRING)
     def __call__(
         self, input_ids: torch.LongTensor, scores: tuple[torch.FloatTensor] | None, **kwargs
     ) -> torch.BoolTensor:

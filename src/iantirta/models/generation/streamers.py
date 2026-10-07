@@ -20,9 +20,8 @@ import time
 from queue import Queue
 from typing import TYPE_CHECKING, Any, cast
 
-
 if TYPE_CHECKING:
-    from ..tokenization_utils_base import PreTrainedTokenizerBase
+    from ..core.tokenizer.base import PreTrainedTokenizerBase
 
 
 class BaseStreamer:
@@ -139,7 +138,7 @@ class TextStreamer(BaseStreamer):
         # as is Japanese Hiragana and Katakana. Those alphabets are used to write
         # space-separated words, so they are not treated specially and handled
         # like the all of the other languages.
-        if (
+        if (  # noqa: SIM103
             (cp >= 0x4E00 and cp <= 0x9FFF)
             or (cp >= 0x3400 and cp <= 0x4DBF)
             or (cp >= 0x20000 and cp <= 0x2A6DF)

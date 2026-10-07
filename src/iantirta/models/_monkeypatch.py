@@ -1,3 +1,17 @@
+# Copyright 2026 The HuggingFace Inc. team.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import logging
 import re
 import sys
@@ -6,12 +20,12 @@ from contextlib import contextmanager
 
 from iantirta.models.tools._torch import is_torch_available
 
+from .core.outputs.output_capturing import OutputRecorder
+
 if is_torch_available():
     from torch import nn
 
-
 logger = logging.getLogger(__name__)
-
 
 _monkey_patch_mapping_cache: dict[str, type[nn.Module]] = {}
 _compiled_patterns_cache: dict[str, re.Pattern] = {}
@@ -69,6 +83,119 @@ def _find_replacement_class(class_name: str, mapping: dict[str, type[nn.Module]]
     return None
 
 
+def register_patch_mapping(mapping: dict[str, type[nn.Module]], overwrite: bool = False) -> None:
+    """
+    Register patch mappings to enable automatic patching during model creation using `from_pretrained`,
+    `from_config` or within the `apply_patches` context manager.
+
+    Use this to register class replacements that will be automatically applied when loading any model.
+    This is useful for quantization library compatibility, structural optimizations, and architectural
+    experimentation. The mapping is global, can grow with multiple calls, and can be cleared entirely.
+
+    Args:
+        mapping (`Dict[str, type[nn.Module]]`):
+            Mapping from original class names (or regex patterns) to replacement classes. Supports:
+            - Exact class names: `"Qwen2MoeExperts"` → `CustomExperts`
+            - Regex patterns: `".*Attention"` matches `LlamaAttention`, `MistralAttention`, etc.,
+            or `"^Llama\\d+Attention$"` matches `Llama2Attention`, `Llama3Attention`, etc.
+
+            Exact matches take precedence over patterns. Patterns are matched using `re.search()`,
+            so they can match anywhere in the class name unless you use anchors (`^` for start, `$` for end).
+        overwrite (`bool`, *optional*, defaults to `False`):
+            Whether to overwrite existing mappings for class names that are already registered.
+
+    Example:
+        ```python
+        from transformers import AutoModelForCausalLM
+        from transformers.monkey_patching import register_patch_mapping
+
+        # Define custom expert implementation
+        class SequentialExperts(nn.Module):
+            ...
+
+        # Register exact class name
+        register_patch_mapping(
+            mapping={"Qwen2MoeExperts": SequentialExperts}
+        )
+
+        # Register with regex pattern to match multiple classes
+        register_patch_mapping(
+            mapping={".*Attention": CustomAttention}  # Matches LlamaAttention, MistralAttention, etc.
+        )
+
+        # Match specific model versions
+        register_patch_mapping(
+            mapping={"^Llama\\d+Attention$": CustomLlamaAttention}  # Matches Llama2Attention, Llama3Attention
+        )
+
+        # The patch will be automatically applied during loading
+        model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.2-1B")
+        ```
+
+    Note:
+        For weight conversions, use [`~transformers.register_checkpoint_conversion_mapping`] instead.
+    """
+    global _monkey_patch_mapping_cache
+    with _monkey_patch_lock:
+        for class_name, replacement_class in mapping.items():
+            # Validate that replacement_class is actually a class and is a subclass of nn.Module
+            if not isinstance(replacement_class, type):
+                raise TypeError(
+                    f"Replacement for '{class_name}' must be a class, got {type(replacement_class).__name__}"
+                )
+            if not issubclass(replacement_class, nn.Module):
+                raise TypeError(
+                    f"Replacement class for '{class_name}' must be a subclass of nn.Module, "
+                    f"got {replacement_class.__name__} which inherits from {[c.__name__ for c in replacement_class.__mro__[1:]]}"
+                )
+
+            if class_name in _monkey_patch_mapping_cache and not overwrite:
+                raise ValueError(
+                    f"Class '{class_name}' already has a patch mapping registered. Use overwrite=True to replace it."
+                )
+            _monkey_patch_mapping_cache[class_name] = replacement_class
+
+
+def unregister_patch_mapping(keys: list[str]) -> None:
+    """
+    Unregister patch mappings to disable automatic patching.
+
+    This removes specified mappings from the global registry, preventing them from being applied
+    during model loading. You must provide the exact same name or pattern that was used during registration.
+
+    Args:
+        keys (`List[str]`):
+            List of mapping keys (class names or regex patterns) to remove from the patch mapping
+            (e.g., `["Qwen2MoeExperts"]` or `[".*Attention"]`).
+
+    Example:
+        ```python
+        from transformers import AutoModelForCausalLM
+        from transformers.monkey_patching import register_patch_mapping, unregister_patch_mapping
+
+        # Register a patch
+        register_patch_mapping(
+            mapping={"Qwen2MoeExperts": CustomExperts}
+        )
+
+        # Unregister the patch
+        unregister_patch_mapping(["Qwen2MoeExperts"])
+
+        # The patch will no longer be applied during loading
+        model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen1.5-MoE-A2.7B")
+        ```
+    """
+    global _monkey_patch_mapping_cache
+    with _monkey_patch_lock:
+        for key in keys:
+            if key not in _monkey_patch_mapping_cache:
+                raise ValueError(
+                    f"Class or pattern '{key}' not found in monkey patch mapping cache. "
+                    f"Cannot unregister a class that is not registered."
+                )
+            del _monkey_patch_mapping_cache[key]
+
+
 def get_patch_mapping() -> dict[str, type[nn.Module]]:
     """
     Get all registered patch mappings.
@@ -80,6 +207,30 @@ def get_patch_mapping() -> dict[str, type[nn.Module]]:
         return _monkey_patch_mapping_cache.copy()
 
 
+def clear_patch_mapping() -> None:
+    """
+    Clear all registered patch mappings.
+
+    This removes all registered mappings from the global registry.
+
+    Example:
+        ```python
+        from transformers.monkey_patching import register_patch_mapping, clear_patch_mapping
+
+        # Register some patches
+        register_patch_mapping(
+            mapping={"Qwen2MoeExperts": CustomExperts}
+        )
+
+        # Clear all patches
+        clear_patch_mapping()
+        ```
+    """
+    global _monkey_patch_mapping_cache
+    with _monkey_patch_lock:
+        _monkey_patch_mapping_cache.clear()
+
+
 @contextmanager
 def apply_patches():
     """
@@ -89,8 +240,8 @@ def apply_patches():
 
     Example:
         ```python
-        from iantirta.models.vendor.transformers import Qwen2MoeModel, Qwen2MoeConfig
-        from iantirta.models.vendor.transformers.monkey_patching import register_patch_mapping, apply_patches
+        from transformers import Qwen2MoeModel, Qwen2MoeConfig
+        from transformers.monkey_patching import register_patch_mapping, apply_patches
 
         # Register a patch
         register_patch_mapping(
@@ -177,8 +328,8 @@ def patch_output_recorders(model: nn.Module) -> None:
 
     Example:
         ```python
-        from iantirta.models.vendor.transformers import AutoModelForCausalLM
-        from iantirta.models.vendor.transformers.monkey_patching import register_patch_mapping, patch_output_recorders
+        from transformers import AutoModelForCausalLM
+        from transformers.monkey_patching import register_patch_mapping, patch_output_recorders
 
         # Register a patch
         register_patch_mapping(mapping={"Qwen2MoeExperts": CustomExperts})
@@ -188,7 +339,6 @@ def patch_output_recorders(model: nn.Module) -> None:
         patch_output_recorders(model)  # Updates output recorders to use CustomExperts
         ```
     """
-    from iantirta.models.common.modeling_outputs.utils import OutputRecorder
 
     mapping = get_patch_mapping()
     if not mapping:

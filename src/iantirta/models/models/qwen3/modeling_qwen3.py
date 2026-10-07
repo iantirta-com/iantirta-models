@@ -23,32 +23,33 @@ from collections.abc import Callable
 import torch
 from torch import nn
 
-from iantirta.models.common.activations import ACT2FN
-from iantirta.models.common.attentions import (
-    ALL_ATTENTION_FUNCTIONS,
-)
-from iantirta.models.common.cache_utils import Cache, DynamicCache
-from iantirta.models.common.generation_utils.mixin import GenerationMixin
-from iantirta.models.common.masking_utils import (
-    create_causal_mask,
-    create_sliding_window_causal_mask,
-)
-from iantirta.models.common.modeling_outputs import (
+from iantirta.models.cache.mixin import Cache, DynamicCache
+from iantirta.models.core.activations import ACT2FN
+from iantirta.models.core.model import PreTrainedModel
+from iantirta.models.core.outputs.mixin import (
     BaseModelOutputWithPast,
     CausalLMOutputWithPast,
-    can_return_tuple,
-    capture_outputs,
 )
-from iantirta.models.common.modeling_utils import (
-    GradientCheckpointingLayer,
-    PreTrainedModel,
-    merge_with_config_defaults,
-)
-from iantirta.models.common.modeling_utils.integrations.hub_kernels import (
+from iantirta.models.core.outputs.output_capturing import capture_outputs
+from iantirta.models.generation.utils import GenerationMixin
+from iantirta.models.integrations.hub_kernels.kernels import (
     use_kernel_forward_from_hub,
     use_kernelized_func,
 )
-from iantirta.models.common.modeling_utils.rope_utils import (
+from iantirta.models.nn.attention.auto import (
+    ALL_ATTENTION_FUNCTIONS,
+)
+from iantirta.models.nn.layer.modeling_layers import (
+    GenericForQuestionAnswering,
+    GenericForSequenceClassification,
+    GenericForTokenClassification,
+    GradientCheckpointingLayer,
+)
+from iantirta.models.nn.masking.utils import (
+    create_causal_mask,
+    create_sliding_window_causal_mask,
+)
+from iantirta.models.nn.positional.rope import (
     ROPE_INIT_FUNCTIONS,
     dynamic_rope_update,
 )
@@ -58,13 +59,12 @@ from iantirta.models.tools.kwargs_types import (
     TransformersKwargs,
     Unpack,
 )
-
-from ...modeling_layers import (
-    GenericForQuestionAnswering,
-    GenericForSequenceClassification,
-    GenericForTokenClassification,
+from iantirta.models.tools.misc import (
+    can_return_tuple,
+    maybe_autocast,
+    merge_with_config_defaults,
 )
-from ...utils.generic import maybe_autocast
+
 from .configuration_qwen3 import Qwen3Config
 
 
@@ -349,15 +349,15 @@ class Qwen3PreTrainedModel(PreTrainedModel):
     config: Qwen3Config
     base_model_prefix = "model"
     supports_gradient_checkpointing = True
-    _no_split_modules = ["Qwen3DecoderLayer"]
-    _skip_keys_device_placement = ["past_key_values"]
+    _no_split_modules = ["Qwen3DecoderLayer"]  # noqa: RUF012
+    _skip_keys_device_placement = ["past_key_values"]  # noqa: RUF012
     _supports_flash_attn = True
     _supports_sdpa = True
     _supports_flex_attn = True
 
     _can_compile_fullgraph = True
     _supports_attention_backend = True
-    _can_record_outputs = {
+    _can_record_outputs = {  # noqa: RUF012
         "hidden_states": Qwen3DecoderLayer,
         "attentions": Qwen3Attention,
     }
@@ -383,7 +383,6 @@ class Qwen3Model(Qwen3PreTrainedModel):
 
     @merge_with_config_defaults
     @capture_outputs
-    @auto_docstring
     def forward(
         self,
         input_ids: torch.LongTensor | None = None,
@@ -463,7 +462,6 @@ class Qwen3ForCausalLM(Qwen3PreTrainedModel, GenerationMixin):
         self.post_init()
 
     @can_return_tuple
-    @auto_docstring
     def forward(
         self,
         input_ids: torch.LongTensor | None = None,

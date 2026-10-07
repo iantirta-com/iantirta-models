@@ -14,7 +14,7 @@
 
 import torch
 
-from ....configuration_utils import PreTrainedConfig
+from ....core.config import PreTrainedConfig
 from ..utils import find_head_dim
 from .cache_allocator import CacheAllocator
 from .cache_pool import CachePool

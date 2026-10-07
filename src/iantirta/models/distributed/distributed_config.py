@@ -62,7 +62,7 @@ class DistributedConfig:
         if self.pp_size is None:
             self.pp_size = 1
         if self.tp_size is None and self.tp_plan is not None:
-            world_size = int(os.environ.get("WORLD_SIZE", 1))
+            world_size = int(os.environ.get("WORLD_SIZE", 1))  # noqa: PLW1508
             other_parallel_size = self.fsdp_size * self.pp_size
             if world_size % other_parallel_size != 0:
                 raise ValueError(

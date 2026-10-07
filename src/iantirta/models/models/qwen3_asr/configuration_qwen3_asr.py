@@ -19,7 +19,7 @@
 # limitations under the License.
 
 from iantirta.models.core.auto import CONFIG_MAPPING, AutoConfig
-from iantirta.models.common.configuration_utils import PreTrainedConfig
+from iantirta.models.core.config import PreTrainedConfig
 from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 
 

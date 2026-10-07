@@ -29,7 +29,7 @@ from math import ceil
 
 import torch
 
-from ...utils import is_psutil_available
+from ...tools._psutil import is_psutil_available
 from .cache import PagedAttentionCache
 from .cache_allocators import CachePool
 from .distributed import DistributedHelper
@@ -92,7 +92,7 @@ class OffloadingManager:
                     f"cpu_offload_space={cpu_offload_space_gib:.1f} GiB is too small for even one sector. "
                     "No CPU offloading."
                 )
-            return None
+            return
 
         # Allocate the pinned CPU tensor. It uses the same sector-based system as the GPU cache, but no trash sectors.
         cpu_cache_size = self._num_cpu_sectors * cache.bytes_per_sector
@@ -246,7 +246,7 @@ class OffloadingManager:
         re-allocated GPU blocks for them, since they came back as pending requests with an empty block table and a
         preserved position_offset."""
         if self._cpu_pool is None:
-            return None
+            return
         all_cpu_ids: dict[str, list[int]] = {name: [] for name in self.cache.cache_allocators}
         all_gpu_ids: dict[str, list[int]] = {name: [] for name in self.cache.cache_allocators}
 
@@ -280,7 +280,7 @@ class OffloadingManager:
 
         # Early return if there is no copy to perform
         if not any(all_cpu_ids.values()):
-            return None
+            return
 
         # Single batched copy per allocator: a few non-blocking slice copies into a staging tensor, then one scatter
         # into the cache. All stream-ordered, so the host never waits and the next forward sees the data.

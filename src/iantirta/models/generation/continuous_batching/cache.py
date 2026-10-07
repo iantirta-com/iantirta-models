@@ -17,9 +17,9 @@ from typing import Any
 
 import torch
 
-from ...configuration_utils import PreTrainedConfig
+from ...core.config import PreTrainedConfig
 from ...generation.configuration_utils import ContinuousBatchingConfig
-from ...utils.generic import is_flash_attention_requested
+from ...nn.attention.flash_utils import is_flash_attention_requested
 from .cache_allocators import (
     FULL_ATTENTION,
     SLIDING_ATTENTION,
@@ -29,7 +29,12 @@ from .cache_allocators import (
     SlidingAttentionCacheAllocator,
 )
 from .distributed import DistributedHelper
-from .requests import RequestState, RequestStatus, get_device_and_memory_breakdown, logger
+from .requests import (
+    RequestState,
+    RequestStatus,
+    get_device_and_memory_breakdown,
+    logger,
+)
 from .utils import find_head_dim, find_num_key_value_heads
 
 

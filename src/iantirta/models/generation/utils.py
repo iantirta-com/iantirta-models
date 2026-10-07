@@ -15,6 +15,7 @@
 import copy
 import functools
 import inspect
+import logging
 import os
 import warnings
 from collections import deque
@@ -28,33 +29,24 @@ import torch
 import torch.distributed as dist
 from torch import nn
 
-from ..cache_utils import (
+from iantirta.models.tools.kwargs_types import TransformersKwargs
+
+from ..cache.mixin import (
     Cache,
     DynamicCache,
     EncoderDecoderCache,
     QuantizedCache,
     StaticCache,
 )
-from ..configuration_utils import get_head_shapes
+from ..core.config.utils import get_head_shapes
+from ..core.outputs.mixin import ModelOutput
+from ..core.tokenizer.python import ExtensionsTrie
 from ..distributed.fsdp import is_fsdp_managed_module
 from ..distributed.utils import _get_torch_distributed_world_size
-from ..dynamic_module_utils import (
-    check_python_requirements,
-    get_cached_module_file,
-    get_class_in_module,
-    resolve_trust_remote_code,
-)
+from ..integrations.accelerate import is_accelerate_available
 from ..integrations.deepspeed import is_deepspeed_zero3_enabled
-from ..masking_utils import create_masks_for_generate
-from ..tokenization_python import ExtensionsTrie
-from ..utils import (
-    ModelOutput,
-    TransformersKwargs,
-    has_file,
-    is_accelerate_available,
-    logging,
-)
-from ..utils.generic import is_flash_attention_requested
+from ..nn.attention.flash_utils import is_flash_attention_requested
+from ..nn.masking.utils import create_masks_for_generate
 from .candidate_generator import (
     AssistantVocabTranslatorCache,
     AssistedCandidateGenerator,
@@ -116,14 +108,15 @@ from .stopping_criteria import (
     StopStringCriteria,
 )
 
-
 if TYPE_CHECKING:
-    from .._typing import GenerativePreTrainedModel
-    from ..modeling_utils import PreTrainedModel
-    from ..tokenization_utils_base import PreTrainedTokenizerBase
+    from ..core.model import PreTrainedModel
+    from ..core.tokenizer.base import PreTrainedTokenizerBase
+    from ..tools.types import GenerativePreTrainedModel
     from .streamers import BaseStreamer
 
-logger = logging.get_logger(__name__)
+
+logger = logging.getLogger(__name__)
+
 
 if is_accelerate_available():
     from accelerate.hooks import AlignDevicesHook, add_hook_to_module
@@ -605,48 +598,7 @@ class GenerationMixin(ContinuousMixin):
         Returns:
             A callable that can be used to generate text.
         """
-        custom_generate_file = "custom_generate/generate.py"
-        custom_generate_requirements = "custom_generate/requirements.txt"
-
-        # Check for the existence of the file without actually downloading it
-        # (preventing unwanted downloads of files, even if not executed)
-        if not has_file(
-            pretrained_model_name_or_path,
-            custom_generate_file,
-            **kwargs,
-        ):
-            raise OSError(
-                f"`{pretrained_model_name_or_path}` does not contain a `custom_generate` subdirectory with a "
-                "`generate.py` file, can't load the custom generate function."
-            )
-
-        # Loading a custom generate function executes the repository's `custom_generate/generate.py`
-        # (via `get_class_in_module` below), so it is remote code and must be gated by
-        # `trust_remote_code` -- including when it is loaded from a local directory. `from_pretrained`
-        # likewise requires `trust_remote_code` for custom modeling code that lives in a local repo;
-        # treating a local path as trusted here previously let `custom_generate/generate.py` run with
-        # no opt-in.
-        error_message = (
-            f"The repository `{pretrained_model_name_or_path}` contains custom generation code that will override "
-            "the default `generate` method."
-        )
-        resolve_trust_remote_code(
-            trust_remote_code,
-            pretrained_model_name_or_path,
-            has_local_code=False,
-            has_remote_code=True,
-            error_message=error_message,
-        )
-
-        # Load the remote generation module
-        module = get_cached_module_file(pretrained_model_name_or_path, module_file=custom_generate_file, **kwargs)
-
-        # Load the custom generate function
-        check_python_requirements(
-            pretrained_model_name_or_path, requirements_file=custom_generate_requirements, **kwargs
-        )
-        custom_generate_function = get_class_in_module("generate", module)
-        return custom_generate_function
+        raise NotImplementedError()
 
     def prepare_inputs_for_generation(
         self: "GenerativePreTrainedModel",
@@ -744,11 +696,7 @@ class GenerationMixin(ContinuousMixin):
         kwargs_to_avoid_forwarding = ("labels", "next_sequence_length")
         for key, value in kwargs.items():
             # Those keys are never forwarded
-            if key in kwargs_to_avoid_forwarding:
-                continue
-            # Those keys are forwarded only during prefill (or the first forward of a new batch of inputs, such as with cache
-            # continuation), or without a cache
-            elif key in MULTIMODAL_INPUTS_TO_DROP_OUTSIDE_PREFILL and (
+            if key in kwargs_to_avoid_forwarding or key in MULTIMODAL_INPUTS_TO_DROP_OUTSIDE_PREFILL and (
                 not is_first_iteration and kwargs.get("use_cache", True)
             ):
                 continue
@@ -1006,7 +954,7 @@ class GenerationMixin(ContinuousMixin):
         model_input_name = model_input_name if model_input_name is not None else self.main_input_name
         encoder_kwargs["return_dict"] = True
         encoder_kwargs[model_input_name] = inputs_tensor
-        model_kwargs["encoder_outputs"]: ModelOutput = encoder(**encoder_kwargs)
+        model_kwargs["encoder_outputs"]: ModelOutput = encoder(**encoder_kwargs) # type: ignore
 
         return model_kwargs
 
@@ -1085,9 +1033,7 @@ class GenerationMixin(ContinuousMixin):
         # See: https://github.com/huggingface/transformers/pull/31470
         elif "donut" in self.__class__.__name__.lower() or (
             self.config.model_type == "vision-encoder-decoder" and "donut" in self.config.encoder.model_type.lower()
-        ):
-            pass
-        elif self.config.model_type == "whisper":
+        ) or self.config.model_type == "whisper":
             pass
         # user input but doesn't start with decoder_start_token_id -> prepend decoder_start_token_id (and adjust
         # decoder_attention_mask if provided)
@@ -1147,7 +1093,7 @@ class GenerationMixin(ContinuousMixin):
             is_split_images = not isinstance(modalily_outputs.pooler_output, torch.Tensor)
             modalily_outputs.pooler_output = [
                 out
-                for start, end in zip(offsets[:-1], offsets[1:])
+                for start, end in zip(offsets[:-1], offsets[1:])  # noqa: RUF007
                 for out in repeat_tensor_or_list(modalily_outputs.pooler_output[start:end], expand_size)
             ]
 
@@ -1165,7 +1111,7 @@ class GenerationMixin(ContinuousMixin):
                 modalily_outputs.deepstack_features = [
                     [
                         expanded_feats
-                        for start, end in zip(offsets[:-1], offsets[1:])
+                        for start, end in zip(offsets[:-1], offsets[1:])  # noqa: RUF007
                         for expanded_feats in repeat_tensor_or_list(feature_list[start:end], expand_size)
                     ]
                     for feature_list in modalily_outputs.deepstack_features
@@ -2384,7 +2330,7 @@ class GenerationMixin(ContinuousMixin):
             raise ValueError(
                 "`decoder_start_token_id` or `bos_token_id` has to be defined for encoder-decoder generation."
             )
-        if eos_token_tensor is not None and torch.isin(eos_token_tensor, pad_token_tensor).any():
+        if eos_token_tensor is not None and torch.isin(eos_token_tensor, pad_token_tensor).any():  # noqa: SIM102
             # Only emits the warning if batch_size>1, as batch_size==1 means no padding, thus no problems
             if kwargs_has_attention_mask is not None and not kwargs_has_attention_mask and is_batched_sequence:
                 logger.warning_once(
@@ -2460,7 +2406,7 @@ class GenerationMixin(ContinuousMixin):
             os.environ["TOKENIZERS_PARALLELISM"] = "0"
 
             # If we use FA and a static cache, we cannot compile with fullgraph
-            if is_flash_attention_requested(self.config):
+            if is_flash_attention_requested(self.config):  # noqa: SIM102
                 # only raise warning if the user passed an explicit compile-config
                 if generation_config.compile_config is not None and generation_config.compile_config.fullgraph:
                     logger.warning_once(
@@ -2812,7 +2758,7 @@ class GenerationMixin(ContinuousMixin):
             inputs, generation_config.bos_token_id, model_kwargs
         )
         # Some generation modes (e.g. assisted) need `inputs_tensor` to rerun encoder.forward()
-        if "inputs_tensor" in inspect.signature(decoding_method).parameters.keys():
+        if "inputs_tensor" in inspect.signature(decoding_method).parameters:
             generation_mode_kwargs["inputs_tensor"] = inputs_tensor
         batch_size = inputs_tensor.shape[0]
 
@@ -2822,7 +2768,7 @@ class GenerationMixin(ContinuousMixin):
         )
 
         # decoder-only models must use left-padding for batched generation.
-        if not self.config.is_encoder_decoder:
+        if not self.config.is_encoder_decoder:  # noqa: SIM102
             # If `input_ids` was given, check if the last id in any sequence is `pad_token_id`
             # Note: If using, `inputs_embeds` this check does not work, because we want to be more hands-off.
             if generation_config._pad_token_tensor is not None and batch_size > 1 and len(inputs_tensor.shape) == 2:
@@ -2852,7 +2798,7 @@ class GenerationMixin(ContinuousMixin):
             model_kwargs["attention_mask"] = self._prepare_attention_mask_for_generation(
                 inputs_tensor, generation_config, model_kwargs
             )
-        elif kwargs_has_attention_mask:
+        elif kwargs_has_attention_mask:  # noqa: SIM102
             # TODO (joao): generalize this check with other types of inputs
             if model_input_name == "input_ids" and len(model_kwargs["attention_mask"].shape) > 2:
                 raise ValueError("`attention_mask` passed to `generate` must be 2D.")
@@ -4290,7 +4236,7 @@ class GenerationMixin(ContinuousMixin):
         else:
             # Even if we are not compiling the forward, flex is always compiled when used. With chunked prefill, we may
             # end up needing just a bit more graphs than the default (which is 8). Doing this avoids very cryptic warnings
-            getattr(torch, "_dynamo").config.cache_size_limit = 64
+            torch._dynamo.config.cache_size_limit = 64
 
             chunk_size = generation_config.prefill_chunk_size
             input_chunks = torch.split(input_ids, chunk_size, dim=-1)

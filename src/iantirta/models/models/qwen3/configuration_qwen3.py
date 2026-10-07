@@ -14,8 +14,8 @@
 """Qwen3 model configuration"""
 
 
-from iantirta.models.common.configuration_utils import PreTrainedConfig
-from iantirta.models.common.modeling_utils.rope_utils import RopeParameters
+from iantirta.models.core.config import PreTrainedConfig
+from iantirta.models.nn.positional.rope import RopeParameters
 from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 
 

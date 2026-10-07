@@ -13,15 +13,19 @@
 # limitations under the License.
 from __future__ import annotations
 
+import logging
 import os
 import warnings
 from datetime import timedelta
 from typing import TYPE_CHECKING, TypeGuard
 
-from ..utils import is_torch_available, is_torch_distributed_available, is_torch_greater_or_equal, logging
+from iantirta.models.tools._torch import (
+    is_torch_available,
+    is_torch_distributed_available,
+    is_torch_greater_or_equal,
+)
 
-
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
@@ -199,7 +203,7 @@ def initialize_fully_sharded_data_parallelism(distributed_config: DistributedCon
     device_type = torch._C._get_accelerator().type
 
     if device_type != "cpu":
-        local_rank = int(os.environ.get("LOCAL_RANK", 0))
+        local_rank = int(os.environ.get("LOCAL_RANK", 0))  # noqa: PLW1508
         getattr(torch, device_type).set_device(local_rank)
         device_map = torch.device(device_type, local_rank)
     else:
@@ -254,7 +258,7 @@ def initialize_distributed_mesh(
         )
 
     if device_type != "cpu":
-        local_rank = int(os.environ.get("LOCAL_RANK", 0))
+        local_rank = int(os.environ.get("LOCAL_RANK", 0))  # noqa: PLW1508
         getattr(torch, device_type).set_device(local_rank)
         device_map = torch.device(device_type, local_rank)
     else:
@@ -281,7 +285,10 @@ def gather_full_state_dict(model) -> dict[str, torch.Tensor]:
 
     # Import here because otherwise it emits a warning every time it's imported on some hardware - this keeps the warning from
     # being emitted if the function is not used
-    from torch.distributed.checkpoint.state_dict import StateDictOptions, get_model_state_dict
+    from torch.distributed.checkpoint.state_dict import (
+        StateDictOptions,
+        get_model_state_dict,
+    )
 
     options = StateDictOptions(full_state_dict=True, cpu_offload=True)
     full_state_dict = get_model_state_dict(model, options=options)
@@ -345,7 +352,10 @@ def load_optimizer_distributed(model, optimizer, checkpoint_dir: str) -> None:
     # Import here because otherwise it emits a warning every time it's imported on some hardware - this keeps the warning from
     # being emitted if the function is not used
     import torch.distributed.checkpoint as dcp
-    from torch.distributed.checkpoint.state_dict import get_optimizer_state_dict, set_optimizer_state_dict
+    from torch.distributed.checkpoint.state_dict import (
+        get_optimizer_state_dict,
+        set_optimizer_state_dict,
+    )
 
     optimizer_state_dict = get_optimizer_state_dict(model, optimizer)
     dcp.load({"optimizer": optimizer_state_dict}, checkpoint_id=checkpoint_dir)

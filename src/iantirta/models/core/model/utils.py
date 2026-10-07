@@ -4,6 +4,7 @@ import os
 import sys
 from collections import defaultdict
 from contextlib import contextmanager
+from dataclasses import dataclass, field
 from threading import Thread
 from typing import TYPE_CHECKING, TypeVar
 from zipfile import is_zipfile
@@ -18,7 +19,7 @@ from ...distributed.utils import (
     _get_torch_distributed_world_size,
     _is_torch_distributed_initialized,
 )
-from ...loading.conversion import auto_conversion
+from ...loading.safetensor_conversion import auto_conversion
 from ...quantizers import HfQuantizer
 from ...quantizers.quantizers_utils import get_module_from_name
 from ...remote._types import DownloadKwargs
@@ -28,6 +29,9 @@ from ...tools.misc import is_env_variable_true
 from ..config import PreTrainedConfig
 
 if TYPE_CHECKING:
+    from iantirta.models.tools.types import DeviceMeshLike
+
+    from ...loading.core import WeightConverter, WeightRenaming
     from .pretrained import PreTrainedModel
 
 
@@ -52,6 +56,34 @@ DUMMY_MASK = [[1, 1, 1, 1, 1], [1, 1, 1, 0, 0], [0, 0, 0, 1, 1]]
 SpecificPreTrainedModelType = TypeVar("SpecificPreTrainedModelType", bound="PreTrainedModel")
 _is_quantized = False
 _is_ds_init_called = False
+
+
+@dataclass(frozen=True)
+class LoadStateDictConfig:
+    """
+    Config for loading weights. This allows bundling arguments that are just
+    passed around.
+    """
+
+    pretrained_model_name_or_path: str | None = None
+    download_kwargs: DownloadKwargs | None = field(default_factory=DownloadKwargs)
+    use_safetensors: bool | None = None
+    ignore_mismatched_sizes: bool = False
+    sharded_metadata: dict | None = None
+    device_map: dict | None = None
+    disk_offload_folder: str | None = None
+    offload_buffers: bool = False
+    dtype: torch.dtype | None = None
+    dtype_plan: dict = field(default_factory=dict)
+    hf_quantizer: HfQuantizer | None = None
+    device_mesh: "DeviceMeshLike | None" = None
+    weights_only: bool = True
+    weight_mapping: list["WeightConverter | WeightRenaming"] | None = None
+    disable_mmap: bool | None = None
+
+    @property
+    def is_quantized(self) -> bool:
+        return self.hf_quantizer is not None
 
 
 @contextmanager

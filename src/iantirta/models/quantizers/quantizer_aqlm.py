@@ -11,24 +11,24 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 from importlib import metadata
 from typing import TYPE_CHECKING
 
 from packaging import version
 
-from .base import HfQuantizer
+# from ..integrations import replace_with_aqlm_linear
+from ..integrations.accelerate import is_accelerate_available
 
+# from ..utils import is_aqlm_available
+from .base import HfQuantizer
+from .config import QuantizationConfigMixin
 
 if TYPE_CHECKING:
-    from ..modeling_utils import PreTrainedModel
-    from ..utils.quantization_config import AqlmConfig
+    from ..core.model import PreTrainedModel
+    from .config import AqlmConfig
 
-from ..integrations import replace_with_aqlm_linear
-from ..utils import is_accelerate_available, is_aqlm_available, logging
-from ..utils.quantization_config import QuantizationConfigMixin
-
-
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class AqlmHfQuantizer(HfQuantizer):

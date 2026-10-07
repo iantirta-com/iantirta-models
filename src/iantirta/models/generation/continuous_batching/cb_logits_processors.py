@@ -35,7 +35,6 @@ class ContinuousBatchingLogitsProcessor(ABC):
     @abstractmethod
     def fill_defaults(self, int32_tensor: torch.Tensor) -> None:
         """Fills the given tensor int32 tensor with the default values for this processor."""
-        pass
 
     @abstractmethod
     def prepare_tensor_args(self, requests_with_new_token: list[FutureRequestState]) -> torch.Tensor:
@@ -52,7 +51,6 @@ class ContinuousBatchingLogitsProcessor(ABC):
         Returns:
             - torch.FloatTensor: The processed scores, with shape [num_tokens, vocab_size]
         """
-        pass
 
 
 # Main class for managing a list of processors (CB version or not) for batched generation
@@ -150,7 +148,7 @@ class ContinuousBatchingLogitsProcessorList:
     def check_kwargs(self, kwargs: dict) -> None:
         """Checks that the provided kwargs are compatible with the current CB processors. Warn for ignored kwargs."""
         if not kwargs:
-            return None
+            return
         # Validate types for supported keys, detect unsupported keys
         problematic_keys = set()
         for key, value in kwargs.items():
@@ -215,7 +213,7 @@ class ContinuousBatchingLogitsProcessorList:
 
 # Here are all the continuous batching logits processors that are supported
 class ContinuousBatchingTemperatureLogitsWarper(ContinuousBatchingLogitsProcessor):
-    supported_kwargs: dict[str, type] = {"temperature": float}
+    supported_kwargs: dict[str, type] = {"temperature": float}  # noqa: RUF012
     ignored_kwargs: tuple[str, ...] = ()
 
     def __init__(self, temperature_processor: TemperatureLogitsWarper) -> None:
@@ -242,7 +240,7 @@ class ContinuousBatchingTemperatureLogitsWarper(ContinuousBatchingLogitsProcesso
 
 
 class ContinuousBatchingTopKLogitsWarper(ContinuousBatchingLogitsProcessor):
-    supported_kwargs: dict[str, type] = {"top_k": int}
+    supported_kwargs: dict[str, type] = {"top_k": int}  # noqa: RUF012
     ignored_kwargs: tuple[str, ...] = ("filter_value", "min_tokens_to_keep")
 
     def __init__(self, top_k_processor: TopKLogitsWarper):
@@ -275,7 +273,7 @@ class ContinuousBatchingTopKLogitsWarper(ContinuousBatchingLogitsProcessor):
 
 
 class ContinuousBatchingTopPLogitsWarper(ContinuousBatchingLogitsProcessor):
-    supported_kwargs: dict[str, type] = {"top_p": float}
+    supported_kwargs: dict[str, type] = {"top_p": float}  # noqa: RUF012
     ignored_kwargs: tuple[str, ...] = ("filter_value", "min_tokens_to_keep")
 
     def __init__(self, top_p_processor: TopPLogitsWarper):

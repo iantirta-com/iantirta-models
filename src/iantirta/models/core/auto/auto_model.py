@@ -22,20 +22,19 @@ from collections import OrderedDict
 from collections.abc import Iterator
 from typing import Any, TypeVar
 
-from iantirta.models.core.config.pretrained import (
-    CONFIG_NAME,
-    PreTrainedConfig,
-)
-from iantirta.models.common.modeling_utils.integrations.peft import (
+from ...integrations.peft import (
     find_adapter_config_file,
     is_peft_available,
 )
-from iantirta.models.tools._torch import is_torch_available
-
+from ...tools._torch import is_torch_available
+from ..config import (
+    CONFIG_NAME,
+    PreTrainedConfig,
+)
 from .auto_config import CONFIG_MAPPING_NAMES, AutoConfig, model_type_to_module_name
 
 if is_torch_available():
-    from iantirta.models.common.generation_utils.mixin import GenerationMixin
+    from ...generation.utils import GenerationMixin
 
 logger = logging.getLogger(__name__)
 

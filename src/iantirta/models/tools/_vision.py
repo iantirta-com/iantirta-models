@@ -1,7 +1,7 @@
 
 from functools import lru_cache
 
-from iantirta.models.tools._deps import _is_package_available, _make_compile_constant
+from iantirta.models.tools._deps import _make_compile_constant
 
 
 @lru_cache

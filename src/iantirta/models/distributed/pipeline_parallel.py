@@ -17,15 +17,19 @@ import inspect
 from functools import wraps
 from typing import TYPE_CHECKING
 
-from ..modeling_outputs import CausalLMOutputWithPast
-from ..utils import is_torch_available, is_torch_distributed_available
+from iantirta.models.tools._torch import (
+    is_torch_available,
+    is_torch_distributed_available,
+)
+
+from ..core.outputs.mixin import CausalLMOutputWithPast
 
 if TYPE_CHECKING:
-    import torch.nn as nn
+    from torch import nn
 
 if is_torch_available():
     import torch
-    import torch.nn as nn
+    from torch import nn
 
 if is_torch_distributed_available():
     import torch.distributed as dist
@@ -129,7 +133,7 @@ class PipelineStage:
         if key.startswith(f"{base_prefix}embed_tokens."):
             return 0
 
-        if key.startswith(f"{base_prefix}norm.") or key.startswith("lm_head."):
+        if key.startswith((f"{base_prefix}norm.", "lm_head.")):
             return self.pp_size - 1
 
         layers_prefix = f"{base_prefix}layers."

@@ -13,13 +13,16 @@
 # limitations under the License.
 from __future__ import annotations
 
+import logging
 import os
 import re
 import warnings
 from typing import TYPE_CHECKING
 
-from ..utils import is_torch_greater_or_equal, logging
-from ..utils.hub import create_and_tag_model_card
+from iantirta.models.tools._torch import (
+    is_torch_greater_or_equal,
+)
+
 from .distributed_config import DistributedConfig
 from .fsdp import apply_fully_sharded_data_parallelism, is_fsdp_managed_module
 from .pipeline_parallel import apply_pipeline_parallelism
@@ -37,12 +40,11 @@ from .utils import (
     save_model_checkpoint_distributed,
 )
 
-
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 if TYPE_CHECKING:
-    import torch.nn as nn
+    from torch import nn
 
 
 class DistributedMixin:
@@ -107,12 +109,12 @@ class DistributedMixin:
             self._tp_plan = {}
             return
         if not isinstance(plan, dict):
-            raise ValueError("Can only set a dictionary as `tp_plan`")
+            raise TypeError("Can only set a dictionary as `tp_plan`")
 
         _validate_tp_plan_styles(plan)
 
         model_param_names = [name for name, _ in self.named_parameters()]
-        for layer_pattern in plan.keys():
+        for layer_pattern in plan:
             regex_pattern = layer_pattern.replace("*", r"\d+")
             pattern_matched = False
             for param_name in model_param_names:
@@ -133,7 +135,7 @@ class DistributedMixin:
             self._pp_plan = {}
             return
         if not isinstance(plan, dict):
-            raise ValueError("Can only set a dictionary as `pp_plan`")
+            raise TypeError("Can only set a dictionary as `pp_plan`")
 
         self._pp_plan = plan
 
@@ -227,16 +229,7 @@ class DistributedMixin:
         save_model_checkpoint_distributed(model_to_save, save_directory)
 
         if push_to_hub and save_on_this_rank:
-            model_card = create_and_tag_model_card(repo_id, self.model_tags, token=token)
-            model_card.save(os.path.join(save_directory, "README.md"))
-            self._upload_modified_files(
-                save_directory,
-                repo_id,
-                files_timestamps,
-                commit_message=commit_message,
-                token=token,
-                create_pr=create_pr,
-            )
+            raise NotImplementedError()
 
     def gather_sharded_state_dict_for_save(
         self,

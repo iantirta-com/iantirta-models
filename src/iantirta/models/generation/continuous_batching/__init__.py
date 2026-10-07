@@ -16,7 +16,6 @@ from .continuous_api import ContinuousBatchingManager, ContinuousMixin
 from .requests import RequestState, RequestStatus
 from .scheduler import FIFOScheduler, PrefillFirstScheduler, Scheduler
 
-
 __all__ = [
     "ContinuousBatchingManager",
     "ContinuousMixin",

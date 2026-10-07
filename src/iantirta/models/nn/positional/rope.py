@@ -12,14 +12,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import math
 import warnings
 from collections.abc import Callable
 from functools import wraps
 from typing import TYPE_CHECKING, Optional, TypedDict
 
-from .utils import is_torch_available
-import logging
+from ...tools._torch import is_torch_available
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ if is_torch_available():
     import torch
 
 if TYPE_CHECKING:
-    from .configuration_utils import PreTrainedConfig
+    from ...core.config import PreTrainedConfig
 
 
 def dynamic_rope_update(rope_forward):
@@ -738,7 +738,7 @@ class RotaryEmbeddingConfigMixin:
 
     default_theta = 10_000.0
     default_rope_type = "default"  # override only for axial models
-    ignore_keys_at_rope_validation = set()
+    ignore_keys_at_rope_validation = set()  # noqa: RUF012
 
     def nested_rope_parameter_keys(self, rope_parameters: dict) -> list[str]:
         """

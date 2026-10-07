@@ -101,6 +101,20 @@ def is_torch_cuda_available() -> bool:
 
 @lru_cache
 @_make_compile_constant
+def is_torch_mps_available(min_version: str | None = None) -> bool:
+    if is_torch_available():
+        import torch
+
+        backend_available = torch.backends.mps.is_available() and torch.backends.mps.is_built()
+        if min_version is not None:
+            flag = version.parse(get_torch_version()) >= version.parse(min_version)
+            backend_available = backend_available and flag
+        return backend_available
+    return False
+
+
+@lru_cache
+@_make_compile_constant
 def is_torch_xpu_available(check_device: bool = False) -> bool:
     """
     Checks if XPU acceleration is available via stock PyTorch (>=2.6) and
@@ -133,7 +147,7 @@ def is_torch_npu_available(check_device=False) -> bool:
         return False
 
     import torch
-    import torch_npu  # noqa: F401
+    import torch_npu  # type: ignore # noqa: F401
 
     if check_device:
         try:
@@ -158,7 +172,7 @@ def is_torch_mlu_available() -> bool:
         return False
 
     import torch
-    import torch_mlu  # noqa: F401
+    import torch_mlu  # type: ignore # noqa: F401
 
     pytorch_cndev_based_mlu_check_previous_value = os.environ.get("PYTORCH_CNDEV_BASED_MLU_CHECK")
     try:
@@ -181,7 +195,7 @@ def is_torch_musa_available(check_device=False) -> bool:
         return False
 
     import torch
-    import torch_musa  # noqa: F401
+    import torch_musa  # type: ignore # noqa: F401
 
     torch_musa_min_version = "0.33.0"
     accelerate_available, accelerate_version = _is_package_available("accelerate", return_version=True)
@@ -213,7 +227,7 @@ def is_torch_xla_available(check_is_tpu=False, check_is_gpu=False) -> bool:
     if not torch_xla_available:
         return False
 
-    import torch_xla
+    import torch_xla  # type: ignore
 
     if check_is_gpu:
         return torch_xla.runtime.device_type() in ["GPU", "CUDA"]
@@ -243,7 +257,7 @@ def is_torch_hpu_available() -> bool:
 
     if os.environ.get("PT_HPU_LAZY_MODE", "1") == "1":
         # import habana_frameworks.torch in case of lazy mode to patch torch with torch.hpu
-        import habana_frameworks.torch  # noqa: F401
+        import habana_frameworks.torch  # type: ignore # noqa: F401
 
     if not hasattr(torch, "hpu") or not torch.hpu.is_available():
         return False
@@ -338,6 +352,14 @@ def is_torchvision_available() -> bool:
     from ._vision import is_vision_available
     
     return is_vision_available() and is_torch_available() and _is_package_available("torchvision")[0]
+
+
+@lru_cache
+def is_torchvision_greater_or_equal(library_version: str) -> bool:
+    if not is_torchvision_available():
+        return False
+    _, torchvision_version = _is_package_available("torchvision", return_version=True)
+    return version.parse(torchvision_version) >= version.parse(library_version)
 
 
 @lru_cache
@@ -462,7 +484,7 @@ def is_jax_jitting(x):
     if not hasattr(x, "jax"):
         return False
     try:
-        import jax
+        import jax  # type: ignore
 
         return isinstance(x.jax(), jax.core.Tracer)
     except Exception:  # noqa: BLE001
@@ -567,3 +589,34 @@ def get_device_type(device: "torch.device | str | None" = None) -> str:
         device = torch.accelerator.current_accelerator() or torch.device("cpu")
     device_type = torch.device(device).type if isinstance(device, str) else device.type
     return "rocm" if device_type == "cuda" and is_rocm_platform() else device_type
+
+
+@lru_cache
+def get_available_devices() -> frozenset[str]:
+    """
+    Returns a frozenset of devices available for the current PyTorch installation.
+    """
+    devices = {"cpu"}  # `cpu` is always supported as a device in PyTorch
+
+    if is_torch_cuda_available():
+        devices.add("cuda")
+
+    if is_torch_mps_available():
+        devices.add("mps")
+
+    if is_torch_xpu_available():
+        devices.add("xpu")
+
+    if is_torch_npu_available():
+        devices.add("npu")
+
+    if is_torch_hpu_available():
+        devices.add("hpu")
+
+    if is_torch_mlu_available():
+        devices.add("mlu")
+
+    if is_torch_musa_available():
+        devices.add("musa")
+
+    return frozenset(devices)

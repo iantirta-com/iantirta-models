@@ -27,33 +27,33 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
-from iantirta.models.common import initialization as init
-from iantirta.models.common.activations import ACT2FN
-from iantirta.models.common.attentions import (
+from iantirta.models.cache.mixin import Cache
+from iantirta.models.core import initialization as init
+from iantirta.models.core.activations import ACT2FN
+from iantirta.models.core.auto import AutoModel
+from iantirta.models.core.model import PreTrainedModel
+from iantirta.models.core.outputs.mixin import (
+    BaseModelOutputWithPast,
+    BaseModelOutputWithPooling,
+)
+from iantirta.models.core.outputs.output_capturing import capture_outputs
+from iantirta.models.generation.utils import GenerationMixin
+from iantirta.models.nn.attention.auto import (
     ALL_ATTENTION_FUNCTIONS,
 )
-from iantirta.models.common.attentions.utils import (
+from iantirta.models.nn.attention.flash_utils import (
     get_max_seqlen,
     is_flash_attention_requested,
 )
-from iantirta.models.core.auto import AutoModel
-from iantirta.models.common.cache_utils import Cache
-from iantirta.models.common.generation_utils.mixin import GenerationMixin
-from iantirta.models.common.modeling_outputs import (
-    BaseModelOutputWithPast,
-    BaseModelOutputWithPooling,
-    can_return_tuple,
-    capture_outputs,
-)
-from iantirta.models.common.modeling_utils import (
+from iantirta.models.nn.layer.modeling_layers import (
     GradientCheckpointingLayer,
-    PreTrainedModel,
 )
 from iantirta.models.tools._torch import torch_compilable_check
 from iantirta.models.tools.kwargs_types import (
     TransformersKwargs,
     Unpack,
 )
+from iantirta.models.tools.misc import can_return_tuple
 
 from .configuration_qwen3_asr import Qwen3ASRConfig, Qwen3ASREncoderConfig
 from .modeling_outputs_qwen_asr import Qwen3ASRCausalLMOutputWithPast

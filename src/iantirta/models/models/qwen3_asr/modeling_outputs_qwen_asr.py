@@ -2,12 +2,12 @@ from dataclasses import dataclass
 
 import torch
 
-from iantirta.models.common.cache_utils import Cache
-from iantirta.models.common.modeling_outputs import ModelOutputMixin
+from iantirta.models.cache.mixin import Cache
+from iantirta.models.core.outputs.mixin import ModelOutput
 
 
 @dataclass
-class Qwen3ASRCausalLMOutputWithPast(ModelOutputMixin):
+class Qwen3ASRCausalLMOutputWithPast(ModelOutput):
     loss: torch.FloatTensor | None = None
     logits: torch.FloatTensor | None = None
     past_key_values: Cache | None = None

@@ -15,8 +15,8 @@
 Speech processor class for Wav2Vec2
 """
 
-from iantirta.models.common.processing_utils import ProcessingKwargs, ProcessorMixin
-from iantirta.models.common.tokenization_utils import (
+from iantirta.models.core.processing.mixin import ProcessingKwargs, ProcessorMixin
+from iantirta.models.core.tokenizer.utils import (
     AudioInput,
     PreTokenizedInput,
     TextInput,

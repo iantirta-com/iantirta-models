@@ -14,24 +14,26 @@
 from __future__ import annotations
 
 import inspect
+import logging
 import os
 from typing import TYPE_CHECKING, Any
 
-from ..utils import (
+from iantirta.models.tools._torch import (
     is_torch_available,
     is_torch_distributed_available,
     is_torch_greater_or_equal,
-    logging,
-    strtobool,
 )
-from ..utils.quantization_config import QuantizationMethod
+from iantirta.models.tools.misc import strtobool
+
+from ..quantizers.config import QuantizationMethod
 from .tensor_parallel import replace_layer_number_by_wildcard
 from .utils import _is_torch_distributed_initialized
 
 if TYPE_CHECKING:
-    import torch.nn as nn
+    from torch import nn
 
     from .distributed_config import DistributedConfig
+
 
 if is_torch_available():
     import torch
@@ -40,7 +42,8 @@ if is_torch_distributed_available() and is_torch_greater_or_equal("2.6"):
     from torch.distributed._composable.fsdp import fully_shard
     from torch.distributed.fsdp import CPUOffloadPolicy, MixedPrecisionPolicy
 
-logger = logging.get_logger(__name__)
+
+logger = logging.getLogger(__name__)
 
 
 def is_fsdp_enabled() -> bool:
@@ -267,8 +270,8 @@ def update_fsdp_plugin_peft(model, accelerator):
     LoRA trainable layers separately. When using FSDP with QLoRA, the mixed precision policy needs
     to be updated to use the quantization storage data type.
     """
-    from peft import PeftConfig
-    from peft.utils.other import fsdp_auto_wrap_policy
+    from peft import PeftConfig  # type: ignore
+    from peft.utils.other import fsdp_auto_wrap_policy  # type: ignore
 
     if isinstance(model.active_peft_config, PeftConfig):
         accelerator.state.fsdp_plugin.auto_wrap_policy = fsdp_auto_wrap_policy(model)

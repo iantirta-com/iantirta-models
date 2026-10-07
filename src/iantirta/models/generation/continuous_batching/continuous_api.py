@@ -14,6 +14,7 @@
 # limitations under the License.
 import asyncio
 import gc
+import logging
 import queue
 import threading
 from abc import abstractmethod
@@ -29,24 +30,28 @@ from torch import nn
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from ...configuration_utils import PretrainedConfig
+from ...core.config import PretrainedConfig
 from ...generation.configuration_utils import ContinuousBatchingConfig, GenerationConfig
-from ...utils.generic import is_flash_attention_requested
-from ...utils.import_utils import is_flash_attn_2_available, is_flash_attn_3_available
-from ...utils.logging import logging
+from ...nn.attention.flash_utils import (
+    is_flash_attention_requested,
+    is_flash_attn_2_available,
+    is_flash_attn_3_available,
+)
 from ..logits_process import LogitsProcessorList
 from .cache import PagedAttentionCache
 from .cache_allocators import SLIDING_ATTENTION
 from .cb_logits_processors import ContinuousBatchingLogitsProcessorList
 from .distributed import DistributedHelper
-from .initialization import resolve_continuous_batching_config, update_cb_config_after_cache_creation
+from .initialization import (
+    resolve_continuous_batching_config,
+    update_cb_config_after_cache_creation,
+)
 from .input_outputs import ContinuousBatchingAsyncIOs, ContinuousBatchingIOs
 from .model_runner import ModelRunner
 from .offloading_manager import OffloadingManager
 from .requests import GenerationOutput, RequestState, RequestStatus, logger
 from .scheduler import SCHEDULER_MAPPING, FIFOScheduler, Scheduler
 from .utils import ThreadLocalCounter, WorkloadHints, drain_queue
-
 
 """
 To enable cuda graphs, we need the dimensions of all tensors to be static, which is counter-intuitive for CB. In CB, as
@@ -462,7 +467,7 @@ class ContinuousBatchProcessor:
             try:
                 self.logit_processor.check_kwargs(state.logit_processor_kwargs)
                 self.scheduler.add_waiting_request(state)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error processing new request: {e}", exc_info=True)
                 self._handle_request_error(e, state)
         for request_id in cancellations:
@@ -787,7 +792,7 @@ class ContinuousBatchingManager:
         """Start the background generation thread."""
         if self.is_running():
             logger.warning("Manager thread is already running.")
-            return None
+            return
         self.background_thread_status.clear()
         self._generation_thread = threading.Thread(target=self._run_generation_loop)
         self._generation_thread.start()
@@ -814,7 +819,7 @@ class ContinuousBatchingManager:
             if keep_for_next_session:
                 msg += " Hence the unstarted manager will not be kept for next session."
             logger.warning(msg)
-            return None
+            return
 
         # Stopping and pausing are conflicting operations: a thread inside a pause cannot stop the manager, because that
         # would deadlock (pause waits for the stop to complete, stop hangs because the loop is paused)
@@ -854,7 +859,7 @@ class ContinuousBatchingManager:
         """Wait for the background thread to finish. Wait can be capped using the timeout argument (in seconds)."""
         # Early return if the thread is not running
         if self._generation_thread is None:
-            return None
+            return
         # Join (maybe w/ timeout) and check if the thread is still alive afterwards. If it is, then it means the thread
         # is still running despite the stop signal, so we warn the user who might expect otherwise.
         self._generation_thread.join(timeout=timeout)
@@ -998,7 +1003,7 @@ class ContinuousBatchingManager:
         """Retrieve one result from the output queue. If an ID is provided, returns the first matching request. If a
         timeout is provided, returns None after the timeout (in seconds)."""
         # Stop if the output queue is empty and the bg thread is not going to produce new results (crashed or stopped)
-        if self.output_router.output_queue.empty():
+        if self.output_router.output_queue.empty():  # noqa: SIM102
             if self._generation_thread is None or self.background_thread_status.fatal_error is not None:
                 return None
         # Otherwise, wait for a result from the output queue
@@ -1070,10 +1075,7 @@ class ContinuousBatchingManager:
                 batch_processor.update_batch()
                 return True
         # Stop waiting if the TP group is hard-stopping
-        elif self.background_thread_status.tp_status == BackgroundThreadStatus.HARD_STOP:
-            return False
-        # Stop waiting if the TP group is flushing and there are no pending requests
-        elif (
+        elif self.background_thread_status.tp_status == BackgroundThreadStatus.HARD_STOP or (
             self.background_thread_status.tp_status == BackgroundThreadStatus.FLUSH_AND_STOP
             and not batch_processor.has_pending_requests()
         ):
@@ -1121,7 +1123,7 @@ class ContinuousBatchingManager:
             self._fail_all_remaining_requests(error, batch_processor)
 
         # All exceptions are caught here so we can shut down the thread and TP group as gracefully as possible
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001
             logger.error(f"Error in generation loop: {e}", exc_info=True)
             self._handle_critical_error(e, batch_processor)
         finally:
@@ -1442,7 +1444,7 @@ class ContinuousMixin:
                         print("Returning results of generate_batch despite unexpected termination.")
                         break
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001
                 logger.error(f"Error during batch generation: {e}", exc_info=True)
 
         # Re-order requests to match the order of the inputs, forked children right after their parent

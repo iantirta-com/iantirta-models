@@ -13,11 +13,10 @@
 # limitations under the License.
 """PyTorch Qwen3 model."""
 
-from collections.abc import Callable
 import logging
+from collections.abc import Callable
 
 import torch
-
 from iantirta.models.common.attentions import (
     ALL_ATTENTION_FUNCTIONS,
 )
@@ -25,6 +24,7 @@ from iantirta.models.common.cache_utils import Cache
 from iantirta.models.common.modeling_outputs import (
     CausalLMOutputWithPast,
 )
+
 from iantirta.models.tools.kwargs_types import (
     FlashAttentionKwargs,
     TransformersKwargs,

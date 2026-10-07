@@ -11,6 +11,7 @@ import os
 import re
 import sys
 import warnings
+from abc import abstractmethod
 from collections.abc import Callable, Iterator
 from functools import partial, wraps
 from itertools import cycle
@@ -23,36 +24,8 @@ from torch import nn
 from torch.autograd.graph import save_on_cpu
 from torch.distributions import constraints
 from torch.utils.checkpoint import checkpoint
-from typing_extensions import Self
 
 from iantirta.models._monkeypatch import apply_patches, patch_output_recorders
-from iantirta.models.common import initialization as init
-from iantirta.models.common.attentions.flash_attention.utils import (
-    FLASH_ATTENTION_COMPATIBILITY_MATRIX,
-    FLASH_ATTN_KERNEL_DEVICES,
-    FLASH_ATTN_KERNEL_FALLBACK,
-    is_flash_attn_greater_or_equal,
-    lazy_import_flash_attention,
-    lazy_import_paged_flash_attention,
-)
-from iantirta.models.common.attentions.mixin import ALL_ATTENTION_FUNCTIONS
-from iantirta.models.common.attentions.utils import (
-    is_flash_attention_requested,
-    split_attention_implementation,
-)
-from iantirta.models.common.modeling_outputs.utils import (
-    _CAN_RECORD_REGISTRY,
-    OutputRecorder,
-)
-from iantirta.models.common.modeling_utils.integrations.hub_kernels import (
-    ALLOW_ALL_KERNELS,
-    allow_all_hub_kernels,
-    is_kernel,
-    is_kernels_available,
-)
-from iantirta.models.core.config.mixin import (
-    DistributedConfig,
-)
 from iantirta.models.tools._bitsandbytes import is_bitsandbytes_available
 from iantirta.models.tools._torch import (
     get_device_type,
@@ -64,56 +37,70 @@ from iantirta.models.tools._torch import (
 )
 from iantirta.models.tools.context import ContextManagers
 
-# from ...common.modeling_utils.conversion_mapping import get_model_conversion_mapping
-# from ...common.modeling_utils.distributed.mixin import DistributedMixin
-# from ...common.modeling_utils.distributed.sharding_utils import _dtensor_from_local_like
-# from ...common.modeling_utils.distributed.tensor_parallel import verify_tp_plan
-# from ...common.modeling_utils.distributed.utils import (
-#     is_dtensor,
-#     is_local_dist_rank_0,
-# )
-# from ...common.modeling_utils.integrations.accelerate import (
-#     _get_device_map,
-#     accelerate_disk_offload,
-#     accelerate_dispatch,
-#     check_and_set_device_map,
-#     expand_device_map,
-#     get_device,
-#     is_accelerate_available,
-# )
-# from ...common.modeling_utils.integrations.deepspeed import (
-#     _load_state_dict_into_zero3_model,
-#     deepspeed_config,
-#     is_deepspeed_zero3_enabled,
-# )
-# from ...common.modeling_utils.integrations.finegrained_fp8 import (
-#     ALL_FP8_EXPERTS_FUNCTIONS,
-# )
-# from ...common.modeling_utils.integrations.fsdp import is_fsdp_enabled
-# from ...common.modeling_utils.integrations.moe import ALL_EXPERTS_FUNCTIONS
-# from ...common.modeling_utils.integrations.peft import (
-#     PeftAdapterMixin,
-#     maybe_load_adapters,
-# )
-# from ...common.modeling_utils.loading_core import convert_and_load_state_dict_in_model
-# from ...common.modeling_utils.loading_report import (
-#     LoadStateDictInfo,
-#     log_state_dict_report,
-# )
-# from ...common.modeling_utils.loss.loss_utils import LOSS_MAPPING
-# from ...common.modeling_utils.mixin import EmbeddingAccessMixin, ModuleUtilsMixin
-# from ...common.modeling_utils.quantization.auto import get_hf_quantizer
-# from ...common.modeling_utils.quantization.base import HfQuantizer
-# from ...common.modeling_utils.quantization.quantization_config import QuantizationMethod
-# from ...common.modeling_utils.quantization.utils import get_module_from_name
-# from ...common.modeling_utils.rope_utils import ROPE_INIT_FUNCTIONS
+from ...distributed import DistributedConfig
+from ...distributed.mixin import DistributedMixin
+from ...distributed.sharding_utils import _dtensor_from_local_like
+from ...distributed.tensor_parallel import verify_tp_plan
+from ...distributed.utils import (
+    is_dtensor,
+    is_local_dist_rank_0,
+)
 from ...generation import CompileConfig, GenerationConfig
+from ...integrations.accelerate import (
+    _get_device_map,
+    accelerate_disk_offload,
+    accelerate_dispatch,
+    check_and_set_device_map,
+    expand_device_map,
+    get_device,
+    is_accelerate_available,
+)
+from ...integrations.deepspeed import (
+    _load_state_dict_into_zero3_model,
+    deepspeed_config,
+    is_deepspeed_zero3_enabled,
+)
+from ...integrations.finegrained_fp8 import ALL_FP8_EXPERTS_FUNCTIONS
+from ...integrations.fsdp import is_fsdp_enabled
+from ...integrations.hub_kernels.kernels import (
+    ALLOW_ALL_KERNELS,
+    KERNELS_MAX_VERSION,
+    KERNELS_MIN_VERSION,
+    KernelConfig,
+    allow_all_hub_kernels,
+    is_kernel,
+    is_kernels_available,
+    kernelize,
+)
+from ...integrations.moe import ALL_EXPERTS_FUNCTIONS
+from ...integrations.peft import PeftAdapterMixin, maybe_load_adapters
+from ...loading.conversion_mapping import get_model_conversion_mapping
+from ...loading.core import convert_and_load_state_dict_in_model
 from ...loading.report import LoadStateDictInfo, log_state_dict_report
+from ...nn.attention.auto import ALL_ATTENTION_FUNCTIONS
+from ...nn.attention.flash_utils import (
+    FLASH_ATTENTION_COMPATIBILITY_MATRIX,
+    FLASH_ATTN_KERNEL_DEVICES,
+    FLASH_ATTN_KERNEL_FALLBACK,
+    is_flash_attention_requested,
+    is_flash_attn_greater_or_equal,
+    lazy_import_flash_attention,
+    lazy_import_paged_flash_attention,
+    split_attention_implementation,
+)
+from ...nn.losses.loss_utils import LOSS_MAPPING
 from ...nn.positional.rope import ROPE_INIT_FUNCTIONS
+from ...quantizers.auto import get_hf_quantizer
+from ...quantizers.base import HfQuantizer
+from ...quantizers.config import QuantizationMethod
+from ...quantizers.quantizers_utils import get_module_from_name
+from .. import initialization as init
 from ..config import PreTrainedConfig
+from ..outputs.output_capturing import _CAN_RECORD_REGISTRY, OutputRecorder
 from .mixin import EmbeddingAccessMixin, ModuleUtilsMixin
 from .utils import (
     DUMMY_INPUTS,
+    LoadStateDictConfig,
     SpecificPreTrainedModelType,
     _get_dtype,
     _get_resolved_checkpoint_files,
@@ -129,16 +116,6 @@ from .utils import (
     set_quantized_state,
     set_zero3_state,
 )
-from ...distributed import DistributedConfig
-from ...distributed.mixin import DistributedMixin
-from ...distributed.sharding_utils import _dtensor_from_local_like
-from ...distributed.tensor_parallel import verify_tp_plan
-from ...distributed.utils import (
-    is_local_dist_rank_0,
-)
-from ...quantizers import HfQuantizer
-from ...quantizers.auto import get_hf_quantizer
-from ...quantizers.quantizers_utils import get_module_from_name
 
 if is_accelerate_available():
     from accelerate.hooks import add_hook_to_module
@@ -344,7 +321,7 @@ class PreTrainedModel(
             self.config._attn_implementation,
             is_init_check=True,
             # We need to use this constant that is set through context manager as it cannot be forwarded in the model's __init__
-            allow_all_kernels=hub_kernels.ALLOW_ALL_KERNELS,
+            allow_all_kernels=ALLOW_ALL_KERNELS,
         )
         # Check the experts implementation is supported, or set it if not yet set (on the internal attr, to avoid
         # setting it recursively)
@@ -522,7 +499,7 @@ class PreTrainedModel(
             logger.info("Detected DeepSpeed ZeRO-3: activating zero.init() for this model")
             # this immediately partitions the model across all gpus, to avoid the overhead in time
             # and memory copying it on CPU or each GPU first
-            import deepspeed
+            import deepspeed  # type: ignore
 
             init_contexts.extend(
                 [
@@ -541,7 +518,7 @@ class PreTrainedModel(
         # so weight init was suppressed. Re-initialize using the ZeRO-3 variant which gathers
         # each module's parameters before init to avoid OOM on large models.
         if needs_zero3_init:
-            from .integrations.deepspeed import initialize_weights_zero3
+            from ...integrations.deepspeed import initialize_weights_zero3
 
             initialize_weights_zero3(model)
             model.tie_weights()
@@ -688,7 +665,7 @@ class PreTrainedModel(
 
         # Check for attention dropout, which is incompatible with newer FA versions
         # (many should not really care about dropout as it is not super effective, hence warning for now)
-        if flash_attn_version > 2:
+        if flash_attn_version > 2:  # noqa: SIM102
             if hasattr(self.config, "attention_dropout") and self.config.attention_dropout > 0:
                 logger.warning_once(
                     f"You are attempting to use Flash Attention {flash_attn_version} with dropout. "
@@ -855,7 +832,7 @@ class PreTrainedModel(
         requested_original_flash_attn = False
         if is_flash_attention_requested(requested_attention_implementation=base_implementation):
             # If FA not installed, do not fail but use kernels instead if possible
-            for fa_version in FLASH_ATTENTION_COMPATIBILITY_MATRIX.keys():
+            for fa_version in FLASH_ATTENTION_COMPATIBILITY_MATRIX:
                 # Check whether we have an original FA requested but not available in the env
                 if (
                     base_implementation == f"flash_attention_{fa_version}"
@@ -896,14 +873,14 @@ class PreTrainedModel(
                         f"You do not have `flash_attn` installed, using `{applicable_attn_implementation}` "
                         "from the `kernels` library instead!"
                     )
-            except Exception as e:
+            except Exception:
                 # raise the proper exception for requested flash attention
                 if requested_original_flash_attn:
                     fa_version = int(base_implementation[-1])  # "flash_attention_(2|3|...)"
                     self._flash_attn_can_dispatch(flash_attn_version=fa_version, is_init_check=is_init_check)
 
                 # error properly out if a kernel was specifically requested
-                raise e
+                raise
         else:
             applicable_attn_implementation = self.get_correct_attn_implementation(
                 applicable_attn_implementation, is_init_check
@@ -938,7 +915,7 @@ class PreTrainedModel(
             # check `supports_flash_attn_2` for BC with custom code. TODO: remove after a few releases
             if self._supports_flash_attn or getattr(self, "_supports_flash_attn_2", False):
                 message += ", "
-                for fa_version in FLASH_ATTENTION_COMPATIBILITY_MATRIX.keys():
+                for fa_version in FLASH_ATTENTION_COMPATIBILITY_MATRIX:
                     message += f'`"attn_implementation=flash_attention_{fa_version}"`, `"attn_implementation=paged|flash_attention_{fa_version}"`, '
                 message = message[:-2]  # remove trailing comma
             if self._supports_sdpa:
@@ -959,9 +936,9 @@ class PreTrainedModel(
             # Sdpa is the default, so we try it and fallback to eager otherwise when not possible
             try:
                 self._sdpa_can_dispatch(is_init_check)
-            except (ValueError, ImportError) as e:
+            except (ValueError, ImportError):
                 if requested_attention is not None and "sdpa" in requested_attention:
-                    raise e
+                    raise
                 applicable_attention = "eager"
 
         return applicable_attention
@@ -983,9 +960,9 @@ class PreTrainedModel(
         if applicable_experts == "grouped_mm":
             try:
                 self._grouped_mm_can_dispatch()
-            except (ValueError, ImportError) as e:
+            except (ValueError, ImportError):
                 if requested_experts == "grouped_mm":
-                    raise e
+                    raise
                 applicable_experts = "eager"
 
         return applicable_experts
@@ -1489,10 +1466,10 @@ class PreTrainedModel(
                 fn(module, is_custom_code)
                 return module
 
-            setattr(torch.nn.Module, "smart_apply", smart_apply)
+            torch.nn.Module.smart_apply = smart_apply
 
         # Let the magic happen with this simple call
-        smart_apply_fn = getattr(self, "smart_apply")
+        smart_apply_fn = self.smart_apply
         # `getattr(self, ...)` returns a bound method, so `self` is already provided as the receiver.
         smart_apply_fn(self._initialize_weights, self.is_custom_code())
 
@@ -1564,10 +1541,7 @@ class PreTrainedModel(
         # NOTE: not all modules have `tie_word_embeddings` attr, for example vision-only
         # modules do not have any word embeddings!
         tie_word_embeddings = getattr(self.config, "tie_word_embeddings", False)
-        if not tie_word_embeddings:
-            return {}
-        # If None, return empty dict
-        elif tied_mapping is None:
+        if not tie_word_embeddings or tied_mapping is None:
             return {}
         # Short-cut for the most common cases: if the tied weights mapping only contains already expanded params,
         # return it directly (the regex matches names containing only letters, numbers, dots, and underscores to make
@@ -1601,7 +1575,7 @@ class PreTrainedModel(
                 # If the source is already registered as a target, use the original corresponding source. This should never
                 # happen in general, but some models such as `d_fine` have complicated regex patterns, so it end up being
                 # the case for simplicity of the regexes. Fix it silently here
-                if source_n in expanded_tied_weights.keys():
+                if source_n in expanded_tied_weights:
                     # Use original source instead of having keys both as source and targets
                     expanded_tied_weights[target_n] = expanded_tied_weights[source_n]
                 # Usual case, everything is already correct
@@ -1756,7 +1730,7 @@ class PreTrainedModel(
         # Since we are basically reusing the same old embeddings with new weight values, gathering is required
         is_quantized = hasattr(self, "hf_quantizer") and self.hf_quantizer is not None
         if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
+            import deepspeed  # type: ignore
 
             with deepspeed.zero.GatheredParameters(model_embeds.weight, modifier_rank=None):
                 vocab_size = model_embeds.weight.shape[0]
@@ -1788,7 +1762,7 @@ class PreTrainedModel(
         # Update new_num_tokens with the actual size of new_embeddings
         if pad_to_multiple_of is not None:
             if is_deepspeed_zero3_enabled() and not is_quantized:
-                import deepspeed
+                import deepspeed  # type: ignore
 
                 with deepspeed.zero.GatheredParameters(new_embeddings.weight, modifier_rank=None):
                     new_num_tokens = new_embeddings.weight.shape[0]
@@ -1875,7 +1849,7 @@ class PreTrainedModel(
 
         is_quantized = hasattr(self, "hf_quantizer") and self.hf_quantizer is not None
         if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
+            import deepspeed  # type: ignore
 
             with deepspeed.zero.GatheredParameters(old_embeddings.weight, modifier_rank=None):
                 old_num_tokens, old_embedding_dim = old_embeddings.weight.size()
@@ -1922,7 +1896,7 @@ class PreTrainedModel(
 
             added_num_tokens = new_num_tokens - old_num_tokens
             if is_deepspeed_zero3_enabled() and not is_quantized:
-                import deepspeed
+                import deepspeed  # type: ignore
 
                 with deepspeed.zero.GatheredParameters([old_embeddings.weight], modifier_rank=None):
                     self._init_added_embeddings_weights_with_mean(
@@ -1939,7 +1913,7 @@ class PreTrainedModel(
         n = min(old_num_tokens, new_num_tokens)
 
         if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
+            import deepspeed  # type: ignore
 
             params = [old_embeddings.weight, new_embeddings.weight]
             with deepspeed.zero.GatheredParameters(params, modifier_rank=0):
@@ -1951,7 +1925,7 @@ class PreTrainedModel(
         # This ensures correct functionality when a Custom Embedding class is passed as input.
         # The input and output embedding types remain consistent. (c.f. https://github.com/huggingface/transformers/pull/31979)
         if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
+            import deepspeed  # type: ignore
 
             params = [old_embeddings.weight, new_embeddings.weight]
             with deepspeed.zero.GatheredParameters(params, modifier_rank=0):
@@ -2011,7 +1985,7 @@ class PreTrainedModel(
 
         is_quantized = hasattr(self, "hf_quantizer") and self.hf_quantizer is not None
         if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
+            import deepspeed  # type: ignore
 
             with deepspeed.zero.GatheredParameters(old_lm_head.weight, modifier_rank=None):
                 old_num_tokens, old_lm_head_dim = (
@@ -2064,7 +2038,7 @@ class PreTrainedModel(
 
             added_num_tokens = new_num_tokens - old_num_tokens
             if is_deepspeed_zero3_enabled() and not is_quantized:
-                import deepspeed
+                import deepspeed  # type: ignore
 
                 params = [old_lm_head.weight]
                 if has_new_lm_head_bias:
@@ -2086,7 +2060,7 @@ class PreTrainedModel(
         num_tokens_to_copy = min(old_num_tokens, new_num_tokens)
 
         if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
+            import deepspeed  # type: ignore
 
             params = [old_lm_head.weight, old_lm_head.bias, new_lm_head.weight, new_lm_head.bias]
             with deepspeed.zero.GatheredParameters(params, modifier_rank=0):
@@ -2098,7 +2072,7 @@ class PreTrainedModel(
                 new_lm_head, old_lm_head, num_tokens_to_copy, transposed, has_new_lm_head_bias
             )
 
-        setattr(new_lm_head, "_is_hf_initialized", True)
+        new_lm_head._is_hf_initialized = True
         return new_lm_head
 
     def _init_added_embeddings_weights_with_mean(
@@ -2265,7 +2239,7 @@ class PreTrainedModel(
         every_n_layers: int = 1,
     ):
         # Imported here rather than at module scope: `modeling_layers` imports from this module.
-        from .modeling_layers import GradientCheckpointingLayer
+        from ...nn.layer.modeling_layers import GradientCheckpointingLayer
 
         is_gradient_checkpointing_set = False
         layer_index = 0
@@ -2279,14 +2253,14 @@ class PreTrainedModel(
 
         for module in self.modules():
             if hasattr(module, "gradient_checkpointing"):
-                setattr(module, "_gradient_checkpointing_func", gradient_checkpointing_func)
+                module._gradient_checkpointing_func = gradient_checkpointing_func
                 # Only the repeated per-layer blocks are counted, so `every_n_layers` means what it says even when
                 # other modules also carry a `gradient_checkpointing` flag.
                 if enable and isinstance(module, GradientCheckpointingLayer):
-                    setattr(module, "gradient_checkpointing", layer_index % every_n_layers == 0)
+                    module.gradient_checkpointing = layer_index % every_n_layers == 0
                     layer_index += 1
                 else:
-                    setattr(module, "gradient_checkpointing", enable)
+                    module.gradient_checkpointing = enable
                 is_gradient_checkpointing_set = True
 
         if not is_gradient_checkpointing_set:
@@ -2362,7 +2336,7 @@ class PreTrainedModel(
     @wraps(torch.nn.Module.cuda)
     def cuda(self, *args, **kwargs):
         if getattr(self, "quantization_method", None) == QuantizationMethod.HQQ:
-            from hqq.core.quantize import HQQLinear
+            from hqq.core.quantize import HQQLinear  # type: ignore
 
             # Since HQQLinear stores some tensors in the 'meta' attribute,
             # it's necessary to manually call the `cuda` method on HQQLinear layers.
@@ -2377,7 +2351,7 @@ class PreTrainedModel(
             return self
 
         # Checks if the model has been loaded in 4-bit or 8-bit with BNB
-        if getattr(self, "quantization_method", None) == QuantizationMethod.BITS_AND_BYTES:
+        if getattr(self, "quantization_method", None) == QuantizationMethod.BITS_AND_BYTES:  # noqa: SIM102
             if getattr(self, "is_loaded_in_8bit", False):
                 raise ValueError(
                     "Calling `cuda()` is not supported for `8-bit` quantized models. "
@@ -2398,7 +2372,7 @@ class PreTrainedModel(
                     break
 
         if getattr(self, "quantization_method", None) == QuantizationMethod.HQQ:
-            from hqq.core.quantize import HQQLinear
+            from hqq.core.quantize import HQQLinear  # type: ignore
 
             # Since HQQLinear stores some tensors in the 'meta' attribute, we must
             # explicitly move the parameters to the target device for each HQQLinear layer after `to`.
@@ -2476,7 +2450,7 @@ class PreTrainedModel(
         if allow_all_kernels:
             init_contexts.append(allow_all_hub_kernels())
         if is_deepspeed_zero3_enabled():
-            import deepspeed
+            import deepspeed  # type: ignore
 
             # We cannot initialize the model on meta device with deepspeed when not quantized
             if not is_quantized and not _is_ds_init_called:
@@ -2533,7 +2507,9 @@ class PreTrainedModel(
                     f"Please install a compatible version ({KERNELS_MIN_VERSION} <= version < {KERNELS_MAX_VERSION}), "
                     f"e.g. `pip install kernels=={KERNELS_MIN_VERSION}`"
                 )
-            from .integrations.hub_kernels import register_kernel_mapping_transformers
+            from ...integrations.hub_kernels.kernels import (
+                register_kernel_mapping_transformers,
+            )
 
             register_kernel_mapping_transformers()
 
@@ -2840,19 +2816,18 @@ class PreTrainedModel(
         if dtype is None:
             dtype = "auto"
 
-        if is_offline_mode() and not local_files_only:
+        if not local_files_only:
             local_files_only = True
 
         # Resolve the revision once and for all: config, weights, generation config and adapters are then all loaded
         # from the exact same repository state, without any further call to the Hub to revalidate a mutable revision.
-        requested_revision = revision
-        revision = resolve_revision(
-            pretrained_model_name_or_path,
-            revision,
-            token=token,
-            local_files_only=local_files_only,
-            cache_dir=cache_dir,
-        )
+        # revision = resolve_revision(
+        #     pretrained_model_name_or_path,
+        #     revision,
+        #     token=token,
+        #     local_files_only=local_files_only,
+        #     cache_dir=cache_dir,
+        # )
 
         download_kwargs = {
             "cache_dir": cache_dir,
@@ -2916,13 +2891,13 @@ class PreTrainedModel(
         if pretrained_model_name_or_path != adapter_repo_id:
             # We were pointed at an adapter, and now load the base model it refers to: the revision we resolved
             # above belongs to the adapter repository, so resolve the base model's own.
-            revision = resolve_revision(
-                pretrained_model_name_or_path,
-                requested_revision,
-                token=token,
-                local_files_only=local_files_only,
-                cache_dir=cache_dir,
-            )
+            # revision = resolve_revision(
+            #     pretrained_model_name_or_path,
+            #     requested_revision,
+            #     token=token,
+            #     local_files_only=local_files_only,
+            #     cache_dir=cache_dir,
+            # )
             download_kwargs["revision"] = revision
         device_map = check_and_set_device_map(device_map)  # warn, error and fix the device map
 
@@ -3006,13 +2981,15 @@ class PreTrainedModel(
         # Register fusion patches
         fusion_config = getattr(config, "fusion_config", None)
         if fusion_config is not None:
-            from .fusion_mapping import register_fusion_patches
+            from ...loading.fusion_mapping import register_fusion_patches
 
             register_fusion_patches(cls, config, fusion_config)
 
         # Kernel patches: single-layer replacement (stateful __init__) then fusions.
         if kernel_config is not None and use_kernels:
-            from .integrations.hub_kernels import register_kernel_replacements_and_fusions
+            from ...integrations.hub_kernels.kernels import (
+                register_kernel_replacements_and_fusions,
+            )
 
             # For remote kernels, we need to apply the context manager
             allow_all_kernels_context = [allow_all_hub_kernels()] if allow_all_kernels else []
@@ -3203,7 +3180,7 @@ class PreTrainedModel(
                         backend, device = "mmap", "cpu"
                     file_pointer = safe_open(file, framework="pt", device=device, backend=backend)
                     all_pointer.add(file_pointer)
-                    for k in file_pointer.keys():
+                    for k in file_pointer:
                         merged_state_dict[k] = file_pointer.get_slice(k)  # don't materialize yet
             # Checkpoints are .bin
             elif checkpoint_files is not None:
@@ -3281,7 +3258,7 @@ class PreTrainedModel(
                 _prefix = f"{self.base_model_prefix}."
                 name = name.removeprefix(_prefix)
             elif add_prefix:
-                name = ".".join([self.base_model_prefix, name]) if len(name) > 0 else self.base_model_prefix
+                name = f"{self.base_model_prefix}.{name}" if len(name) > 0 else self.base_model_prefix
 
             if name in module_keys:
                 retrieved_modules.append(module)
@@ -3359,9 +3336,7 @@ class PreTrainedModel(
         if self.base_model._tp_plan:
             return True
         # Check if config has TP plan
-        if self.config.base_model_tp_plan:
-            return True
-        return False
+        return bool(self.config.base_model_tp_plan)
 
     @property
     def tp_size(self):
@@ -3388,9 +3363,7 @@ class PreTrainedModel(
         if self.base_model._pp_plan:
             return True
         # Check if config has PP plan
-        if self.config.base_model_pp_plan:
-            return True
-        return False
+        return bool(self.config.base_model_pp_plan)
 
     @property
     def loss_function(self):
@@ -3538,7 +3511,7 @@ class PreTrainedModel(
 
         # This will only initialize submodules that are not marked as initialized by the line above.
         if is_deepspeed_zero3_enabled() and not is_quantized:
-            import deepspeed
+            import deepspeed  # type: ignore
 
             # keep_vars=True as we need the original tensors, so that the "_is_hf_initialized" is present on them
             not_initialized_parameters = list(
@@ -3588,9 +3561,9 @@ class PreTrainedModel(
         later as they will be tied (overwritten) anyway.
         This is very important as most embeddings are tied, and they are huge params (vocabularies are often 256k), so
         running inits on them is very costly."""
-        for tied_param in getattr(self, "all_tied_weights_keys", {}).keys():
+        for tied_param in getattr(self, "all_tied_weights_keys", {}):
             param = self.get_parameter(tied_param)
-            setattr(param, "_is_hf_initialized", True)
+            param._is_hf_initialized = True
 
         # Some custom code models define module tying (not parameter tying) in their __init__. When modules themselves are shared,
         # weights inside both modules appear in the `state_dict` but only one will appear in the safetensors checkpoints
@@ -3670,3 +3643,24 @@ class PreTrainedModel(
         """Return whether the current model is custom code, i.e. either code loaded from the hub, or defined in any user-specific
         module/session."""
         return cls.is_remote_code() or not cls.__module__.startswith("transformers.")
+
+
+class PreTrainedAudioTokenizerBase(PreTrainedModel):
+    """
+    Class that additionally defines the behavior of any `audio_tokenizer` to be added.
+    Characteristic for any of them:
+        1. Encode raw audio into discrete audio codebooks (with x channels)
+        2. Decode from discrete audio codebooks back to raw audio
+    It is possible that they can decode in different ways given a different representation
+    but they are forced to support 2. nonetheless, e.g. see `DAC`.
+    """
+
+    @abstractmethod
+    def encode(self, input_values: torch.Tensor, *args, **kwargs):
+        """
+        Encode raw audio retrieved from a respective `FeatureExtractor` into discrete audio codebooks (with x channels)
+        """
+
+    @abstractmethod
+    def decode(self, audio_codes: torch.Tensor, *args, **kwargs):
+        """Decode from discrete audio codebooks back to raw audio"""

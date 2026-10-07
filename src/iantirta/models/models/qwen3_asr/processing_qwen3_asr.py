@@ -16,15 +16,18 @@ import unicodedata
 
 import numpy as np
 
-from iantirta.models.common.feature_extraction_utils import BatchFeature
-from iantirta.models.common.input_utils.audio_utils import (
+from iantirta.models.core.feature_extraction.utils import BatchFeature
+from iantirta.models.core.processing.audio.utils import (
     make_audio_chat_template_content,
     make_list_of_audio_chat_template,
     prepare_language_inputs,
 )
-from iantirta.models.common.processing_utils import ProcessingKwargs, ProcessorMixin
-from iantirta.models.common.processing_utils.utils import prepare_prompt_input
-from iantirta.models.common.tokenization_utils import AudioInput, TextInput
+from iantirta.models.core.processing.utils import (
+    ProcessingKwargs,
+    ProcessorMixin,
+    prepare_prompt_input,
+)
+from iantirta.models.core.tokenizer.utils import AudioInput, TextInput
 from iantirta.models.tools.kwargs_types import Unpack
 
 from .requirements import is_nagisa_available, is_soynlp_available

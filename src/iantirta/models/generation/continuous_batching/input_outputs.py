@@ -18,15 +18,20 @@ from typing import TypedDict
 
 import torch
 
-from transformers.configuration_utils import PretrainedConfig
-from transformers.generation.configuration_utils import ContinuousBatchingConfig
-
-from ...utils import get_available_devices
+from ...core.config import PretrainedConfig
+from ...generation.configuration_utils import ContinuousBatchingConfig
+from ...tools._torch import get_available_devices
 from .cache import PagedAttentionCache
 from .cache_allocators import FULL_ATTENTION, SLIDING_ATTENTION
 from .cb_logits_processors import ContinuousBatchingLogitsProcessorList
 from .requests import TMP_TOKEN_ID, FutureRequestState, logger
-from .utils import CudaGraphBuffer, aligned_divide, attn_mask_is_needed, build_attention_mask, pad_to_pow2
+from .utils import (
+    CudaGraphBuffer,
+    aligned_divide,
+    attn_mask_is_needed,
+    build_attention_mask,
+    pad_to_pow2,
+)
 
 
 class PagedAttentionArgs(TypedDict):
@@ -177,7 +182,7 @@ class ContinuousBatchingIOs:
         # If the attention mask is needed, it is allocated separately
         if attn_mask_is_needed(self.config):
             self.attention_mask = {}
-            for layer_type in self.cumulative_seqlens_k.keys():
+            for layer_type in self.cumulative_seqlens_k:
                 self.attention_mask[layer_type] = torch.empty(
                     size=(1, 1, max_batch_tokens, self.cache.max_tokens_read + max_batch_tokens),
                     dtype=self.model_dtype,
@@ -238,7 +243,7 @@ class ContinuousBatchingIOs:
                     other.read_index_storage.copy_(self.read_index_storage, non_blocking=non_blocking)
             # Transfer the attention masks if needed
             if self.attention_mask is not None and other.attention_mask is not None:
-                for layer_type in self.attention_mask.keys():
+                for layer_type in self.attention_mask:
                     other.attention_mask[layer_type].copy_(self.attention_mask[layer_type], non_blocking=non_blocking)
 
     @torch.no_grad()
@@ -366,7 +371,7 @@ class ContinuousBatchingIOs:
         position_ids = []
         cumulative_seqlens_q = [0]
         logits_indices = []
-        cumulative_seqlens_k = {layer_type: [0] for layer_type in self.cumulative_seqlens_k.keys()}
+        cumulative_seqlens_k = {layer_type: [0] for layer_type in self.cumulative_seqlens_k}
         write_index = [[] for _ in range(num_attn_types)]
         read_index = None if self.max_kv_read == 0 else [[] for _ in range(num_attn_types)]
 
@@ -507,7 +512,7 @@ class ContinuousBatchingIOs:
             if not self.use_block_table and self.use_cuda_graph_varlen:
                 self.max_seqlen_k = {
                     layer_type: pad_to_pow2(self.max_seqlen_k[layer_type], self.cache.max_tokens_read, 1024)
-                    for layer_type in self.max_seqlen_k.keys()
+                    for layer_type in self.max_seqlen_k
                 }
 
         # When using block table, max_seqlen_q and max_seqlen_k are not used by flash_attn_with_kvcache, so we set them

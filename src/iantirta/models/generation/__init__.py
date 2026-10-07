@@ -14,8 +14,7 @@
 
 from typing import TYPE_CHECKING
 
-from ..utils import OptionalDependencyNotAvailable, _LazyModule, is_rich_available, is_torch_available
-
+from iantirta.models._lazy_import import _LazyModule
 
 _import_structure = {
     "configuration_utils": [
@@ -27,23 +26,14 @@ _import_structure = {
         "SynthIDTextWatermarkingConfig",
         "WatermarkingConfig",
     ],
-    "streamers": ["AsyncTextIteratorStreamer", "BaseStreamer", "TextIteratorStreamer", "TextStreamer"],
-}
-
-try:
-    if not is_torch_available():
-        raise OptionalDependencyNotAvailable()
-except OptionalDependencyNotAvailable:
-    pass
-else:
-    _import_structure["candidate_generator"] = [
+    "candidate_generator": [
         "AssistedCandidateGenerator",
         "CandidateGenerator",
         "EarlyExitCandidateGenerator",
         "PromptLookupCandidateGenerator",
         "DFlashTokenCandidateGenerator",
-    ]
-    _import_structure["logits_process"] = [
+    ],
+    "logits_process": [
         "AlternatingCodebooksLogitsProcessor",
         "ClassifierFreeGuidanceLogitsProcessor",
         "EncoderNoRepeatNGramLogitsProcessor",
@@ -76,8 +66,8 @@ else:
         "UnbatchedClassifierFreeGuidanceLogitsProcessor",
         "WhisperTimeStampLogitsProcessor",
         "WatermarkLogitsProcessor",
-    ]
-    _import_structure["stopping_criteria"] = [
+    ],
+    "stopping_criteria": [
         "MaxLengthCriteria",
         "MaxTimeCriteria",
         "ConfidenceCriteria",
@@ -86,39 +76,46 @@ else:
         "StoppingCriteriaList",
         "validate_stopping_criteria",
         "StopStringCriteria",
-    ]
-    _import_structure["continuous_batching"] = [
+    ],
+    "continuous_batching": [
         "ContinuousBatchingManager",
         "ContinuousMixin",
         "FIFOScheduler",
         "PrefillFirstScheduler",
         "Scheduler",
-    ]
-    _import_structure["utils"] = [
+    ],
+    "utils": [
         "GenerationMixin",
         "GenerateBeamDecoderOnlyOutput",
         "GenerateBeamEncoderDecoderOutput",
         "GenerateDecoderOnlyOutput",
         "GenerateEncoderDecoderOutput",
-    ]
-    _import_structure["watermarking"] = [
+    ],
+    "watermarking": [
         "WatermarkDetector",
         "WatermarkDetectorOutput",
         "BayesianDetectorModel",
         "BayesianDetectorConfig",
         "SynthIDTextWatermarkDetector",
-    ]
-try:
-    if not is_rich_available():
-        raise OptionalDependencyNotAvailable()
-except OptionalDependencyNotAvailable:
-    pass
-else:
-    _import_structure["streamers"] += ["TextDiffusionStreamer"]
-
+    ],
+    "streamers": [
+        "AsyncTextIteratorStreamer",
+        "BaseStreamer",
+        "TextIteratorStreamer",
+        "TextStreamer",
+        "TextDiffusionStreamer",
+    ],
+}
 
 if TYPE_CHECKING:
-    from .configuration_utils import (
+    from .candidate_generator import (  # noqa: F401
+        AssistedCandidateGenerator,
+        CandidateGenerator,
+        DFlashTokenCandidateGenerator,
+        EarlyExitCandidateGenerator,
+        PromptLookupCandidateGenerator,
+    )
+    from .configuration_utils import (  # noqa: F401
         BaseWatermarkingConfig,
         CompileConfig,
         ContinuousBatchingConfig,
@@ -127,93 +124,78 @@ if TYPE_CHECKING:
         SynthIDTextWatermarkingConfig,
         WatermarkingConfig,
     )
-    from .streamers import AsyncTextIteratorStreamer, BaseStreamer, TextIteratorStreamer, TextStreamer
-
-    try:
-        if not is_torch_available():
-            raise OptionalDependencyNotAvailable()
-    except OptionalDependencyNotAvailable:
-        pass
-    else:
-        from .candidate_generator import (
-            AssistedCandidateGenerator,
-            CandidateGenerator,
-            DFlashTokenCandidateGenerator,
-            EarlyExitCandidateGenerator,
-            PromptLookupCandidateGenerator,
-        )
-        from .continuous_batching import (
-            ContinuousBatchingManager,
-            ContinuousMixin,
-            FIFOScheduler,
-            PrefillFirstScheduler,
-            Scheduler,
-        )
-        from .logits_process import (
-            AlternatingCodebooksLogitsProcessor,
-            ClassifierFreeGuidanceLogitsProcessor,
-            EncoderNoRepeatNGramLogitsProcessor,
-            EncoderRepetitionPenaltyLogitsProcessor,
-            EpsilonLogitsWarper,
-            EtaLogitsWarper,
-            ExponentialDecayLengthPenalty,
-            ForcedBOSTokenLogitsProcessor,
-            ForcedEOSTokenLogitsProcessor,
-            InfNanRemoveLogitsProcessor,
-            LogitNormalization,
-            LogitsProcessor,
-            LogitsProcessorList,
-            MinLengthLogitsProcessor,
-            MinNewTokensLengthLogitsProcessor,
-            MinPLogitsWarper,
-            NoBadWordsLogitsProcessor,
-            NoRepeatNGramLogitsProcessor,
-            PrefixConstrainedLogitsProcessor,
-            RepetitionPenaltyLogitsProcessor,
-            SequenceBiasLogitsProcessor,
-            SuppressTokensAtBeginLogitsProcessor,
-            SuppressTokensLogitsProcessor,
-            SynthIDTextWatermarkLogitsProcessor,
-            TemperatureLogitsWarper,
-            TopHLogitsWarper,
-            TopKLogitsWarper,
-            TopPLogitsWarper,
-            TypicalLogitsWarper,
-            UnbatchedClassifierFreeGuidanceLogitsProcessor,
-            WatermarkLogitsProcessor,
-            WhisperTimeStampLogitsProcessor,
-        )
-        from .stopping_criteria import (
-            ConfidenceCriteria,
-            EosTokenCriteria,
-            MaxLengthCriteria,
-            MaxTimeCriteria,
-            StoppingCriteria,
-            StoppingCriteriaList,
-            StopStringCriteria,
-            validate_stopping_criteria,
-        )
-        from .utils import (
-            GenerateBeamDecoderOnlyOutput,
-            GenerateBeamEncoderDecoderOutput,
-            GenerateDecoderOnlyOutput,
-            GenerateEncoderDecoderOutput,
-            GenerationMixin,
-        )
-        from .watermarking import (
-            BayesianDetectorConfig,
-            BayesianDetectorModel,
-            SynthIDTextWatermarkDetector,
-            WatermarkDetector,
-            WatermarkDetectorOutput,
-        )
-    try:
-        if not is_rich_available():
-            raise OptionalDependencyNotAvailable()
-    except OptionalDependencyNotAvailable:
-        pass
-    else:
-        from .streamers import TextDiffusionStreamer
+    from .continuous_batching import (  # noqa: F401
+        ContinuousBatchingManager,
+        ContinuousMixin,
+        FIFOScheduler,
+        PrefillFirstScheduler,
+        Scheduler,
+    )
+    from .logits_process import (  # noqa: F401
+        AlternatingCodebooksLogitsProcessor,
+        ClassifierFreeGuidanceLogitsProcessor,
+        EncoderNoRepeatNGramLogitsProcessor,
+        EncoderRepetitionPenaltyLogitsProcessor,
+        EpsilonLogitsWarper,
+        EtaLogitsWarper,
+        ExponentialDecayLengthPenalty,
+        ForcedBOSTokenLogitsProcessor,
+        ForcedEOSTokenLogitsProcessor,
+        InfNanRemoveLogitsProcessor,
+        LogitNormalization,
+        LogitsProcessor,
+        LogitsProcessorList,
+        MinLengthLogitsProcessor,
+        MinNewTokensLengthLogitsProcessor,
+        MinPLogitsWarper,
+        NoBadWordsLogitsProcessor,
+        NoRepeatNGramLogitsProcessor,
+        PrefixConstrainedLogitsProcessor,
+        RepetitionPenaltyLogitsProcessor,
+        SequenceBiasLogitsProcessor,
+        SuppressTokensAtBeginLogitsProcessor,
+        SuppressTokensLogitsProcessor,
+        SynthIDTextWatermarkLogitsProcessor,
+        TemperatureLogitsWarper,
+        TopHLogitsWarper,
+        TopKLogitsWarper,
+        TopPLogitsWarper,
+        TypicalLogitsWarper,
+        UnbatchedClassifierFreeGuidanceLogitsProcessor,
+        WatermarkLogitsProcessor,
+        WhisperTimeStampLogitsProcessor,
+    )
+    from .stopping_criteria import (  # noqa: F401
+        ConfidenceCriteria,
+        EosTokenCriteria,
+        MaxLengthCriteria,
+        MaxTimeCriteria,
+        StoppingCriteria,
+        StoppingCriteriaList,
+        StopStringCriteria,
+        validate_stopping_criteria,
+    )
+    from .streamers import (  # noqa: F401
+        AsyncTextIteratorStreamer,
+        BaseStreamer,
+        TextDiffusionStreamer,
+        TextIteratorStreamer,
+        TextStreamer,
+    )
+    from .utils import (  # noqa: F401
+        GenerateBeamDecoderOnlyOutput,
+        GenerateBeamEncoderDecoderOutput,
+        GenerateDecoderOnlyOutput,
+        GenerateEncoderDecoderOutput,
+        GenerationMixin,
+    )
+    from .watermarking import (  # noqa: F401
+        BayesianDetectorConfig,
+        BayesianDetectorModel,
+        SynthIDTextWatermarkDetector,
+        WatermarkDetector,
+        WatermarkDetectorOutput,
+    )
 
 else:
     import sys

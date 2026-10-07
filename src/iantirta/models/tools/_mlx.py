@@ -1,6 +1,7 @@
 
-from ._deps import _make_compile_constant, _is_package_available
 from functools import lru_cache
+
+from ._deps import _is_package_available, _make_compile_constant
 
 
 @lru_cache

@@ -15,15 +15,15 @@ from typing import TYPE_CHECKING
 
 from .base import HfQuantizer
 
-
 if TYPE_CHECKING:
-    from ..modeling_utils import PreTrainedModel
+    from ..core.model import PreTrainedModel
 
-from ..utils import is_auto_round_available, logging
-from ..utils.quantization_config import QuantizationConfigMixin
+# from ..utils import is_auto_round_available
+import logging
 
+from .config import QuantizationConfigMixin
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class AutoRoundQuantizer(HfQuantizer):
@@ -47,7 +47,10 @@ class AutoRoundQuantizer(HfQuantizer):
     def _process_model_before_weight_loading(self, model: "PreTrainedModel", **kwargs):
         if model.__class__.main_input_name != "input_ids":
             logger.warning("AutoRound offers only limited support for models that are not strictly text-based.")
-        from auto_round.inference.convert_model import convert_hf_model, infer_target_device
+        from auto_round.inference.convert_model import (  # type: ignore
+            convert_hf_model,
+            infer_target_device,
+        )
 
         if self.pre_quantized:
             target_device = infer_target_device(self.device_map)
@@ -56,7 +59,7 @@ class AutoRoundQuantizer(HfQuantizer):
 
     def _process_model_after_weight_loading(self, model: "PreTrainedModel", **kwargs):
         if self.pre_quantized:
-            from auto_round.inference.convert_model import post_init
+            from auto_round.inference.convert_model import post_init  # type: ignore
 
             post_init(model, self.used_backends)
         else:

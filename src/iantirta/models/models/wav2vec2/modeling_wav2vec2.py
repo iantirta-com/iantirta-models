@@ -22,37 +22,38 @@ import torch
 from safetensors.torch import load_file as safe_load_file
 from torch import nn
 
-from iantirta.models.common import initialization as init
-from iantirta.models.common.activations import ACT2FN
-from iantirta.models.common.attentions import ALL_ATTENTION_FUNCTIONS
-from iantirta.models.common.masking_utils import create_bidirectional_mask
-from iantirta.models.common.modeling_outputs import (
+from iantirta.models.core import initialization as init
+from iantirta.models.core.activations import ACT2FN
+from iantirta.models.core.model import PreTrainedModel
+from iantirta.models.core.model.utils import (
+    get_torch_context_manager_or_global_device,
+)
+from iantirta.models.core.outputs.mixin import (
     BaseModelOutput,
     CausalLMOutput,
+    Wav2Vec2BaseModelOutput,
+)
+from iantirta.models.core.outputs.output_capturing import (
     OutputRecorder,
-    can_return_tuple,
     capture_outputs,
 )
-from iantirta.models.common.modeling_utils import (
-    GradientCheckpointingLayer,
-    PreTrainedModel,
-    get_torch_context_manager_or_global_device,
-    merge_with_config_defaults,
-)
-from iantirta.models.common.modeling_utils.integrations.deepspeed import (
+from iantirta.models.integrations.deepspeed import (
     is_deepspeed_zero3_enabled,
 )
+from iantirta.models.integrations.fsdp import is_fsdp_managed_module
+from iantirta.models.nn.attention.auto import ALL_ATTENTION_FUNCTIONS
+from iantirta.models.nn.layer.modeling_layers import GradientCheckpointingLayer
+from iantirta.models.nn.masking.utils import create_bidirectional_mask
 from iantirta.models.remote import cached_file
-from iantirta.models.tools._fsdp import is_fsdp_managed_module
 from iantirta.models.tools._torch import check_torch_load_is_safe
 from iantirta.models.tools.kwargs_types import (
     FlashAttentionKwargs,
     TransformersKwargs,
     Unpack,
 )
+from iantirta.models.tools.misc import can_return_tuple, merge_with_config_defaults
 
 from .configuration_wav2vec2 import Wav2Vec2Config
-from .modeling_outputs_wav2vec2 import Wav2Vec2BaseModelOutput
 
 WAV2VEC2_ADAPTER_PT_FILE = "adapter.{}.bin"
 WAV2VEC2_ADAPTER_SAFE_FILE = "adapter.{}.safetensors"

@@ -21,7 +21,6 @@ import torch.distributed as _dist
 from ...distributed.utils import _is_torch_distributed_initialized
 from .requests import logger
 
-
 # torch marks `torch.distributed` members as possibly-missing, which leads to type check errors. To avoid them, we mark
 # the module as `Any` (same as `DeviceMeshLike` in `_typing.py`)
 dist: Any = _dist
@@ -98,10 +97,10 @@ class DistributedHelper:
         """Checks the validity of the device mesh for continuous batching."""
         # No device mesh = no distributed = life is good
         if device_mesh is None:
-            return None
+            return
         # If there are no named dims, we assume it is a TP mesh  # TODO (remi): this might change after distrib rework
         if device_mesh.mesh_dim_names is None:
-            return None
+            return
         # FSDP is not compatible with continuous batching, so we raise an error if it is used
         if "fsdp" in device_mesh.mesh_dim_names and device_mesh["fsdp"].size() > 1:
             raise ValueError(f"FSDP is not compatible with continuous batching but got {device_mesh = }.")

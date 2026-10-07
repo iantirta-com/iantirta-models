@@ -12,11 +12,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 import warnings
 
-from ..models.auto.configuration_auto import AutoConfig
-from ..utils import logging
-from ..utils.quantization_config import (
+from ..core.auto import AutoConfig
+from .base import HfQuantizer
+from .config import (
     AqlmConfig,
     AutoRoundConfig,
     AwqConfig,
@@ -45,7 +46,6 @@ from ..utils.quantization_config import (
     TorchAoConfig,
     VptqConfig,
 )
-from .base import HfQuantizer
 from .quantizer_aqlm import AqlmHfQuantizer
 from .quantizer_auto_round import AutoRoundQuantizer
 from .quantizer_awq import AwqQuantizer
@@ -72,7 +72,6 @@ from .quantizer_sinq import SinqHfQuantizer
 from .quantizer_spqr import SpQRHfQuantizer
 from .quantizer_torchao import TorchAoHfQuantizer
 from .quantizer_vptq import VptqHfQuantizer
-
 
 AUTO_QUANTIZER_MAPPING = {
     "awq": AwqQuantizer,
@@ -148,7 +147,7 @@ LOADING_ATTRIBUTES_CONFIG_TYPES = (
     FineGrainedFP8Config,
 )
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class AutoQuantizationConfig:

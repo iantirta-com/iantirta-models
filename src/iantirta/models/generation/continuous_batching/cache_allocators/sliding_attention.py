@@ -14,7 +14,7 @@
 
 import torch
 
-from ....configuration_utils import PreTrainedConfig
+from ....core.config import PreTrainedConfig
 from .full_attention import FullAttentionCacheAllocator
 
 

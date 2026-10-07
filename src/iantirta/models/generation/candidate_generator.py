@@ -14,26 +14,72 @@
 
 import copy
 import weakref
+from functools import lru_cache
 from typing import TYPE_CHECKING, Any, Optional, cast
 
 import numpy as np
 import torch
-import torch.nn as nn
+from torch import nn
 
-from ..pytorch_utils import prune_linear_layer
-from ..utils import ModelOutput, is_sklearn_available
-from ..utils.deprecation import deprecate_kwarg
+from iantirta.models.tools._deps import _is_package_available, _make_compile_constant
+from iantirta.models.tools.deprecated import deprecate_kwarg
+
+from ..core.outputs.mixin import ModelOutput
 from .configuration_utils import GenerationConfig
-from .logits_process import LogitsProcessorList, MinLengthLogitsProcessor, SuppressTokensLogitsProcessor
+from .logits_process import (
+    LogitsProcessorList,
+    MinLengthLogitsProcessor,
+    SuppressTokensLogitsProcessor,
+)
+
+if TYPE_CHECKING:
+    from ..core.model import PreTrainedModel
+    from ..core.tokenizer.base import PreTrainedTokenizerBase
+    from .configuration_utils import GenerationConfig
+
+
+@lru_cache
+@_make_compile_constant
+def is_sklearn_available() -> bool:
+    return _is_package_available("sklearn")[0]
 
 
 if is_sklearn_available():
     from sklearn.metrics import roc_curve
 
-if TYPE_CHECKING:
-    from ..modeling_utils import PreTrainedModel
-    from ..tokenization_utils_base import PreTrainedTokenizerBase
-    from .configuration_utils import GenerationConfig
+
+def prune_linear_layer(layer: nn.Linear, index: torch.LongTensor, dim: int = 0) -> nn.Linear:
+    """
+    Prune a linear layer to keep only entries in index.
+
+    Used to remove heads.
+
+    Args:
+        layer (`torch.nn.Linear`): The layer to prune.
+        index (`torch.LongTensor`): The indices to keep in the layer.
+        dim (`int`, *optional*, defaults to 0): The dimension on which to keep the indices.
+
+    Returns:
+        `torch.nn.Linear`: The pruned layer as a new layer with `requires_grad=True`.
+    """
+    index = index.to(layer.weight.device)
+    W = layer.weight.index_select(dim, index).detach().clone()
+    if layer.bias is not None:
+        if dim == 1:
+            b = layer.bias.detach().clone()
+        else:
+            b = layer.bias[index].detach().clone()
+    new_size = list(layer.weight.size())
+    new_size[dim] = len(index)
+    new_layer = nn.Linear(new_size[1], new_size[0], bias=layer.bias is not None).to(layer.weight.device)
+    new_layer.weight.requires_grad = False
+    new_layer.weight.copy_(W.contiguous())
+    new_layer.weight.requires_grad = True
+    if layer.bias is not None:
+        new_layer.bias.requires_grad = False
+        new_layer.bias.copy_(b.contiguous())
+        new_layer.bias.requires_grad = True
+    return new_layer
 
 
 class CandidateGenerator:
@@ -71,7 +117,6 @@ class CandidateGenerator:
             num_matches (`int`):
                 The number of matches between the candidate sequences and the model predictions.
         """
-        pass
 
 
 class AssistedCandidateGenerator(CandidateGenerator):
@@ -1246,7 +1291,7 @@ class SinglePositionMultiTokenCandidateGenerator(CandidateGenerator):
     requires_model_outputs: bool = True
     # We always need to pass the hidden states and the shared kv states from the main model
     # NOTE: This could be done more efficiently for `output_hidden_states` as we actually only care about the last one
-    model_kwargs_overrides: dict[str, Any] = {
+    model_kwargs_overrides: dict[str, Any] = {  # noqa: RUF012
         "output_hidden_states": True,
         "return_shared_kv_states": True,
     }
@@ -1373,7 +1418,7 @@ class MTPCandidateGenerator(CandidateGenerator):
     requires_model_outputs: bool = True
     # We always need to pass the hidden states from the main model - it will be overriden in the __init__ to capture only the
     # last layer's hidden_states
-    model_kwargs_overrides: dict[str, Any] = {"output_hidden_states": True}
+    model_kwargs_overrides: dict[str, Any] = {"output_hidden_states": True}  # noqa: RUF012
 
     def __init__(
         self,
@@ -1382,8 +1427,8 @@ class MTPCandidateGenerator(CandidateGenerator):
         model_kwargs: dict[str, Any],
         logits_processor: Optional["LogitsProcessorList"] = None,
     ):
-        from ..cache_utils import MtpCache
-        from ..modeling_layers import MtpModel
+        from ..cache.mixin import MtpCache
+        from ..nn.layer.modeling_layers import MtpModel
 
         self.num_mtp_layers = getattr(main_model.config.get_text_config(), "num_mtp_layers", None)
         if self.num_mtp_layers is None:
@@ -1522,7 +1567,7 @@ class DFlashTokenCandidateGenerator(CandidateGenerator):
 
     requires_model_outputs: bool = True
     # This will be overriden in the __init__ to capture only the required layer's hidden_states
-    model_kwargs_overrides: dict[str, Any] = {"output_hidden_states": True}
+    model_kwargs_overrides: dict[str, Any] = {"output_hidden_states": True}  # noqa: RUF012
 
     def __init__(
         self,
@@ -1533,7 +1578,7 @@ class DFlashTokenCandidateGenerator(CandidateGenerator):
         logits_processor: Optional["LogitsProcessorList"] = None,
         **kwargs,
     ):
-        from ..cache_utils import DFlashCache
+        from ..cache.mixin import DFlashCache
 
         # Get the assistant model and the embeddings of the main model
         self.assistant_model = assistant_model

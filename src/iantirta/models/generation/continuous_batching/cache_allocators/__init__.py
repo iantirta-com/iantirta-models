@@ -8,10 +8,9 @@ from .cache_pool import CachePool
 from .full_attention import FullAttentionCacheAllocator
 from .sliding_attention import SlidingAttentionCacheAllocator
 
-
 __all__ = [
-    "FullAttentionCacheAllocator",
-    "SlidingAttentionCacheAllocator",
     "CacheAllocator",
     "CachePool",
+    "FullAttentionCacheAllocator",
+    "SlidingAttentionCacheAllocator",
 ]

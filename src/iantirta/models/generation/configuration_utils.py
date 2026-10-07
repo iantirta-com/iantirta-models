@@ -15,6 +15,7 @@
 
 import copy
 import json
+import logging
 import os
 import warnings
 from abc import ABC, abstractmethod
@@ -22,27 +23,30 @@ from collections.abc import Callable
 from dataclasses import dataclass, is_dataclass
 from typing import TYPE_CHECKING, Any, Optional, Union
 
-from .. import __version__
-from ..utils import (
-    GENERATION_CONFIG_NAME,
-    ExplicitEnum,
-    PushToHubMixin,
-    cached_file,
-    hf_api,
-    is_torch_available,
-    logging,
-    resolve_revision,
-)
+from iantirta.models.remote.files import cached_file
+from iantirta.models.tools._torch import is_torch_available
+from iantirta.models.tools.types import ExplicitEnum
 
+from .. import __version__
+
+# from ..utils import (
+#     hf_api,
+#     resolve_revision,
+# )
 
 if TYPE_CHECKING:
     import torch
 
-    from ..configuration_utils import PreTrainedConfig
-    from ..modeling_utils import PreTrainedModel
+    from ..core.config import PreTrainedConfig
+    from ..core.model import PreTrainedModel
 
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
+
+
+GENERATION_CONFIG_NAME = "generation_config.json"
+
+
 METADATA_FIELDS = ("_from_model_config", "_commit_hash", "_original_object_hash", "transformers_version")
 STATIC_CACHE_IMPLEMENTATIONS = ("static", "offloaded_static")
 DYNAMIC_CACHE_IMPLEMENTATIONS = ("dynamic", "offloaded", "quantized")
@@ -59,7 +63,10 @@ ALL_CACHE_IMPLEMENTATIONS = ALL_STATIC_CACHE_IMPLEMENTATIONS + DYNAMIC_CACHE_IMP
 
 
 if is_torch_available():
-    from .logits_process import SynthIDTextWatermarkLogitsProcessor, WatermarkLogitsProcessor
+    from .logits_process import (
+        SynthIDTextWatermarkLogitsProcessor,
+        WatermarkLogitsProcessor,
+    )
 
 
 def _should_warn(outer_attr: str, inner_attr: str, user_set_attributes: set | None) -> bool:
@@ -508,9 +515,9 @@ class GenerationConfig:
             for key, value in kwargs.items():
                 try:
                     setattr(self, key, value)
-                except AttributeError as err:
+                except AttributeError:
                     logger.error(f"Can't set {key} with value {value} for {self}")
-                    raise err
+                    raise
         else:
             # Ensure backward compatibility for models that use `forced_bos_token_id` within their config
             if kwargs.get("force_bos_token_to_be_generated", False):
@@ -932,10 +939,7 @@ class GenerationConfig:
         os.makedirs(save_directory, exist_ok=True)
 
         if push_to_hub:
-            commit_message = kwargs.pop("commit_message", None)
-            repo_id = kwargs.pop("repo_id", str(save_directory).split(os.path.sep)[-1])
-            repo_id = hf_api().create_repo(repo_id, exist_ok=True, **kwargs).repo_id
-            files_timestamps = self._get_files_timestamps(save_directory)
+            raise NotImplementedError()
 
         output_config_file = os.path.join(save_directory, config_file_name)
 
@@ -943,13 +947,7 @@ class GenerationConfig:
         logger.info(f"Configuration saved in {output_config_file}")
 
         if push_to_hub:
-            self._upload_modified_files(
-                save_directory,
-                repo_id,
-                files_timestamps,
-                commit_message=commit_message,
-                token=kwargs.get("token"),
-            )
+            raise NotImplementedError()
 
     @classmethod
     def from_pretrained(
@@ -1051,13 +1049,13 @@ class GenerationConfig:
         from_auto_class = kwargs.pop("_from_auto", False)
 
         # Resolve the revision once, so that all the files of this load come from the same repository state.
-        revision = resolve_revision(
-            pretrained_model_name,
-            revision,
-            token=token,
-            local_files_only=local_files_only,
-            cache_dir=cache_dir,
-        )
+        # revision = resolve_revision(
+        #     pretrained_model_name,
+        #     revision,
+        #     token=token,
+        #     local_files_only=local_files_only,
+        #     cache_dir=cache_dir,
+        # )
 
         user_agent = {"file_type": "config", "from_auto_class": from_auto_class}
         if from_pipeline is not None:
@@ -1091,7 +1089,7 @@ class GenerationConfig:
                 # Raise any environment error raise by `cached_file`. It will have a helpful error message adapted to
                 # the original exception.
                 raise
-            except Exception:
+            except Exception:  # noqa: BLE001
                 # For any other exception, we throw a generic error.
                 raise OSError(
                     f"Can't load the configuration of '{pretrained_model_name}'. If you were trying to load it"
@@ -1328,12 +1326,11 @@ class GenerationConfig:
                 setattr(generation_config, attr, model_config[attr])
 
         # If any `output_...` flag is set to `True`, we ensure `return_dict_in_generate` is set to `True`.
-        if not generation_config.return_dict_in_generate:
-            if any(
-                getattr(generation_config, extra_output_flag, False)
-                for extra_output_flag in generation_config.extra_output_flags
-            ):
-                generation_config.return_dict_in_generate = True
+        if not generation_config.return_dict_in_generate and any(
+            getattr(generation_config, extra_output_flag, False)
+            for extra_output_flag in generation_config.extra_output_flags
+        ):
+            generation_config.return_dict_in_generate = True
 
         # Hash to detect whether the instance was modified
         generation_config._original_object_hash = hash(generation_config)

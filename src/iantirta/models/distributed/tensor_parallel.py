@@ -14,21 +14,29 @@
 from __future__ import annotations
 
 import contextlib
+import logging
 import re
 
-from ..utils import logging
-from ..utils.generic import GeneralInterface
-from ..utils.import_utils import is_torch_available, is_torch_distributed_available
+from iantirta.models.tools._torch import (
+    is_torch_available,
+    is_torch_distributed_available,
+)
+from iantirta.models.tools.interface import GeneralInterface
 
-
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 if is_torch_available():
     import torch
 
 if is_torch_distributed_available():
     import torch.distributed as dist
-    from torch.distributed.tensor import DTensor, Partial, Replicate, Shard, distribute_tensor
+    from torch.distributed.tensor import (
+        DTensor,
+        Partial,
+        Replicate,
+        Shard,
+        distribute_tensor,
+    )
     from torch.distributed.tensor.placement_types import _StridedShard
 
 
@@ -127,11 +135,9 @@ class TensorParallelLayer:
 
     def validate_param(self, module, param, mesh, parameter_name=None):
         """Validate a parameter before applying this TP style."""
-        pass
 
     def shard_param(self, module, param, mesh):
         """Wrap ONE parameter as a DTensor placeholder. Default: no-op."""
-        pass
 
     def transform_inputs_pre_forward(self, module, args, kwargs, mesh):
         return args, kwargs

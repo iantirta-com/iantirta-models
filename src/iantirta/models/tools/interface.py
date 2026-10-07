@@ -11,7 +11,7 @@ class GeneralInterface(MutableMapping):
 
     # Class instance object, so that a call to `register` can be reflected into all other files correctly, even if
     # a new instance is created (in order to locally override a given function)
-    _global_mapping = {}
+    _global_mapping = {}  # noqa: RUF012
 
     def __init__(self):
         self._local_mapping = {}

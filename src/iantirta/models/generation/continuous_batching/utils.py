@@ -20,7 +20,7 @@ from typing import Any
 
 import torch
 
-from ...configuration_utils import PreTrainedConfig
+from ...core.config import PreTrainedConfig
 from .requests import FutureRequestState, RequestState, RequestStatus
 
 
@@ -73,12 +73,12 @@ def pad_to_pow2(value: int, max_value: int, min_value: int = 0) -> int:
     """Return the smallest power of 2 >= (value), capped at (max_value). If a minimum value is provided, the value is at
     least padded to that value."""
     value = max(value, max(1, min_value))
-    padded = 2 ** int(ceil(log2(value)))
+    padded = 2 ** ceil(log2(value))
     return min(padded, max_value)
 
 
 def aligned_divide(x: int, divide_by: int, align_to: int) -> int:
-    x = int(ceil(x / divide_by))
+    x = ceil(x / divide_by)
     if x % align_to:
         x += align_to - (x % align_to)
     return x
