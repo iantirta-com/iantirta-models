@@ -21,7 +21,7 @@ from torch import Tensor, nn
 
 from ...distributed.utils import _is_torch_distributed_initialized
 from ...tools._scipy import is_scipy_available
-from ..image_transforms import center_to_corners_format
+from ...core.processing.image.transforms import center_to_corners_format
 from .loss_for_object_detection import (
     HungarianMatcher,
     dice_loss,

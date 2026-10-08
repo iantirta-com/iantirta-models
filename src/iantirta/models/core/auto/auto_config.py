@@ -98,6 +98,8 @@ class AutoConfig:
         pretrained_model_name_or_path: str | os.PathLike[str],
         **kwargs
     ):
+        trust_remote_code = kwargs.pop("trust_remote_code", None)
+        code_revision = kwargs.pop("code_revision", None)
         # resolved revision can be used to cached?
         config_dict, unused_kwargs = (
             PreTrainedConfig.get_config_dict(

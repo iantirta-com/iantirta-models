@@ -47,7 +47,7 @@ if _is_torch_greater_or_equal_than_2_6:
     from torch._dynamo._trace_wrapped_higher_order_op import TransformGetItemToIndex
 
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def and_masks(*mask_functions: Callable) -> Callable:

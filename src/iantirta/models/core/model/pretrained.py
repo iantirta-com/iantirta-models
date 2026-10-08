@@ -66,12 +66,12 @@ from ...integrations.hub_kernels.kernels import (
     ALLOW_ALL_KERNELS,
     KERNELS_MAX_VERSION,
     KERNELS_MIN_VERSION,
-    KernelConfig,
     allow_all_hub_kernels,
     is_kernel,
     is_kernels_available,
     kernelize,
 )
+from ...integrations.hub_kernels.kernel_config import KernelConfig
 from ...integrations.moe import ALL_EXPERTS_FUNCTIONS
 from ...integrations.peft import PeftAdapterMixin, maybe_load_adapters
 from ...loading.conversion_mapping import get_model_conversion_mapping
@@ -3180,7 +3180,7 @@ class PreTrainedModel(
                         backend, device = "mmap", "cpu"
                     file_pointer = safe_open(file, framework="pt", device=device, backend=backend)
                     all_pointer.add(file_pointer)
-                    for k in file_pointer:
+                    for k in file_pointer.keys():
                         merged_state_dict[k] = file_pointer.get_slice(k)  # don't materialize yet
             # Checkpoints are .bin
             elif checkpoint_files is not None:
@@ -3664,3 +3664,5 @@ class PreTrainedAudioTokenizerBase(PreTrainedModel):
     @abstractmethod
     def decode(self, audio_codes: torch.Tensor, *args, **kwargs):
         """Decode from discrete audio codebooks back to raw audio"""
+
+__all__ = ["PreTrainedModel"]

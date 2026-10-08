@@ -30,7 +30,7 @@ from torch import nn
 from tqdm import tqdm
 from tqdm.contrib.logging import logging_redirect_tqdm
 
-from ...core.config import PretrainedConfig
+from ...core.config import PreTrainedConfig
 from ...generation.configuration_utils import ContinuousBatchingConfig, GenerationConfig
 from ...nn.attention.flash_utils import (
     is_flash_attention_requested,
@@ -76,7 +76,7 @@ All defaults are stored in ContinuousBatchingConfig.resolve_sentinel_values().
 
 # We cannot use `PreTrainedModel` for circular import reasons, so this helps keep track of the basic types
 class ProtoPretrainedModel(nn.Module):
-    config: PretrainedConfig
+    config: PreTrainedConfig
     dtype: torch.dtype
     device: torch.device
 
@@ -307,7 +307,7 @@ class ContinuousBatchProcessor:
     def __init__(
         self,
         cache: PagedAttentionCache,
-        config: PretrainedConfig,
+        config: PreTrainedConfig,
         generation_config: GenerationConfig,
         continuous_batching_config: ContinuousBatchingConfig,
         logit_processor: ContinuousBatchingLogitsProcessorList,

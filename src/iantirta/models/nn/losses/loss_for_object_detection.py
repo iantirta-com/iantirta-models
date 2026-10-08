@@ -30,10 +30,10 @@ if is_scipy_available():
 
 
 if is_vision_available():
-    from transformers.image_transforms import center_to_corners_format
+    from ...core.processing.image.transforms import center_to_corners_format
 
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def dice_loss(inputs, targets, num_boxes):

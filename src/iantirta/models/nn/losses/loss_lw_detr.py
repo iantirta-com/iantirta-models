@@ -32,7 +32,7 @@ from .loss_for_object_detection import (
 )
 
 if is_vision_available():
-    from transformers.image_transforms import center_to_corners_format
+    from ...core.processing.image.transforms import center_to_corners_format
 
 
 if is_scipy_available():

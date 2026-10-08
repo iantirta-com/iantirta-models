@@ -21,7 +21,7 @@ from .loss_d_fine import DFineLoss, _set_aux_loss, _set_aux_loss2
 from .loss_for_object_detection import box_iou
 
 if is_vision_available():
-    from transformers.image_transforms import center_to_corners_format
+    from ...core.processing.image.transforms import center_to_corners_format
 
 
 class Deimv2Loss(DFineLoss):

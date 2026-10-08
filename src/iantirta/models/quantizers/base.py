@@ -32,7 +32,7 @@ if is_torch_available():
 else:
     ModuleList = str
 
-logger = logging.get_logger(__file__)
+logger = logging.getLogger(__file__)
 
 
 def get_keys_to_not_convert(model) -> list:

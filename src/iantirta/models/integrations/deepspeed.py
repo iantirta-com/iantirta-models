@@ -26,7 +26,7 @@ from packaging import version
 
 from ..tools._deps import _is_package_available
 from ..tools._torch import is_torch_available
-from .accelerate import is_accelerate_available
+from ..tools._accelerate import is_accelerate_available
 
 if is_torch_available():
     import torch

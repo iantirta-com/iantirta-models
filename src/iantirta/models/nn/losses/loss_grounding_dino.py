@@ -17,7 +17,7 @@ import torch
 from torch import nn
 
 from ...tools._scipy import is_scipy_available
-from ..image_transforms import center_to_corners_format
+from ...core.processing.image.transforms import center_to_corners_format
 from .loss_for_object_detection import (
     HungarianMatcher,
     ImageLoss,

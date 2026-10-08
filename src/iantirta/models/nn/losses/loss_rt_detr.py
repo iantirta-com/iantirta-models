@@ -33,7 +33,7 @@ if is_scipy_available():
 
 
 if is_vision_available():
-    from transformers.image_transforms import center_to_corners_format
+    from ...core.processing.image.transforms import center_to_corners_format
 
 
 logger = logging.getLogger(__name__)

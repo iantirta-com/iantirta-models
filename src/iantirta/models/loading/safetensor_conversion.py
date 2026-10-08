@@ -1,8 +1,8 @@
 import logging
 from typing import Optional
 
-from huggingface_hub import Discussion, HfApi, get_repo_discussions
-from huggingface_hub.utils import httpx
+from ..vendor.huggingface_hub import Discussion, HfApi, get_repo_discussions
+from ..vendor.huggingface_hub.utils import httpx
 
 from ..remote.files import cached_file
 

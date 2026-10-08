@@ -46,64 +46,64 @@ from .config import (
     TorchAoConfig,
     VptqConfig,
 )
-from .quantizer_aqlm import AqlmHfQuantizer
-from .quantizer_auto_round import AutoRoundQuantizer
-from .quantizer_awq import AwqQuantizer
-from .quantizer_bitnet import BitNetHfQuantizer
-from .quantizer_bnb_4bit import Bnb4BitHfQuantizer
-from .quantizer_bnb_8bit import Bnb8BitHfQuantizer
-from .quantizer_compressed_tensors import CompressedTensorsHfQuantizer
-from .quantizer_eetq import EetqHfQuantizer
-from .quantizer_fbgemm_fp8 import FbgemmFp8HfQuantizer
-from .quantizer_finegrained_fp8 import FineGrainedFP8HfQuantizer
-from .quantizer_fouroversix import FourOverSixHfQuantizer
-from .quantizer_fp_quant import FPQuantHfQuantizer
-from .quantizer_gemma import GemmaQuantizer
-from .quantizer_gguf import GgufHfQuantizer
-from .quantizer_gptq import GptqHfQuantizer
-from .quantizer_higgs import HiggsHfQuantizer
-from .quantizer_hqq import HqqHfQuantizer
-from .quantizer_metal import MetalHfQuantizer
-from .quantizer_mxfp4 import Mxfp4HfQuantizer
-from .quantizer_nvfp4 import NVFP4HfQuantizer
-from .quantizer_quanto import QuantoHfQuantizer
-from .quantizer_quark import QuarkHfQuantizer
-from .quantizer_sinq import SinqHfQuantizer
-from .quantizer_spqr import SpQRHfQuantizer
-from .quantizer_torchao import TorchAoHfQuantizer
-from .quantizer_vptq import VptqHfQuantizer
+# from .quantizer_aqlm import AqlmHfQuantizer
+# from .quantizer_auto_round import AutoRoundQuantizer
+# from .quantizer_awq import AwqQuantizer
+# from .quantizer_bitnet import BitNetHfQuantizer
+# from .quantizer_bnb_4bit import Bnb4BitHfQuantizer
+# from .quantizer_bnb_8bit import Bnb8BitHfQuantizer
+# from .quantizer_compressed_tensors import CompressedTensorsHfQuantizer
+# from .quantizer_eetq import EetqHfQuantizer
+# from .quantizer_fbgemm_fp8 import FbgemmFp8HfQuantizer
+# from .quantizer_finegrained_fp8 import FineGrainedFP8HfQuantizer
+# from .quantizer_fouroversix import FourOverSixHfQuantizer
+# from .quantizer_fp_quant import FPQuantHfQuantizer
+# from .quantizer_gemma import GemmaQuantizer
+# from .quantizer_gguf import GgufHfQuantizer
+# from .quantizer_gptq import GptqHfQuantizer
+# from .quantizer_higgs import HiggsHfQuantizer
+# from .quantizer_hqq import HqqHfQuantizer
+# from .quantizer_metal import MetalHfQuantizer
+# from .quantizer_mxfp4 import Mxfp4HfQuantizer
+# from .quantizer_nvfp4 import NVFP4HfQuantizer
+# from .quantizer_quanto import QuantoHfQuantizer
+# from .quantizer_quark import QuarkHfQuantizer
+# from .quantizer_sinq import SinqHfQuantizer
+# from .quantizer_spqr import SpQRHfQuantizer
+# from .quantizer_torchao import TorchAoHfQuantizer
+# from .quantizer_vptq import VptqHfQuantizer
 
 AUTO_QUANTIZER_MAPPING = {
-    "awq": AwqQuantizer,
-    "bitsandbytes_4bit": Bnb4BitHfQuantizer,
-    "bitsandbytes_8bit": Bnb8BitHfQuantizer,
-    "gptq": GptqHfQuantizer,
-    "aqlm": AqlmHfQuantizer,
-    "quanto": QuantoHfQuantizer,
-    "quark": QuarkHfQuantizer,
-    "fouroversix": FourOverSixHfQuantizer,
-    "fp_quant": FPQuantHfQuantizer,
-    "eetq": EetqHfQuantizer,
-    "higgs": HiggsHfQuantizer,
-    "hqq": HqqHfQuantizer,
-    "compressed-tensors": CompressedTensorsHfQuantizer,
-    "fbgemm_fp8": FbgemmFp8HfQuantizer,
-    "torchao": TorchAoHfQuantizer,
-    "bitnet": BitNetHfQuantizer,
-    "vptq": VptqHfQuantizer,
-    "spqr": SpQRHfQuantizer,
-    "fp8": FineGrainedFP8HfQuantizer,
-    "gguf": GgufHfQuantizer,
-    "nvfp4": NVFP4HfQuantizer,
-    # MXFP8 = FP8 (E4M3 weights) with per-block ``[1, 32]`` E8M0 (uint8) scales —
-    # reuses the FineGrainedFP8 dequant path, with the E8M0 byte→exponent
-    # unpacking handled inside ``Fp8Dequantize._dequantize_one``.
-    "mxfp8": FineGrainedFP8HfQuantizer,
-    "auto-round": AutoRoundQuantizer,
-    "mxfp4": Mxfp4HfQuantizer,
-    "metal": MetalHfQuantizer,
-    "sinq": SinqHfQuantizer,
-    "gemma": GemmaQuantizer,
+    # "awq": AwqQuantizer,
+    # "bitsandbytes_4bit": Bnb4BitHfQuantizer,
+    # "bitsandbytes_8bit": Bnb8BitHfQuantizer,
+    # "gptq": GptqHfQuantizer,
+    # "aqlm": AqlmHfQuantizer,
+    # "quanto": QuantoHfQuantizer,
+    # "quark": QuarkHfQuantizer,
+    # "fouroversix": FourOverSixHfQuantizer,
+    # "fp_quant": FPQuantHfQuantizer,
+    # "eetq": EetqHfQuantizer,
+    # "higgs": HiggsHfQuantizer,
+    # "hqq": HqqHfQuantizer,
+    # "compressed-tensors": CompressedTensorsHfQuantizer,
+    # "fbgemm_fp8": FbgemmFp8HfQuantizer,
+    # "torchao": TorchAoHfQuantizer,
+    # "bitnet": BitNetHfQuantizer,
+    # "vptq": VptqHfQuantizer,
+    # "spqr": SpQRHfQuantizer,
+    # "fp8": FineGrainedFP8HfQuantizer,
+    # "gguf": GgufHfQuantizer,
+    # "nvfp4": NVFP4HfQuantizer,
+    # # MXFP8 = FP8 (E4M3 weights) with per-block ``[1, 32]`` E8M0 (uint8) scales —
+    # # reuses the FineGrainedFP8 dequant path, with the E8M0 byte→exponent
+    # # unpacking handled inside ``Fp8Dequantize._dequantize_one``.
+    # "mxfp8": FineGrainedFP8HfQuantizer,
+    # "auto-round": AutoRoundQuantizer,
+    # "mxfp4": Mxfp4HfQuantizer,
+    # "metal": MetalHfQuantizer,
+    # "sinq": SinqHfQuantizer,
+    # "gemma": GemmaQuantizer,
 }
 
 AUTO_QUANTIZATION_CONFIG_MAPPING = {
@@ -137,14 +137,14 @@ AUTO_QUANTIZATION_CONFIG_MAPPING = {
 }
 
 LOADING_ATTRIBUTES_CONFIG_TYPES = (
-    GPTQConfig,
-    AwqConfig,
-    AutoRoundConfig,
-    FbgemmFp8Config,
-    CompressedTensorsConfig,
-    Mxfp4Config,
-    MetalConfig,
-    FineGrainedFP8Config,
+    # GPTQConfig,
+    # AwqConfig,
+    # AutoRoundConfig,
+    # FbgemmFp8Config,
+    # CompressedTensorsConfig,
+    # Mxfp4Config,
+    # MetalConfig,
+    # FineGrainedFP8Config,
 )
 
 logger = logging.getLogger(__name__)

@@ -3,17 +3,18 @@ from collections.abc import Iterable
 
 import torch
 
-from .configuration_utils import PreTrainedConfig
-from .utils import (
+from ..core.config import PreTrainedConfig
+from ..tools._torch import (
+    is_torch_greater_or_equal,
+    is_torchdynamo_compiling,
+)
+from ..tools._quantization_deps import (
     is_hqq_available,
     is_optimum_quanto_available,
     is_quanto_greater,
-    is_torch_greater_or_equal,
-    is_torchdynamo_compiling,
-    logging,
 )
-from .utils.deprecation import deprecate_kwarg
-
+from ..tools.deprecated import deprecate_kwarg
+import logging
 
 if is_hqq_available():
     from hqq.core.quantize import Quantizer as HQQQuantizer
@@ -21,7 +22,7 @@ if is_hqq_available():
 _is_torch_greater_or_equal_than_2_7 = is_torch_greater_or_equal("2.7", accept_dev=True)
 
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class CacheLayerMixin(ABC):

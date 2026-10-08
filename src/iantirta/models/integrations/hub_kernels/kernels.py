@@ -34,6 +34,7 @@ from iantirta.models.tools._torch import (
     is_torchdynamo_compiling,
     is_torchdynamo_exporting,
 )
+from ...tools._kernels import KERNELS_MIN_VERSION, KERNELS_MAX_VERSION, is_kernels_available
 from iantirta.models.tools.misc import ENV_VARS_TRUE_VALUES
 
 from ..._monkeypatch import register_patch_mapping
@@ -52,23 +53,6 @@ if TYPE_CHECKING:
 if is_torch_available():
     import torch
     from torch import nn
-
-
-KERNELS_MIN_VERSION = "0.17.0"
-KERNELS_MAX_VERSION = "0.18.0"
-
-
-@lru_cache
-@_make_compile_constant
-def is_kernels_available(MIN_VERSION: str = KERNELS_MIN_VERSION, MAX_VERSION: str = KERNELS_MAX_VERSION) -> bool:
-    is_available, kernels_version = _is_package_available("kernels", return_version=True)
-    viable_version = False
-    if kernels_version != "N/A":
-        viable_version = version.parse(kernels_version) >= version.parse(MIN_VERSION) and version.parse(
-            kernels_version
-        ) < version.parse(MAX_VERSION)
-    return is_available and viable_version
-
 
 
 logger = logging.getLogger(__name__)

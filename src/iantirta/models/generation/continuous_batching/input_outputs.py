@@ -18,7 +18,7 @@ from typing import TypedDict
 
 import torch
 
-from ...core.config import PretrainedConfig
+from ...core.config import PreTrainedConfig
 from ...generation.configuration_utils import ContinuousBatchingConfig
 from ...tools._torch import get_available_devices
 from .cache import PagedAttentionCache
@@ -84,7 +84,7 @@ class ContinuousBatchingIOs:
     def __init__(
         self,
         cache: PagedAttentionCache,
-        config: PretrainedConfig,
+        config: PreTrainedConfig,
         continuous_batching_config: ContinuousBatchingConfig,
         device: torch.device,
         model_dtype: torch.dtype,
@@ -578,7 +578,7 @@ class HostDeviceIOPair:
     def __init__(
         self,
         cache: PagedAttentionCache,
-        config: PretrainedConfig,
+        config: PreTrainedConfig,
         continuous_batching_config: ContinuousBatchingConfig,
         device: torch.device,
         model_dtype: torch.dtype,
@@ -671,7 +671,7 @@ class ContinuousBatchingAsyncIOs:
     def __init__(
         self,
         cache: PagedAttentionCache,
-        config: PretrainedConfig,
+        config: PreTrainedConfig,
         continuous_batching_config: ContinuousBatchingConfig,
         device: torch.device,
         model_dtype: torch.dtype,

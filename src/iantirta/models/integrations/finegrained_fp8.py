@@ -40,7 +40,7 @@ from .hub_kernels.kernels import (
 )
 from .moe import ExpertsInterface, use_experts_implementation
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 _FP8_DTYPE = torch.float8_e4m3fn

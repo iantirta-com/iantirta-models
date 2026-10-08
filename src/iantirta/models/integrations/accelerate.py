@@ -32,28 +32,17 @@ from packaging import version
 from safetensors import safe_open
 from safetensors.torch import save_file
 
-from iantirta.models.tools._deps import _is_package_available, _make_compile_constant
-from iantirta.models.tools._torch import is_torch_available, is_torch_xpu_available
+from ..tools._deps import _is_package_available, _make_compile_constant
+from ..tools._torch import is_torch_available, is_torch_xpu_available
 
 from ..distributed.fsdp import is_fsdp_enabled
 from ..quantizers.config import QuantizationMethod
 from .deepspeed import is_deepspeed_zero3_enabled
+from ..tools._accelerate import is_accelerate_available
 
 if is_torch_available():
     import torch
     from torch import nn
-
-
-ACCELERATE_MIN_VERSION = "1.1.0"
-
-
-@lru_cache
-@_make_compile_constant
-def is_accelerate_available(min_version: str = ACCELERATE_MIN_VERSION) -> bool:
-    if not is_torch_available():
-        return False
-    is_available, accelerate_version = _is_package_available("accelerate", return_version=True)
-    return is_available and version.parse(accelerate_version) >= version.parse(min_version)
 
 
 if is_accelerate_available():
@@ -66,7 +55,7 @@ if TYPE_CHECKING:
     from ..quantizers import HfQuantizer
 
 
-logger = logging.get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def get_module_size_with_ties(

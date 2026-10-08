@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 from packaging import version
 
 # from ..integrations import replace_with_aqlm_linear
-from ..integrations.accelerate import is_accelerate_available
+from ..tools._accelerate import is_accelerate_available
 
 # from ..utils import is_aqlm_available
 from .base import HfQuantizer

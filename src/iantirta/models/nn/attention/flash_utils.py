@@ -24,12 +24,12 @@ import torch
 import torch.nn.functional as F
 from packaging import version
 
-from iantirta.models.tools._deps import (
+from ...tools._deps import (
     PACKAGE_DISTRIBUTION_MAPPING,
     _is_package_available,
     _make_compile_constant,
 )
-from iantirta.models.tools._torch import (
+from ...tools._torch import (
     is_rocm_platform,
     is_torch_cuda_available,
     is_torch_mlu_available,
@@ -38,6 +38,7 @@ from iantirta.models.tools._torch import (
     is_torch_xpu_available,
     is_tracing,
 )
+from ...tools._kernels import is_kernels_available
 
 if TYPE_CHECKING:
     from ...core.config import PreTrainedConfig
@@ -63,12 +64,9 @@ def is_flash_attn_2_available(kernels_fallback_ok: bool = False) -> bool:
             return False
 
     # If the kernels fallback is allowed, check if it is available
-    from iantirta.models.integrations.hub_kernels.kernels import (
-        get_attn_kernel_version,
-        is_kernels_available,
-    )
     if kernels_fallback_ok and is_kernels_available():
         try:
+            from ...integrations.hub_kernels.kernels import get_attn_kernel_version
             from kernels import get_kernel  # type: ignore
 
             repo_id = FLASH_ATTN_KERNEL_FALLBACK["flash_attention_2"]
@@ -92,12 +90,9 @@ def is_flash_attn_3_available(kernels_fallback_ok: bool = False) -> bool:
         return True
 
     # If the kernels fallback is allowed, check if it is available
-    from iantirta.models.integrations.hub_kernels.kernels import (
-        get_attn_kernel_version,
-        is_kernels_available,
-    )
     if kernels_fallback_ok and is_kernels_available():
         try:
+            from ...integrations.hub_kernels.kernels import get_attn_kernel_version
             from kernels import get_kernel  # type: ignore
 
             repo_id = FLASH_ATTN_KERNEL_FALLBACK["flash_attention_3"]
