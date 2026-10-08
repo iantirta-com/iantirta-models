@@ -53,7 +53,7 @@ class TextStreamer(BaseStreamer):
     Examples:
 
         ```python
-        >>> from transformers import AutoModelForCausalLM, AutoTokenizer, TextStreamer
+        >>> from iantirta.models import AutoModelForCausalLM, AutoTokenizer, TextStreamer
 
         >>> tok = AutoTokenizer.from_pretrained("openai-community/gpt2")
         >>> model = AutoModelForCausalLM.from_pretrained("openai-community/gpt2")
@@ -173,7 +173,7 @@ class TextIteratorStreamer(TextStreamer):
     Examples:
 
         ```python
-        >>> from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
+        >>> from iantirta.models import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer
         >>> from threading import Thread
 
         >>> tok = AutoTokenizer.from_pretrained("openai-community/gpt2")
@@ -245,7 +245,7 @@ class AsyncTextIteratorStreamer(TextStreamer):
     Examples:
 
         ```python
-        >>> from transformers import AutoModelForCausalLM, AutoTokenizer, AsyncTextIteratorStreamer
+        >>> from iantirta.models import AutoModelForCausalLM, AutoTokenizer, AsyncTextIteratorStreamer
         >>> from threading import Thread
         >>> import asyncio
 
@@ -335,7 +335,7 @@ class TextDiffusionStreamer(TextStreamer):
     Examples:
 
         ```python
-        >>> from transformers import DiffusionGemmaForBlockDiffusion, AutoProcessor, TextDiffusionStreamer
+        >>> from iantirta.models import DiffusionGemmaForBlockDiffusion, AutoProcessor, TextDiffusionStreamer
 
         >>> model = DiffusionGemmaForBlockDiffusion.from_pretrained(
         ...     "google/diffusiongemma-26B-A4B-it", device_map="auto",

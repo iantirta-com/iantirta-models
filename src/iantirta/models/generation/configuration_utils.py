@@ -121,7 +121,7 @@ class GenerationConfig:
     <Tip>
 
     A large number of these flags control the logits or the stopping criteria of the generation. Make sure you check
-    the [generate-related classes](https://huggingface.co/docs/transformers/internal/generation_utils) for a full
+    the [generate-related classes](https://huggingface.co/docs/iantirta.models/internal/generation_utils) for a full
     description of the possible manipulations, as well as examples of their usage.
 
     </Tip>
@@ -180,7 +180,7 @@ class GenerationConfig:
             - `"quantized"`: [`QuantizedCache`]
 
             If none is specified, we will use the default cache for the model (which is often [`DynamicCache`]). See
-            our [cache documentation](https://huggingface.co/docs/transformers/en/kv_cache) for further information.
+            our [cache documentation](https://huggingface.co/docs/iantirta.models/en/kv_cache) for further information.
         cache_config (`dict`, *optional*, default to `None`):
             Arguments used in the key-value cache class can be passed in `cache_config`.
         max_cache_len (`int`, *optional*):
@@ -1017,7 +1017,7 @@ class GenerationConfig:
         Examples:
 
         ```python
-        >>> from transformers import GenerationConfig
+        >>> from iantirta.models import GenerationConfig
 
         >>> # Download configuration from huggingface.co and cache.
         >>> generation_config = GenerationConfig.from_pretrained("openai-community/gpt2")
@@ -1147,7 +1147,7 @@ class GenerationConfig:
         kwargs.pop("_from_pipeline", None)
 
         # The line below allows model-specific config to be loaded as well through kwargs, with safety checks.
-        # See https://github.com/huggingface/transformers/pull/21269
+        # See https://github.com/huggingface/iantirta.models/pull/21269
         config = cls(**{**config_dict, **kwargs})
         unused_kwargs = config.update(**kwargs)
 
@@ -1558,7 +1558,7 @@ class SynthIDTextWatermarkingConfig(BaseWatermarkingConfig):
 
     Examples:
     ```python
-    >>> from transformers import AutoModelForCausalLM, AutoTokenizer, SynthIDTextWatermarkingConfig
+    >>> from iantirta.models import AutoModelForCausalLM, AutoTokenizer, SynthIDTextWatermarkingConfig
 
     >>> tokenizer = AutoTokenizer.from_pretrained('google/gemma-2-2b', padding_side="left")
     >>> model = AutoModelForCausalLM.from_pretrained('google/gemma-2-2b')
@@ -1645,7 +1645,7 @@ class CompileConfig:
 
     Examples:
     ```python
-    >>> from transformers import AutoModelForCausalLM, AutoTokenizer, CompileConfig
+    >>> from iantirta.models import AutoModelForCausalLM, AutoTokenizer, CompileConfig
 
     >>> tokenizer = AutoTokenizer.from_pretrained('google/gemma-2-2b')
     >>> model = AutoModelForCausalLM.from_pretrained('google/gemma-2-2b').cuda()

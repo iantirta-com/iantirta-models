@@ -58,7 +58,7 @@ def cached_assets_path(
         │       ├── downloaded/
         │       ├── extracted/
         │       └── processed/
-        └── transformers/
+        └── iantirta.models/
             ├── default/
             │   ├── something/
             ├── bert-base-cased/

@@ -10,7 +10,7 @@ import pytest
 import torch
 from torch import nn
 
-from iantirta.models.vendor.transformers import AutoConfig, PreTrainedConfig
+from iantirta.models import AutoConfig, PreTrainedConfig
 
 
 # @dataclass

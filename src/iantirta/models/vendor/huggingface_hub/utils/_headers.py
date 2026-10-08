@@ -92,7 +92,7 @@ def build_hf_headers(
         {"user-agent": ...}
 
         >>> build_hf_headers(library_name="transformers", library_version="1.2.3")
-        {"authorization": ..., "user-agent": "transformers/1.2.3; hf_hub/0.10.2; python/3.10.4; tensorflow/1.55"}
+        {"authorization": ..., "user-agent": "iantirta.models/1.2.3; hf_hub/0.10.2; python/3.10.4; tensorflow/1.55"}
     ```
 
     Raises:

@@ -97,7 +97,7 @@ class MinLengthLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoModelForCausalLM, AutoTokenizer
+    >>> from iantirta.models import AutoModelForCausalLM, AutoTokenizer
 
     >>> tokenizer = AutoTokenizer.from_pretrained("bigscience/bloomz-560m")
     >>> model = AutoModelForCausalLM.from_pretrained("bigscience/bloomz-560m")
@@ -162,7 +162,7 @@ class MinNewTokensLengthLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoModelForCausalLM, AutoTokenizer
+    >>> from iantirta.models import AutoModelForCausalLM, AutoTokenizer
 
     >>> tokenizer = AutoTokenizer.from_pretrained("bigscience/bloomz-560m")
     >>> model = AutoModelForCausalLM.from_pretrained("bigscience/bloomz-560m")
@@ -239,7 +239,7 @@ class TemperatureLogitsWarper(LogitsProcessor):
 
     ```python
     >>> import torch
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, set_seed
 
     >>> set_seed(0)  # for reproducibility
 
@@ -304,7 +304,7 @@ class RepetitionPenaltyLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```py
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, RepetitionPenaltyLogitsProcessor
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, RepetitionPenaltyLogitsProcessor
 
     >>> # Initializing the model and tokenizer for it
     >>> model = AutoModelForCausalLM.from_pretrained("distilbert/distilgpt2")
@@ -422,7 +422,7 @@ class EncoderRepetitionPenaltyLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoModelForCausalLM, AutoTokenizer
+    >>> from iantirta.models import AutoModelForCausalLM, AutoTokenizer
 
     >>> tokenizer = AutoTokenizer.from_pretrained("bigscience/bloomz-560m")
     >>> model = AutoModelForCausalLM.from_pretrained("bigscience/bloomz-560m")
@@ -476,7 +476,7 @@ class TopPLogitsWarper(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, set_seed
 
     >>> set_seed(1)
     >>> model = AutoModelForCausalLM.from_pretrained("distilbert/distilgpt2")
@@ -543,7 +543,7 @@ class TopKLogitsWarper(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, set_seed
 
     >>> set_seed(1)
     >>> model = AutoModelForCausalLM.from_pretrained("distilbert/distilgpt2")
@@ -605,7 +605,7 @@ class TopHLogitsWarper(LogitsProcessor):
     Example:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM
 
     >>> model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-3.1-8B")
     >>> tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
@@ -712,7 +712,7 @@ class MinPLogitsWarper(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, set_seed
 
     >>> set_seed(1)
     >>> model = AutoModelForCausalLM.from_pretrained("distilbert/distilgpt2")
@@ -783,7 +783,7 @@ class TypicalLogitsWarper(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, set_seed
 
     >>> model = AutoModelForCausalLM.from_pretrained("bigscience/bloomz-560m")
     >>> tokenizer = AutoTokenizer.from_pretrained("bigscience/bloomz-560m")
@@ -867,7 +867,7 @@ class EpsilonLogitsWarper(LogitsProcessor):
 
     Examples:
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, set_seed
 
     >>> set_seed(1)
     >>> model = AutoModelForCausalLM.from_pretrained("distilbert/distilgpt2")
@@ -947,7 +947,7 @@ class EtaLogitsWarper(LogitsProcessor):
 
     Examples:
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, set_seed
 
     >>> set_seed(1)
     >>> model = AutoModelForCausalLM.from_pretrained("distilbert/distilgpt2")
@@ -1079,7 +1079,7 @@ class NoRepeatNGramLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```py
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM
 
     >>> model = AutoModelForCausalLM.from_pretrained("distilbert/distilgpt2")
     >>> tokenizer = AutoTokenizer.from_pretrained("distilbert/distilgpt2")
@@ -1141,7 +1141,7 @@ class EncoderNoRepeatNGramLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```py
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM
 
     >>> model = AutoModelForCausalLM.from_pretrained("bigscience/bloomz-560m")
     >>> tokenizer = AutoTokenizer.from_pretrained("bigscience/bloomz-560m")
@@ -1218,7 +1218,7 @@ class SequenceBiasLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM
 
     >>> model = AutoModelForCausalLM.from_pretrained("Qwen/Qwen2.5-0.5B-Instruct")
     >>> tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen2.5-0.5B-Instruct")
@@ -1398,7 +1398,7 @@ class NoBadWordsLogitsProcessor(SequenceBiasLogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM
 
     >>> model = AutoModelForCausalLM.from_pretrained("openai-community/gpt2")
     >>> tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
@@ -1479,7 +1479,7 @@ class PrefixConstrainedLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```py
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM
 
     >>> model = AutoModelForCausalLM.from_pretrained("bigscience/bloomz-560m")
     >>> tokenizer = AutoTokenizer.from_pretrained("bigscience/bloomz-560m")
@@ -1550,7 +1550,7 @@ class ForcedBOSTokenLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
+    >>> from iantirta.models import AutoTokenizer, AutoModelForSeq2SeqLM
 
     >>> model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-small")
     >>> tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-small")
@@ -1597,7 +1597,7 @@ class ForcedEOSTokenLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM
 
     >>> model = AutoModelForCausalLM.from_pretrained("distilbert/distilgpt2")
     >>> tokenizer = AutoTokenizer.from_pretrained("distilbert/distilgpt2")
@@ -1675,7 +1675,7 @@ class ExponentialDecayLengthPenalty(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, set_seed
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, set_seed
 
     >>> model = AutoModelForCausalLM.from_pretrained("openai-community/gpt2")
     >>> tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
@@ -1767,7 +1767,7 @@ class LogitNormalization(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM
     >>> import torch
 
     >>> model = AutoModelForCausalLM.from_pretrained("distilbert/distilgpt2")
@@ -1798,12 +1798,12 @@ class SuppressTokensAtBeginLogitsProcessor(LogitsProcessor):
     [`SuppressTokensAtBeginLogitsProcessor`] suppresses a list of tokens as soon as the `generate` function starts
     generating using `begin_index` tokens. This should ensure that the tokens defined by `begin_suppress_tokens` are
     not generated at the beginning. Originally created for
-    [Whisper](https://huggingface.co/docs/transformers/model_doc/whisper).
+    [Whisper](https://huggingface.co/docs/iantirta.models/model_doc/whisper).
 
     Examples:
 
     ```python
-    >>> from transformers import AutoProcessor, WhisperForConditionalGeneration
+    >>> from iantirta.models import AutoProcessor, WhisperForConditionalGeneration
     >>> from datasets import load_dataset
 
     >>> processor = AutoProcessor.from_pretrained("openai/whisper-tiny.en")
@@ -1849,12 +1849,12 @@ class SuppressTokensLogitsProcessor(LogitsProcessor):
     r"""
     This processor can be used to suppress a list of tokens. The processor will set their log probs to `-inf` so
     that they are not generated. Originally created for
-    [Whisper](https://huggingface.co/docs/transformers/model_doc/whisper).
+    [Whisper](https://huggingface.co/docs/iantirta.models/model_doc/whisper).
 
     Examples:
 
     ```python
-    >>> from transformers import AutoProcessor, WhisperForConditionalGeneration
+    >>> from iantirta.models import AutoProcessor, WhisperForConditionalGeneration
     >>> from datasets import load_dataset
 
     >>> processor = AutoProcessor.from_pretrained("openai/whisper-tiny.en")
@@ -1916,7 +1916,7 @@ class WhisperTimeStampLogitsProcessor(LogitsProcessor):
     Examples:
     ``` python
     >>> import torch
-    >>> from transformers import AutoProcessor, WhisperForConditionalGeneration, GenerationConfig
+    >>> from iantirta.models import AutoProcessor, WhisperForConditionalGeneration, GenerationConfig
     >>> from datasets import load_dataset
 
     >>> processor = AutoProcessor.from_pretrained("openai/whisper-tiny.en")
@@ -2100,7 +2100,7 @@ class ClassifierFreeGuidanceLogitsProcessor(LogitsProcessor):
     <Tip warning={true}>
 
     This logits processor is exclusively compatible with
-    [MusicGen](https://huggingface.co/docs/transformers/main/en/model_doc/musicgen)
+    [MusicGen](https://huggingface.co/docs/iantirta.models/main/en/model_doc/musicgen)
 
     </Tip>
 
@@ -2113,7 +2113,7 @@ class ClassifierFreeGuidanceLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoProcessor, MusicgenForConditionalGeneration
+    >>> from iantirta.models import AutoProcessor, MusicgenForConditionalGeneration
 
     >>> processor = AutoProcessor.from_pretrained("facebook/musicgen-small")
     >>> model = MusicgenForConditionalGeneration.from_pretrained("facebook/musicgen-small")
@@ -2158,7 +2158,7 @@ class AlternatingCodebooksLogitsProcessor(LogitsProcessor):
     <Tip warning={true}>
 
     This logits processor is exclusively compatible with
-    [Bark](https://huggingface.co/docs/transformers/en/model_doc/bark)'s fine submodel. See the model documentation
+    [Bark](https://huggingface.co/docs/iantirta.models/en/model_doc/bark)'s fine submodel. See the model documentation
     for examples.
 
     </Tip>
@@ -2225,7 +2225,7 @@ class UnbatchedClassifierFreeGuidanceLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM
 
     >>> model = AutoModelForCausalLM.from_pretrained("openai-community/gpt2")
     >>> tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
@@ -2320,7 +2320,7 @@ class BarkEosPrioritizerLogitsProcessor(LogitsProcessor):
     <Tip warning={true}>
 
     This logits processor is exclusively compatible with
-    [Bark](https://huggingface.co/docs/transformers/en/model_doc/bark). See the model documentation for examples.
+    [Bark](https://huggingface.co/docs/iantirta.models/en/model_doc/bark). See the model documentation for examples.
 
     </Tip>
 
@@ -2396,7 +2396,7 @@ class WatermarkLogitsProcessor(LogitsProcessor):
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, WatermarkingConfig
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, WatermarkingConfig
 
     >>> model = AutoModelForCausalLM.from_pretrained("openai-community/gpt2")
     >>> tokenizer = AutoTokenizer.from_pretrained("openai-community/gpt2")
@@ -2414,7 +2414,7 @@ class WatermarkLogitsProcessor(LogitsProcessor):
     'Alice and Bob are both still alive and well and the story is pretty much a one-hour adventure'
 
     >>> # to detect watermarked text use the WatermarkDetector class
-    >>> from transformers import WatermarkDetector
+    >>> from iantirta.models import WatermarkDetector
     >>> detector = WatermarkDetector(model_config=model.config, device="cpu", watermarking_config= watermarking_config)
     >>> detection_preds = detector(out)
     >>> detection_preds
@@ -2584,7 +2584,7 @@ class SynthIDTextWatermarkLogitsProcessor(LogitsProcessor):
 
     Examples:
     ```python
-    >>> from transformers import AutoModelForCausalLM, AutoTokenizer, SynthIDTextWatermarkingConfig
+    >>> from iantirta.models import AutoModelForCausalLM, AutoTokenizer, SynthIDTextWatermarkingConfig
 
     >>> tokenizer = AutoTokenizer.from_pretrained('google/gemma-2-2b', padding_side="left")
     >>> model = AutoModelForCausalLM.from_pretrained('google/gemma-2-2b')
@@ -2983,7 +2983,7 @@ class DiaClassifierFreeGuidanceLogitsProcessor(LogitsProcessor):
     <Tip warning={true}>
 
     This logits processor is exclusively compatible with
-    [Dia](https://huggingface.co/docs/transformers/main/en/model_doc/dia)
+    [Dia](https://huggingface.co/docs/iantirta.models/main/en/model_doc/dia)
 
     </Tip>
 
@@ -3050,7 +3050,7 @@ class DiaEOSChannelFilterLogitsProcessor(LogitsProcessor):
     <Tip warning={true}>
 
     This logits processor is exclusively compatible with
-    [Dia](https://huggingface.co/docs/transformers/en/model_doc/dia).
+    [Dia](https://huggingface.co/docs/iantirta.models/en/model_doc/dia).
 
     </Tip>
 
@@ -3131,7 +3131,7 @@ class DiaEOSDelayPatternLogitsProcessor(LogitsProcessor):
     <Tip warning={true}>
 
     This logits processor is exclusively compatible with
-    [Dia](https://huggingface.co/docs/transformers/en/model_doc/dia).
+    [Dia](https://huggingface.co/docs/iantirta.models/en/model_doc/dia).
 
     </Tip>
 

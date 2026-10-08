@@ -9,7 +9,7 @@
 # - https://github.com/mlflow/mlflow/issues/9905
 # - https://github.com/mlflow/mlflow/pull/10119
 # - https://docs.python.org/3/library/hashlib.html
-# - https://github.com/huggingface/transformers/pull/27038
+# - https://github.com/huggingface/iantirta.models/pull/27038
 #
 # Usage:
 #     ```python

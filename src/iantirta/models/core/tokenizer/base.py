@@ -2052,7 +2052,7 @@ class PreTrainedTokenizerBase:
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
-        import transformers.models.auto as auto_module
+        import iantirta.models.models.auto as auto_module
 
         if not hasattr(auto_module, auto_class):
             raise ValueError(f"{auto_class} is not a valid auto class.")
@@ -2089,7 +2089,7 @@ class PreTrainedTokenizerBase:
                 A list of tools (callable functions) that will be accessible to the model. If the template does not
                 support function calling, this argument will have no effect. Each tool should be passed as a JSON Schema,
                 giving the name, description and argument types for the tool. See our
-                [tool use guide](https://huggingface.co/docs/transformers/en/chat_extras#passing-tools)
+                [tool use guide](https://huggingface.co/docs/iantirta.models/en/chat_extras#passing-tools)
                 for more information.
             documents (`list[dict[str, str]]`, *optional*):
                 A list of dicts representing documents that will be accessible to the model if it is performing RAG
@@ -2310,7 +2310,7 @@ class PreTrainedTokenizerBase:
                 A list of tools (callable functions) that will be accessible to the model. If the template does not
                 support function calling, this argument will have no effect. Each tool should be passed as a JSON Schema,
                 giving the name, description and argument types for the tool. See our
-                [chat templating guide](https://huggingface.co/docs/transformers/main/en/chat_templating#automated-function-conversion-for-tool-use)
+                [chat templating guide](https://huggingface.co/docs/iantirta.models/main/en/chat_templating#automated-function-conversion-for-tool-use)
                 for more information.
 
         Returns:
@@ -2344,7 +2344,7 @@ class PreTrainedTokenizerBase:
                     "Cannot use chat template functions because tokenizer.chat_template is not set and no template "
                     "argument was passed! For information about writing templates and setting the "
                     "tokenizer.chat_template attribute, please see the documentation at "
-                    "https://huggingface.co/docs/transformers/main/en/chat_templating"
+                    "https://huggingface.co/docs/iantirta.models/main/en/chat_templating"
                 )
 
         return chat_template

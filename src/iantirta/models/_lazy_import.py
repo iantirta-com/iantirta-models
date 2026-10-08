@@ -421,10 +421,10 @@ class _LazyModule(ModuleType):
                                 # Candidate not in _class_to_module - might need recursive resolution
                                 # Try importing it directly to trigger lazy loading
                                 try:
-                                    # Try to get it from iantirta.models.vendor.transformers module to trigger lazy loading
-                                    transformers_module = sys.modules.get("iantirta.models")
-                                    if transformers_module and hasattr(transformers_module, candidate_name):
-                                        base_tokenizer_class = getattr(transformers_module, candidate_name)
+                                    # Try to get it from iantirta.models module to trigger lazy loading
+                                    iantirta_models_module = sys.modules.get("iantirta.models")
+                                    if iantirta_models_module and hasattr(iantirta_models_module, candidate_name):
+                                        base_tokenizer_class = getattr(iantirta_models_module, candidate_name)
                                         value = base_tokenizer_class
 
                                         if lookup_name != candidate_name:
@@ -603,7 +603,7 @@ def create_import_structure_from_path(module_path):
     object will raise an error mentioning which backend(s) should be added to the environment in order to use
     that object.
 
-    Here's an example of an input import structure at the src.transformers.models level:
+    Here's an example of an input import structure at the src.iantirta.models.models level:
 
     {
         'albert': {
@@ -778,7 +778,7 @@ def spread_import_structure(nested_import_structure):
     This method takes as input an unordered import structure and brings the required backends at the top-level,
     aggregating modules and objects under their required backends.
 
-    Here's an example of an input import structure at the src.transformers.models level:
+    Here's an example of an input import structure at the src.iantirta.models.models level:
 
     {
         'albert': {
@@ -803,7 +803,7 @@ def spread_import_structure(nested_import_structure):
         }
     }
 
-    Here's an example of an output import structure at the src.transformers.models level:
+    Here's an example of an output import structure at the src.iantirta.models.models level:
 
     {
         frozenset({'tokenizers'}): {
@@ -907,7 +907,7 @@ def define_import_structure(
     """
     This method takes a module_path as input and creates an import structure digestible by a _LazyModule.
 
-    Here's an example of an output import structure at the src.transformers.models level:
+    Here's an example of an output import structure at the src.iantirta.models.models level:
 
     {
         frozenset({'tokenizers'}): {

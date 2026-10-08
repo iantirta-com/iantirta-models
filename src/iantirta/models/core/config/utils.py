@@ -141,7 +141,7 @@ def wrap_init_to_accept_kwargs(cls: dataclass):
 
 def get_configuration_file(configuration_files: list[str]) -> str:
     """
-    Get the configuration file to use for this version of transformers.
+    Get the configuration file to use for this version of iantirta.models.
 
     Args:
         configuration_files (`list[str]`): The list of available configuration files.

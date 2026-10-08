@@ -95,7 +95,7 @@ class WatermarkDetector:
     Examples:
 
     ```python
-    >>> from transformers import AutoTokenizer, AutoModelForCausalLM, WatermarkDetector, WatermarkingConfig
+    >>> from iantirta.models import AutoTokenizer, AutoModelForCausalLM, WatermarkDetector, WatermarkingConfig
 
     >>> model_id = "openai-community/gpt2"
     >>> model = AutoModelForCausalLM.from_pretrained(model_id)
@@ -502,7 +502,7 @@ class SynthIDTextWatermarkDetector:
 
     Examples:
     ```python
-    >>> from transformers import (
+    >>> from iantirta.models import (
     ...     AutoTokenizer, BayesianDetectorModel, SynthIDTextWatermarkLogitsProcessor, SynthIDTextWatermarkDetector
     ... )
 

@@ -24,7 +24,7 @@ def paged_attention_forward(
     """Performs the forward pass of attention with paged key-value cache. This function handles the cache updates and
     performs the attention computation. For decode-only batches (when block_table is provided), uses
     `flash_attn_with_kvcache` for fused attention + cache update. Otherwise uses `flash_attn_varlen_func`.
-    See the [paged attention guide](https://huggingface.co/docs/transformers/en/paged_attention) for more details.
+    See the [paged attention guide](https://huggingface.co/docs/iantirta.models/en/paged_attention) for more details.
 
     Args:
         q: (1, nheads, total_q, headdim), where total_q = total number of query tokens in the batch.

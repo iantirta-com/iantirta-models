@@ -370,7 +370,7 @@ def dump_environment_info() -> dict[str, Any]:
     Similar helper exist in:
     - `datasets` (https://github.com/huggingface/datasets/blob/main/src/datasets/commands/env.py)
     - `diffusers` (https://github.com/huggingface/diffusers/blob/main/src/diffusers/commands/env.py)
-    - `transformers` (https://github.com/huggingface/transformers/blob/main/src/transformers/commands/env.py)
+    - `transformers` (https://github.com/huggingface/iantirta.models/blob/main/src/iantirta.models/commands/env.py)
     """
     from .. import get_token
     from ..utils import is_agent, list_credential_helpers

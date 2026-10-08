@@ -17,7 +17,7 @@ def test_wav2vec2_import():
 
 
 def test_wav2vec2_config():
-    from iantirta.models.vendor.transformers.models.wav2vec2 import (
+    from iantirta.models.models.wav2vec2 import (
         Wav2Vec2Config,
     )
 
@@ -27,7 +27,7 @@ def test_wav2vec2_config():
 
 
 def test_wav2vec2_model_import():
-    from iantirta.models.vendor.transformers.models.wav2vec2 import (
+    from iantirta.models.models.wav2vec2 import (
         Wav2Vec2ForCTC,
     )
 
@@ -35,7 +35,7 @@ def test_wav2vec2_model_import():
 
 
 def test_wav2vec2_small_model():
-    from iantirta.models.vendor.transformers.models.wav2vec2 import (
+    from iantirta.models.models.wav2vec2 import (
         Wav2Vec2ForCTC,
         Wav2Vec2Config,
     )
@@ -68,7 +68,7 @@ def test_wav2vec2_real_model_load():
 
 @pytest.mark.manual
 def test_wav2vec2_real_forward():
-    from iantirta.models.vendor.transformers import Wav2Vec2Model
+    from iantirta.models import Wav2Vec2Model
 
     model = Wav2Vec2Model.from_pretrained(
         "facebook/wav2vec2-base",
@@ -87,7 +87,7 @@ def test_wav2vec2_real_forward():
 
 @pytest.mark.manual
 def test_wav2vec2_checkpoint_keys():
-    from iantirta.models.vendor.transformers import Wav2Vec2Model
+    from iantirta.models import Wav2Vec2Model
 
     model = Wav2Vec2Model.from_pretrained(
         "facebook/wav2vec2-base",

@@ -233,7 +233,7 @@ def _register_module_fusion(
                     f"for source patterns {source_patterns}."
                 )
 
-        # TODO: allow compatible fusions mentioned https://github.com/huggingface/transformers/pull/45041#discussion_r3028989716
+        # TODO: allow compatible fusions mentioned https://github.com/huggingface/iantirta.models/pull/45041#discussion_r3028989716
         converters = existing_converters + converters
 
     register_checkpoint_conversion_mapping(model_type, converters, overwrite=True)

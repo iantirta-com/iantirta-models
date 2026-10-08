@@ -1,0 +1,106 @@
+import re
+from dataclasses import dataclass
+
+import requests
+
+from . import hf_constant
+
+REPO_API_RE = re.compile(
+    r"""
+        # staging or production endpoint
+        ^https://[^/]+
+        (
+            # on /api/repo_type/repo_id
+            /api/(models|datasets|spaces)/(.+)
+            |
+            # or /repo_id/resolve/revision/...
+            /(.+)/resolve/(.+)
+        )
+    """,
+    flags=re.VERBOSE,
+)
+
+BUCKET_API_RE = re.compile(
+    r"""
+        # staging or production endpoint
+        ^https?://[^/]+
+        # on /api/buckets/...
+        /api/buckets/
+    """,
+    flags=re.VERBOSE,
+)
+
+# Regex to extract the job_id from a (scheduled) job API URL.
+# Matches /api/jobs/{namespace}/{job_id}[/...] and /api/scheduled-jobs/{namespace}/{job_id}[/...].
+_JOB_ID_FROM_URL_RE = re.compile(r"^https?://[^/]+/api/(?:scheduled-jobs|jobs)/[^/]+/([^/?]+)")
+
+# Regex to extract repo_type and repo_id from API URLs.
+# Captures: group(1) = repo_type plural (models/datasets/spaces), group(2) = first path segment, group(3) = optional second segment.
+_REPO_ID_FROM_URL_RE = re.compile(r"^https?://[^/]+/api/(models|datasets|spaces)/([^/?]+)(?:/([^/?]+))?")
+
+# Regex to extract repo_type and repo_id from download URLs: /[{repo_type}s/]{repo_id}/resolve/...
+# Captures: group(1) = optional repo_type plural (datasets/spaces/kernels), group(2) = repo_id.
+_REPO_ID_FROM_RESOLVE_URL_RE = re.compile(
+    r"^https?://[^/]+/(?:(datasets|spaces|kernels)/)?([^/?]+(?:/[^/?]+)?)/resolve/"
+)
+
+# Regex to extract bucket_id (namespace/name) from bucket API URLs.
+_BUCKET_ID_FROM_URL_RE = re.compile(r"^https?://[^/]+/api/buckets/([^/?]+/[^/?]+)")
+
+# Sub-paths that follow a repo_id in API URLs (not part of the repo name).
+_REPO_URL_SUBPATHS = {"resolve", "tree", "blob", "raw", "refs", "commit", "discussions", "settings", "revision"}
+
+
+@dataclass(frozen=True)
+class XetFileData:
+    file_hash: str
+    refresh_route: str
+
+    @classmethod
+    def from_response(cls, res: requests.Response) -> "XetFileData":
+        try:
+            file_hash = res.headers[hf_constant.HUGGINGFACE_HEADER_X_XET_HASH]
+
+            if hf_constant.HUGGINGFACE_HEADER_LINK_XET_AUTH_KEY in res.links:
+                refresh_route = res.links[hf_constant.HUGGINGFACE_HEADER_LINK_XET_AUTH_KEY]["url"]
+            else:
+                refresh_route = res.headers[hf_constant.HUGGINGFACE_HEADER_X_XET_REFRESH_ROUTE]
+        except KeyError:
+            return None
+        return cls(
+            file_hash=file_hash,
+            refresh_route=refresh_route,
+        )
+
+
+@dataclass(frozen=True)
+class HFFileMetadata:
+    """Data structure containing information about a file versioned on the Hub.
+    """
+
+    commit_hash: str | None
+    etag: str | None
+    location: str
+    size: int | None
+    xet_file_data: XetFileData | None
+
+    @classmethod
+    def from_response(cls, res: requests.Response) -> "HFFileMetadata":
+        etag = (res.headers.get(hf_constant.HUGGINGFACE_HEADER_X_LINKED_ETAG) or res.headers.get("ETag"))
+        if etag is not None:
+            etag = etag.lstrip("W/").strip('"')
+
+        size_header = res.headers.get(hf_constant.HUGGINGFACE_HEADER_X_LINKED_SIZE) or res.headers.get("Content-Length")
+        size = (
+            int(size_header)
+            if size_header is not None
+            else None
+        )
+
+        return cls(
+            commit_hash=res.headers.get(hf_constant.HUGGINGFACE_HEADER_X_REPO_COMMIT),
+            location=res.headers.get("Location") or str(res.request.url),
+            xet_file_data=XetFileData.from_response(res),
+            etag=etag,
+            size=size,
+        )

@@ -124,7 +124,7 @@ def sdpa_attention_forward(
     # TODO: under `torch.export` with dynamic shapes, `q_length > 1` is a `SymBool` and `and` returns the first falsy
     #   operand, so `is_causal` can end up being that `SymBool` (e.g. the seamless_m4t / seamless_m4t_v2 speech
     #   encoders). Reordering the conditions fixes it but breaks the compile requirement above, so it should rather be
-    #   handled on the exporter side. See https://github.com/huggingface/transformers/pull/46196#discussion_r3717333141
+    #   handled on the exporter side. See https://github.com/huggingface/iantirta.models/pull/46196#discussion_r3717333141
     is_causal = q_length > 1 and attention_mask is None and is_causal
 
     # Shapes (e.g. query.shape[2]) are tensors during jit tracing, resulting in `is_causal` being a tensor.

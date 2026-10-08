@@ -54,7 +54,7 @@ def rnnt_loss(
         Scalar loss tensor (or per-example losses if `reduction="none"`).
 
     """
-    # Import torchaudio lazily rather than at module scope, see https://github.com/huggingface/transformers/pull/47422
+    # Import torchaudio lazily rather than at module scope, see https://github.com/huggingface/iantirta.models/pull/47422
     import torchaudio
 
     valid_reductions = ("mean_volume", "mean_batch", "mean", "sum", "none")

@@ -97,7 +97,7 @@ def split_state_dict_into_shards_factory(
 
     for key, tensor in state_dict.items():
         # when bnb serialization is used the weights in the state dict can be strings
-        # check: https://github.com/huggingface/transformers/pull/24416 for more details
+        # check: https://github.com/huggingface/iantirta.models/pull/24416 for more details
         if isinstance(tensor, str):
             logger.info("Skipping tensor %s as it is a string (bnb serialization)", key)
             continue

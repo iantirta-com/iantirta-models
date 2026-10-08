@@ -35,7 +35,7 @@ def deprecate_kwarg(
     - Automatically replace deprecated keyword arguments with new ones.
     - Raise an error if deprecated arguments are used, depending on the specified conditions.
 
-    By default, the decorator notifies the user about the deprecated argument while the `transformers.__version__` < specified `version`
+    By default, the decorator notifies the user about the deprecated argument while the `iantirta.models.__version__` < specified `version`
     in the decorator. To keep notifications with any version `warn_if_greater_or_equal_version=True` can be set.
 
     Parameters:
@@ -46,9 +46,9 @@ def deprecate_kwarg(
         new_name (`Optional[str]`, *optional*):
             The new name for the deprecated keyword argument. If specified, the deprecated keyword argument will be replaced with this new name.
         warn_if_greater_or_equal_version (`bool`, *optional*, defaults to `False`):
-            Whether to show warning if current `transformers` version is greater or equal to the deprecated version.
+            Whether to show warning if current `iantirta.models` version is greater or equal to the deprecated version.
         raise_if_greater_or_equal_version (`bool`, *optional*, defaults to `False`):
-            Whether to raise `ValueError` if current `transformers` version is greater or equal to the deprecated version.
+            Whether to raise `ValueError` if current `iantirta.models` version is greater or equal to the deprecated version.
         raise_if_both_names (`bool`, *optional*, defaults to `False`):
             Whether to raise `ValueError` if both deprecated and new keyword arguments are set.
         additional_message (`Optional[str]`, *optional*):

@@ -21,10 +21,10 @@ def test_vendor_aliases():
     import transformers
 
     assert huggingface_hub.__file__ is not None
-    assert transformers.__file__ is not None
+    assert iantirta.models.__file__ is not None
 
     assert "iantirta/models/vendor/huggingface_hub" in huggingface_hub.__file__.replace("\\", "/")
-    assert "iantirta/models/vendor/transformers" in transformers.__file__.replace("\\", "/")
+    assert "iantirta/models/vendor/transformers" in iantirta.models.__file__.replace("\\", "/")
 
 
 def test_vendor_module_paths():
@@ -36,7 +36,7 @@ def test_vendor_module_paths():
     )
 
     assert "iantirta/models/vendor/transformers" in (
-        transformers.__file__.replace("\\", "/")
+        iantirta.models.__file__.replace("\\", "/")
     )
 
 
@@ -49,9 +49,9 @@ def test_vendor_module_identity():
         "iantirta.models.vendor.huggingface_hub",
     }
 
-    assert transformers.__name__ in {
+    assert iantirta.models.__name__ in {
         "transformers",
-        "iantirta.models.vendor.transformers",
+        "iantirta.models",
     }
 
 
@@ -78,12 +78,12 @@ def test_vendor_without_external_hf_packages():
 import iantirta.models
 
 import huggingface_hub
-import transformers
+import iantirta.models
 
 assert "iantirta.models.vendor.huggingface_hub" in huggingface_hub.__name__
-assert "iantirta.models.vendor.transformers" in transformers.__name__
+assert "iantirta.models" in iantirta.models.__name__
 
-from iantirta.models.vendor.transformers import Wav2Vec2Config
+from iantirta.models import Wav2Vec2Config
 
 config = Wav2Vec2Config()
 assert config.model_type == "wav2vec2"

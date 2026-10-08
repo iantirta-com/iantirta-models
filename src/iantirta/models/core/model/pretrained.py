@@ -431,7 +431,7 @@ class PreTrainedModel(
         Examples:
 
         ```python
-        from transformers import AutoModel
+        from iantirta.models import AutoModel
 
         model = AutoModel.from_pretrained("google-bert/bert-base-cased")
 
@@ -562,7 +562,7 @@ class PreTrainedModel(
                 "`PreTrainedModel` will NOT inherit from `GenerationMixin`, and this model will lose the ability "
                 "to call `generate` and other related functions."
                 "\n  - If you're using `trust_remote_code=True`, you can get rid of this warning by loading the "
-                "model with an auto class. See https://huggingface.co/docs/transformers/en/model_doc/auto#auto-classes"
+                "model with an auto class. See https://huggingface.co/docs/iantirta.models/en/model_doc/auto#auto-classes"
                 "\n  - If you are the owner of the model architecture code, please modify your model class such that "
                 "it inherits from `GenerationMixin` (after `PreTrainedModel`, otherwise you'll get an exception)."
                 "\n  - If you are not the owner of the model architecture class, please contact the model code owner "
@@ -654,7 +654,7 @@ class PreTrainedModel(
             raise ValueError(
                 f"{self.__class__.__name__} does not support Flash Attention {flash_attn_version} yet. Please request to add support where"
                 f" the model is hosted, on its model hub page: https://huggingface.co/{self.config._name_or_path}/discussions/new"
-                " or in the Transformers GitHub repo: https://github.com/huggingface/transformers/issues/new"
+                " or in the Transformers GitHub repo: https://github.com/huggingface/iantirta.models/issues/new"
             )
 
         if flash_attn_version not in [2, 3, 4]:
@@ -726,7 +726,7 @@ class PreTrainedModel(
         if not self._supports_sdpa:
             raise ValueError(
                 f"{self.__class__.__name__} does not support an attention implementation through torch.nn.functional.scaled_dot_product_attention yet."
-                " Please request the support for this architecture: https://github.com/huggingface/transformers/issues/28005. If you believe"
+                " Please request the support for this architecture: https://github.com/huggingface/iantirta.models/issues/28005. If you believe"
                 ' this error is a bug, please open an issue in Transformers GitHub repository and load your model with the argument `attn_implementation="eager"` meanwhile. Example: `model = AutoModel.from_pretrained("openai/whisper-tiny", attn_implementation="eager")`'
             )
 
@@ -757,7 +757,7 @@ class PreTrainedModel(
         if not self._supports_flex_attn:
             raise ValueError(
                 f"{self.__class__.__name__} does not support an attention implementation through torch's flex_attention."
-                " Please request the support for this architecture: https://github.com/huggingface/transformers/issues/34809."
+                " Please request the support for this architecture: https://github.com/huggingface/iantirta.models/issues/34809."
                 " If you believe this error is a bug, please open an issue in Transformers GitHub repository"
                 ' and load your model with the argument `attn_implementation="eager"` meanwhile.'
                 ' Example: `model = AutoModel.from_pretrained("openai/whisper-tiny", attn_implementation="eager")`'
@@ -1045,7 +1045,7 @@ class PreTrainedModel(
                 logger.warning(
                     f"{self.__class__.__name__} does not support setting its attention implementation dynamically, because it "
                     "does not follow the functional approach based on AttentionInterface "
-                    "(see https://huggingface.co/docs/transformers/en/attention_interface)"
+                    "(see https://huggingface.co/docs/iantirta.models/en/attention_interface)"
                 )
             else:
                 requested_implementation = self._check_and_adjust_attn_implementation(
@@ -1070,7 +1070,7 @@ class PreTrainedModel(
                     logger.warning(
                         f"{submodule.__class__.__name__} does not support setting its attention implementation dynamically, because it "
                         "does not follow the functional approach based on AttentionInterface "
-                        "(see https://huggingface.co/docs/transformers/en/attention_interface)"
+                        "(see https://huggingface.co/docs/iantirta.models/en/attention_interface)"
                     )
                 # Set the attn on the submodule
                 else:
@@ -1425,7 +1425,7 @@ class PreTrainedModel(
         if getattr(module, "_is_hf_initialized", False):
             return
 
-        # This check is for remote code that does NOT use either `torch.init` or `transformers.initialization` in `_init_weights`
+        # This check is for remote code that does NOT use either `torch.init` or `iantirta.models.initialization` in `_init_weights`
         # which allow to check the flag directly on param. As they don't and write the params in-place, params would be reinitialized
         # otherwise
         if (
@@ -1923,7 +1923,7 @@ class PreTrainedModel(
 
         # Replace weights in old_embeddings and return to maintain the same embedding type.
         # This ensures correct functionality when a Custom Embedding class is passed as input.
-        # The input and output embedding types remain consistent. (c.f. https://github.com/huggingface/transformers/pull/31979)
+        # The input and output embedding types remain consistent. (c.f. https://github.com/huggingface/iantirta.models/pull/31979)
         if is_deepspeed_zero3_enabled() and not is_quantized:
             import deepspeed  # type: ignore
 
@@ -2478,7 +2478,7 @@ class PreTrainedModel(
 
         # The _keep_in_fp32_modules flag is only used to avoid bf16 -> fp16 casting precision issues. It was introduced
         # in case of force loading a model that should stay in bf16 in fp16
-        # See https://github.com/huggingface/transformers/issues/20287 for details.
+        # See https://github.com/huggingface/iantirta.models/issues/20287 for details.
         if self._keep_in_fp32_modules is not None and dtype == torch.float16:
             dtype_plan.update(dict.fromkeys(self._keep_in_fp32_modules, torch.float32))
 
@@ -2697,7 +2697,7 @@ class PreTrainedModel(
             max_memory (`Dict`, *optional*):
                 A dictionary device identifier to maximum memory if using `device_map`. Will default to the maximum memory available for each
                 GPU and the available CPU RAM if unset.
-            distributed_config ([`~transformers.distributed.configuration_utils.DistributedConfig`], *optional*):
+            distributed_config ([`~iantirta.models.distributed.configuration_utils.DistributedConfig`], *optional*):
                 Configuration for native distributed loading with tensor parallelism or FSDP2. Pass
                 `DistributedConfig(tp_size=N)` to use a model's predefined tensor parallel plan,
                 `DistributedConfig(tp_plan=...)` to specify a tensor parallel plan, or
@@ -2757,7 +2757,7 @@ class PreTrainedModel(
 
         <Tip>
 
-        Activate the special ["offline-mode"](https://huggingface.co/transformers/installation.html#offline-mode) to
+        Activate the special ["offline-mode"](https://huggingface.co/iantirta.models/installation.html#offline-mode) to
         use this method in a firewalled environment.
 
         </Tip>
@@ -2765,7 +2765,7 @@ class PreTrainedModel(
         Examples:
 
         ```python
-        >>> from transformers import BertConfig, BertModel
+        >>> from iantirta.models import BertConfig, BertModel
 
         >>> # Download model and configuration from huggingface.co and cache.
         >>> model = BertModel.from_pretrained("google-bert/bert-base-uncased")
@@ -3280,7 +3280,7 @@ class PreTrainedModel(
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
-        import transformers.models.auto as auto_module
+        import iantirta.models.models.auto as auto_module
 
         if not hasattr(auto_module, auto_class):
             raise ValueError(f"{auto_class} is not a valid auto class.")
@@ -3303,7 +3303,7 @@ class PreTrainedModel(
         if self.config.pad_token_id in input_ids[:, [-1, 0]]:
             warn_string = (
                 "We strongly recommend passing in an `attention_mask` since your input_ids may be padded. See "
-                "https://huggingface.co/docs/transformers/troubleshooting"
+                "https://huggingface.co/docs/iantirta.models/troubleshooting"
                 "#incorrect-output-when-padding-tokens-arent-masked."
             )
 
@@ -3642,7 +3642,7 @@ class PreTrainedModel(
     def is_custom_code(cls) -> bool:
         """Return whether the current model is custom code, i.e. either code loaded from the hub, or defined in any user-specific
         module/session."""
-        return cls.is_remote_code() or not cls.__module__.startswith("transformers.")
+        return cls.is_remote_code() or not cls.__module__.startswith("iantirta.models.")
 
 
 class PreTrainedAudioTokenizerBase(PreTrainedModel):

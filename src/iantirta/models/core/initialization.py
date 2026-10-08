@@ -321,7 +321,7 @@ def meta_device_safe_creation_ops():
 
     This context manager patches ``torch.linspace`` to default to
     ``device="cpu"`` when no explicit device is requested, matching the best
-    practice already used throughout transformers.  Calls that supply an
+    practice already used throughout iantirta.models.  Calls that supply an
     explicit ``device`` argument (e.g. ``device=self.logits.device``) are left
     untouched.  ``torch.arange`` is intentionally NOT patched because it is
     used in RoPE computations where the device must match model parameters.

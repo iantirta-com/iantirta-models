@@ -23,7 +23,7 @@ from iantirta.models.vendor.huggingface_hub.dataclasses import strict
 class Qwen3Config(PreTrainedConfig):
     r"""
     ```python
-    >>> from transformers import Qwen3Model, Qwen3Config
+    >>> from iantirta.models import Qwen3Model, Qwen3Config
 
     >>> # Initializing a Qwen3 style configuration
     >>> configuration = Qwen3Config()

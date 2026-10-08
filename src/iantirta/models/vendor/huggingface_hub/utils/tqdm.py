@@ -280,7 +280,7 @@ def tqdm_stream_file(path: Path | str) -> Iterator[io.BufferedReader]:
     Open a file as binary and wrap the `read` method to display a progress bar when it's streamed.
 
     First implemented in `transformers` in 2019 but removed when switched to git-lfs. Used in `huggingface_hub` to show
-    progress bar when uploading an LFS file to the Hub. See github.com/huggingface/transformers/pull/2078#discussion_r354739608
+    progress bar when uploading an LFS file to the Hub. See github.com/huggingface/iantirta.models/pull/2078#discussion_r354739608
     for implementation details.
 
     Note: currently implementation handles only files stored on disk as it is the most common use case. Could be

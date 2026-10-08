@@ -249,14 +249,14 @@ def _grouped_mm_fallback_backward(ctx, grad_output):
 
 if is_torch_available():
     torch.library.custom_op(
-        "transformers::grouped_mm_fallback",
+        "iantirta.models::grouped_mm_fallback",
         _grouped_mm_fallback,
         mutates_args=(),
         schema="(Tensor input, Tensor weight, Tensor offs) -> Tensor",
     )
-    torch.library.register_fake("transformers::grouped_mm_fallback", _grouped_mm_fallback_fake)
+    torch.library.register_fake("iantirta.models::grouped_mm_fallback", _grouped_mm_fallback_fake)
     torch.library.register_autograd(
-        "transformers::grouped_mm_fallback",
+        "iantirta.models::grouped_mm_fallback",
         _grouped_mm_fallback_backward,
         setup_context=_grouped_mm_fallback_setup_context,
     )
@@ -343,7 +343,7 @@ def _grouped_mm(
         elif hasattr(torch, "_grouped_mm"):
             return torch._grouped_mm(input.to(weight.dtype), weight, offs=offs)
 
-    return torch.ops.transformers.grouped_mm_fallback(input.to(weight.dtype), weight, offs=offs)
+    return torch.ops.iantirta.models.grouped_mm_fallback(input.to(weight.dtype), weight, offs=offs)
 
 
 def _grouped_linear(

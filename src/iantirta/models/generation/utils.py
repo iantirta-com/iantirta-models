@@ -774,7 +774,7 @@ class GenerationMixin(ContinuousMixin):
                     raise ValueError(
                         f"You passed `inputs_embeds` to `.generate()`, but the model class {self.__class__.__name__} "
                         "doesn't have its forwarding implemented. See the GPT2 implementation for an example "
-                        "(https://github.com/huggingface/transformers/pull/21405), and feel free to open a PR with it!"
+                        "(https://github.com/huggingface/iantirta.models/pull/21405), and feel free to open a PR with it!"
                     )
                 # In this case, `input_ids` is moved to the `model_kwargs`, so a few automations (like the creation of
                 # the attention mask) can rely on the actual model input.
@@ -1030,7 +1030,7 @@ class GenerationMixin(ContinuousMixin):
             decoder_input_ids = decoder_start_token_id
         # exception: Donut checkpoints have task-specific decoder starts and don't expect a BOS token. Note that the
         # original checkpoints can't be detected through `self.__class__.__name__.lower()`, needing custom logic.
-        # See: https://github.com/huggingface/transformers/pull/31470
+        # See: https://github.com/huggingface/iantirta.models/pull/31470
         elif "donut" in self.__class__.__name__.lower() or (
             self.config.model_type == "vision-encoder-decoder" and "donut" in self.config.encoder.model_type.lower()
         ) or self.config.model_type == "whisper":
@@ -1530,7 +1530,7 @@ class GenerationMixin(ContinuousMixin):
             else:
                 min_tokens_to_keep = 1
 
-            # the following idea is largely copied from this PR: https://github.com/huggingface/transformers/pull/5420/files
+            # the following idea is largely copied from this PR: https://github.com/huggingface/iantirta.models/pull/5420/files
             # all samplers can be found in `generation_utils_samplers.py`
             if generation_config.temperature is not None and generation_config.temperature != 1.0:
                 processors.append(TemperatureLogitsWarper(generation_config.temperature))
@@ -1688,7 +1688,7 @@ class GenerationMixin(ContinuousMixin):
         Examples:
 
         ```python
-        >>> from transformers import GPT2Tokenizer, AutoModelForCausalLM
+        >>> from iantirta.models import GPT2Tokenizer, AutoModelForCausalLM
         >>> import numpy as np
 
         >>> tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
@@ -1822,7 +1822,7 @@ class GenerationMixin(ContinuousMixin):
                     )
 
             doc_reference = (
-                "(see https://huggingface.co/docs/transformers/en/generation_strategies#universal-assisted-decoding)"
+                "(see https://huggingface.co/docs/iantirta.models/en/generation_strategies#universal-assisted-decoding)"
             )
             if self.config.get_text_config().vocab_size == assistant_model.config.get_text_config().vocab_size:
                 if "assistant_tokenizer" in generation_mode_kwargs:
@@ -1953,7 +1953,7 @@ class GenerationMixin(ContinuousMixin):
                     f"Both `max_new_tokens` (={generation_config.max_new_tokens}) and `max_length`(="
                     f"{generation_config.max_length}) seem to have been set. `max_new_tokens` will take precedence. "
                     "Please refer to the documentation for more information. "
-                    "(https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)"
+                    "(https://huggingface.co/docs/iantirta.models/main/en/main_classes/text_generation)"
                 )
             generation_config.max_length = generation_config.max_new_tokens + input_ids_length
 
@@ -1979,7 +1979,7 @@ class GenerationMixin(ContinuousMixin):
                     f"Both `min_new_tokens` (={generation_config.min_new_tokens}) and `min_length`(="
                     f"{generation_config.min_length}) seem to have been set. `min_new_tokens` will take precedence. "
                     "Please refer to the documentation for more information. "
-                    "(https://huggingface.co/docs/transformers/main/en/main_classes/text_generation)"
+                    "(https://huggingface.co/docs/iantirta.models/main/en/main_classes/text_generation)"
                 )
             generation_config.min_length = generation_config.min_new_tokens + input_ids_length
 
@@ -2013,7 +2013,7 @@ class GenerationMixin(ContinuousMixin):
                     "You have modified the pretrained model configuration to control generation "
                     f"We detected the following values set - {self.config._get_generation_parameters()}. "
                     "This strategy to control generation is not supported anymore. Please use and modify `model.generation_config` "
-                    "(see https://huggingface.co/docs/transformers/generation_strategies#default-text-generation-configuration )",
+                    "(see https://huggingface.co/docs/iantirta.models/generation_strategies#default-text-generation-configuration )",
                 )
             generation_config = GenerationConfig()
 
@@ -3312,7 +3312,7 @@ class GenerationMixin(ContinuousMixin):
         We apply different heuristics depending on the value of `early_stopping`:
         1. `early_stopping == False`:
         -> Use a heuristic that assumes the best score comes from the current length minus the decoder prompt length.
-        -> See detailed discussion: https://github.com/huggingface/transformers/pull/20901#issuecomment-1369845565
+        -> See detailed discussion: https://github.com/huggingface/iantirta.models/pull/20901#issuecomment-1369845565
 
         2. `early_stopping == "never"`:
         -> Estimate the best score using either `max_length` or `cur_len`, depending on the sign of `length_penalty`.
@@ -3504,7 +3504,7 @@ class GenerationMixin(ContinuousMixin):
         https://huggingface.co/blog/how-to-generate (especially the beam search section).
 
         You can recompute the sequence scores from the individual scores using the `compute_transition_scores` function
-        (https://huggingface.co/docs/transformers/main_classes/text_generation#transformers.GenerationMixin.compute_transition_scores)
+        (https://huggingface.co/docs/iantirta.models/main_classes/text_generation#iantirta.models.GenerationMixin.compute_transition_scores)
 
         Parameters:
             input_ids (`torch.LongTensor` of shape `(batch_size*num_beams, sequence_length)`):

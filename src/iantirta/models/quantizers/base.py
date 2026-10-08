@@ -73,11 +73,11 @@ def _assign_is_quantized(model):
 class HfQuantizer(ABC):
     """
     Abstract class of the HuggingFace quantizer. Supports for now quantizing HF transformers models for inference and/or quantization.
-    This class is used only for transformers.PreTrainedModel.from_pretrained and cannot be easily used outside the scope of that method
+    This class is used only for iantirta.models.PreTrainedModel.from_pretrained and cannot be easily used outside the scope of that method
     yet.
 
     Attributes
-        quantization_config (`transformers.utils.quantization_config.QuantizationConfigMixin`):
+        quantization_config (`iantirta.models.utils.quantization_config.QuantizationConfigMixin`):
             The quantization config that defines the quantization parameters of your model that you want to quantize.
         requires_calibration (`bool`):
             Whether the quantization method requires to calibrate the model before using it.
@@ -136,7 +136,7 @@ class HfQuantizer(ABC):
     def validate_environment(self, *args, **kwargs):
         """
         This method is used to potentially check for potential conflicts with arguments that are
-        passed in `from_pretrained`. You need to define it for all future quantizers that are integrated with transformers.
+        passed in `from_pretrained`. You need to define it for all future quantizers that are integrated with iantirta.models.
         If no explicit check are needed, simply return nothing.
         """
         return
@@ -163,7 +163,7 @@ class HfQuantizer(ABC):
         of the model in order to replace modules in-place. Make sure to override the abstract method `_process_model_before_weight_loading`.
 
         Args:
-            model (`~transformers.PreTrainedModel`):
+            model (`~iantirta.models.PreTrainedModel`):
                 The model to quantize
             kwargs (`dict`, *optional*):
                 The keyword arguments that are passed along `_process_model_before_weight_loading`.
@@ -183,7 +183,7 @@ class HfQuantizer(ABC):
         Make sure to override the abstract method `_process_model_after_weight_loading`.
 
         Args:
-            model (`~transformers.PreTrainedModel`):
+            model (`~iantirta.models.PreTrainedModel`):
                 The model to quantize
             kwargs (`dict`, *optional*):
                 The keyword arguments that are passed along `_process_model_after_weight_loading`.
@@ -319,7 +319,7 @@ class SequentialLlama4TextExperts(ModuleList):
     """
 
     def __init__(self, config):
-        from transformers.models.llama4.modeling_llama4 import Llama4TextMLP
+        from iantirta.models.models.llama4.modeling_llama4 import Llama4TextMLP
 
         super().__init__([Llama4TextMLP(config) for _ in range(config.num_local_experts)])
         self.num_experts = config.num_local_experts

@@ -80,10 +80,10 @@ class _LazyConfigMap(OrderedDict[str, type]):
         # model_type -> config of another model type.
         # In that case we try to grab the
         # object at the top level.
-        transformers_module = importlib.import_module(
+        iantirta_models_module = importlib.import_module(
             "iantirta.models"
         )
-        return getattr(transformers_module, value)
+        return getattr(iantirta_models_module, value)
 
 
 CONFIG_MAPPING = _LazyConfigMap(CONFIG_MAPPING_NAMES)

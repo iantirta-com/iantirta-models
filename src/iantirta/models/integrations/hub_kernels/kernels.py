@@ -142,7 +142,7 @@ if is_kernels_available():
             return lambda cls: cls
 
     # The default kernel mapping is built lazily (see `get_kernel_mapping_transformers`) so that simply
-    # importing transformers (or `transformers.pipeline`) does not instantiate any `LayerRepository` /
+    # importing transformers (or `iantirta.models.pipeline`) does not instantiate any `LayerRepository` /
     # `FuncRepository`. This keeps the `kernels` library decoupled from normal transformers usage: the
     # repositories are only constructed when the user explicitly opts in via `use_kernels=True`.
     _KERNEL_MAPPING_CACHE: dict | None = None
@@ -970,7 +970,7 @@ def get_kernel(
     if not is_kernels_available():
         raise ImportError(_MISSING_KERNELS_MESSAGE)
 
-    user_agent = {"framework": "transformers", "version": __version__, "repo_id": kernel_name}
+    user_agent = {"framework": "iantirta.models", "version": __version__, "repo_id": kernel_name}
     return get_kernel_hub(
         kernel_name, revision=revision, version=version, user_agent=user_agent, trust_remote_code=allow_all_kernels
     )

@@ -18,7 +18,7 @@ def test_qwen3_asr_import():
 
 
 def test_qwen3_asr_config():
-    from iantirta.models.vendor.transformers.models.qwen3_asr import (
+    from iantirta.models.models.qwen3_asr import (
         Qwen3ASRConfig,
     )
 
@@ -47,7 +47,7 @@ def test_qwen3_asr_config():
 
 
 def test_qwen3_asr_model_import():
-    from iantirta.models.vendor.transformers.models.qwen3_asr import (
+    from iantirta.models.models.qwen3_asr import (
         Qwen3ASRForConditionalGeneration,
     )
 
@@ -55,7 +55,7 @@ def test_qwen3_asr_model_import():
 
 
 def test_qwen3_asr_small_model():
-    from iantirta.models.vendor.transformers.models.qwen3_asr import (
+    from iantirta.models.models.qwen3_asr import (
         Qwen3ASRConfig,
         Qwen3ASRForConditionalGeneration,
     )
@@ -87,7 +87,7 @@ def test_qwen3_asr_small_model():
 
 @pytest.mark.manual
 def test_qwen3_asr_real_config():
-    from iantirta.models.vendor.transformers import AutoConfig
+    from iantirta.models import AutoConfig
 
     config = AutoConfig.from_pretrained(
         "Qwen/Qwen3-ASR-1.7B-hf",
@@ -98,7 +98,7 @@ def test_qwen3_asr_real_config():
 
 @pytest.mark.manual
 def test_qwen3_asr_real_model_load():
-    from iantirta.models.vendor.transformers import (
+    from iantirta.models import (
         Qwen3ASRForConditionalGeneration,
     )
 

@@ -101,7 +101,7 @@ _re_tokenizer_file = re.compile(r"tokenizer\.(.*)\.json")
 
 def get_fast_tokenizer_file(tokenization_files: list[str]) -> str:
     """
-    Get the tokenization file to use for this version of transformers.
+    Get the tokenization file to use for this version of iantirta.models.
 
     Args:
         tokenization_files (`list[str]`): The list of available configuration files.

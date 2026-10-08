@@ -1005,7 +1005,7 @@ def group_images_by_shape(
             for every shape so callers can index it like the others.
         disable_grouping (bool):
             Whether to disable grouping. If None, will be set to True if the images are on CPU, and False otherwise.
-            This choice is based on empirical observations, as detailed here: https://github.com/huggingface/transformers/pull/38157
+            This choice is based on empirical observations, as detailed here: https://github.com/huggingface/iantirta.models/pull/38157
         is_nested (bool, *optional*, defaults to False):
             Whether the images are nested.
 

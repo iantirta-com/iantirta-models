@@ -364,7 +364,7 @@ class Wav2Vec2FeatureProjection(nn.Module):
         return hidden_states, norm_hidden_states
 
 
-# Copied from iantirta.models.vendor.transformers.models.bert.modeling_bert.eager_attention_forward
+# Copied from iantirta.models.models.bert.modeling_bert.eager_attention_forward
 def eager_attention_forward(
     module: nn.Module,
     query: torch.Tensor,
@@ -982,7 +982,7 @@ class Wav2Vec2PreTrainedModel(PreTrainedModel):
 
         <Tip>
 
-        Activate the special ["offline-mode"](https://huggingface.co/transformers/installation.html#offline-mode) to
+        Activate the special ["offline-mode"](https://huggingface.co/iantirta.models/installation.html#offline-mode) to
         use this method in a firewalled environment.
 
         </Tip>
@@ -990,7 +990,7 @@ class Wav2Vec2PreTrainedModel(PreTrainedModel):
         Examples:
 
         ```python
-        >>> from iantirta.models.vendor.transformers import Wav2Vec2ForCTC, AutoProcessor
+        >>> from iantirta.models import Wav2Vec2ForCTC, AutoProcessor
 
         >>> ckpt = "facebook/mms-1b-all"
         >>> processor = AutoProcessor.from_pretrained(ckpt)

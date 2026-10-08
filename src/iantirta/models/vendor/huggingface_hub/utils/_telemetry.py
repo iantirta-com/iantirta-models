@@ -36,7 +36,7 @@ def send_telemetry(
     Args:
         topic (`str`):
             Name of the topic that is monitored. The topic is directly used to build the URL. If you want to monitor
-            subtopics, just use "/" separation. Examples: "gradio", "transformers/examples",...
+            subtopics, just use "/" separation. Examples: "gradio", "iantirta.models/examples",...
         library_name (`str`, *optional*):
             The name of the library that is making the HTTP request. Will be added to the user-agent header.
         library_version (`str`, *optional*):

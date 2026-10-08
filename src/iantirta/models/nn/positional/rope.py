@@ -139,7 +139,7 @@ def _compute_linear_scaling_rope_parameters(
     """
     Computes the inverse frequencies with linear scaling. Credits to the Reddit user /u/kaiokendev
     Args:
-        config ([`~transformers."PreTrainedConfig"`]):
+        config ([`~iantirta.models."PreTrainedConfig"`]):
             The model configuration. This function assumes that the config will provide at least the following
             properties:
 
@@ -201,7 +201,7 @@ def _compute_proportional_rope_parameters(
     Computes the inverse frequencies with proportional RoPE.
 
     Args:
-        config ([`~transformers.PretrainedConfig`]):
+        config ([`~iantirta.models.PretrainedConfig`]):
             The model configuration. This function assumes that the config will provide at least the following
             properties:
 
@@ -276,7 +276,7 @@ def _compute_dynamic_ntk_parameters(
     Computes the inverse frequencies with NTK scaling. Credits to the Reddit users /u/bloc97 and /u/emozilla
 
     Args:
-        config ([`~transformers."PreTrainedConfig"`]):
+        config ([`~iantirta.models."PreTrainedConfig"`]):
             The model configuration. This function assumes that the config will provide at least the following
             properties:
 
@@ -353,7 +353,7 @@ def _compute_yarn_parameters(
     [original paper](https://huggingface.co/papers/2309.00071)
 
     Args:
-        config ([`~transformers."PreTrainedConfig"`]):
+        config ([`~iantirta.models."PreTrainedConfig"`]):
             The model configuration. This function assumes that the config will provide at least the following
             properties:
 
@@ -494,7 +494,7 @@ def _compute_longrope_parameters(
     [original implementation](https://github.com/microsoft/LongRoPE)
 
     Args:
-        config ([`~transformers."PreTrainedConfig"`]):
+        config ([`~iantirta.models."PreTrainedConfig"`]):
             The model configuration. This function assumes that the config will provide at least the following
             properties:
 
@@ -587,7 +587,7 @@ def _compute_llama3_parameters(
     Computes the inverse frequencies for llama 3.1.
 
     Args:
-        config ([`~transformers."PreTrainedConfig"`]):
+        config ([`~iantirta.models."PreTrainedConfig"`]):
             The model configuration. This function assumes that the config will provide at least the following
             properties:
 

@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Backward-compatible re-exports. Prefer ``transformers.distributed.fsdp``."""
+"""Backward-compatible re-exports. Prefer ``iantirta.models.distributed.fsdp``."""
 
 from ..distributed.fsdp import (
     get_fsdp_ckpt_kwargs,

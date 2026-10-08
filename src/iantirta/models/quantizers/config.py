@@ -834,7 +834,7 @@ class AwqConfig(GPTQConfig):
         modules_to_not_convert (`list`, *optional*, default to `None`):
             The list of modules to not quantize, useful for quantizing models that explicitly require to have
             some modules left in their original precision (e.g. Whisper encoder, Llava encoder, Mixtral gate layers).
-            Note you cannot quantize directly with transformers, please refer to `AutoAWQ` documentation for quantizing HF models.
+            Note you cannot quantize directly with iantirta.models, please refer to `AutoAWQ` documentation for quantizing HF models.
     """
 
     def __init__(

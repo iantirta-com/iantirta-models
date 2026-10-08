@@ -66,7 +66,7 @@ def _is_package_available(
             # (editable install without a `dist-info`, for example).
             # Last resort: importing defeats the
             # lazy imports these checks guard, costing every
-            # `import transformers` the package's whole import tree.
+            # `import iantirta.models` the package's whole import tree.
             package = importlib.import_module(pkg_name)
             package_version = getattr(package, "__version__", "N/A")
             # No version + no __file__ means a
@@ -94,7 +94,7 @@ def _make_compile_constant(fn):
     This is `torch._dynamo.assume_constant_result`,
     spelled without importing torch: this module is what
     decides whether torch is installed, so it must never import it
-    (and doing so would pull torch into `import transformers`,
+    (and doing so would pull torch into `import iantirta.models`,
     which is deliberately torch-free).
 
     Apply it *under* `@lru_cache`, not above:
@@ -112,7 +112,7 @@ def _make_compile_constant(fn):
 
 
 def direct_iantirta_models_import(path: str, file="__init__.py") -> ModuleType:
-    """Imports transformers directly
+    """Imports iantirta.models directly
 
     Args:
         path (`str`): The path to the source file
@@ -121,7 +121,7 @@ def direct_iantirta_models_import(path: str, file="__init__.py") -> ModuleType:
     Returns:
         `ModuleType`: The resulting imported module
     """
-    name = "transformers"
+    name = "iantirta.models"
     location = os.path.join(path, file)
     spec = importlib.util.spec_from_file_location(name, location, submodule_search_locations=[path])
     if spec is not None and spec.loader is not None:

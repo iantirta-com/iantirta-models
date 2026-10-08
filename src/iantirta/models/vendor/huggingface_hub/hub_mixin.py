@@ -468,7 +468,7 @@ class ModelHubMixin:
             pretrained_model_name_or_path (`str`, `Path`):
                 - Either the `model_id` (string) of a model hosted on the Hub, e.g. `bigscience/bloom`.
                 - Or a path to a `directory` containing model weights saved using
-                    [`~transformers.PreTrainedModel.save_pretrained`], e.g., `../path/to/my_model_directory/`.
+                    [`~iantirta.models.PreTrainedModel.save_pretrained`], e.g., `../path/to/my_model_directory/`.
             revision (`str`, *optional*):
                 Revision of the model on the Hub. Can be a branch name, a git tag or any commit id.
                 Defaults to the latest commit on `main` branch.

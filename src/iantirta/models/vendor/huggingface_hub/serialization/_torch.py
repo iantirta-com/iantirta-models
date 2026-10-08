@@ -76,7 +76,7 @@ def save_torch_model(
     > size greater than `max_shard_size`.
 
     > [!WARNING]
-    > If your model is a `transformers.PreTrainedModel`, you should pass `model._tied_weights_keys` as `shared_tensors_to_discard` to properly handle shared tensors saving. This ensures the correct duplicate tensors are discarded during saving.
+    > If your model is a `iantirta.models.PreTrainedModel`, you should pass `model._tied_weights_keys` as `shared_tensors_to_discard` to properly handle shared tensors saving. This ensures the correct duplicate tensors are discarded during saving.
 
     Args:
         model (`torch.nn.Module`):
@@ -170,7 +170,7 @@ def save_torch_state_dict(
     > size greater than `max_shard_size`.
 
     > [!WARNING]
-    > If your model is a `transformers.PreTrainedModel`, you should pass `model._tied_weights_keys` as `shared_tensors_to_discard` to properly handle shared tensors saving. This ensures the correct duplicate tensors are discarded during saving.
+    > If your model is a `iantirta.models.PreTrainedModel`, you should pass `model._tied_weights_keys` as `shared_tensors_to_discard` to properly handle shared tensors saving. This ensures the correct duplicate tensors are discarded during saving.
 
     Args:
         state_dict (`dict[str, torch.Tensor]`):
@@ -774,7 +774,7 @@ def _load_safetensors_file(
     # Check format of the archive
     with safe_open(checkpoint_file, framework="pt") as f:  # type: ignore[attr-defined]
         metadata = f.metadata()
-    # see comment: https://github.com/huggingface/transformers/blob/3d213b57fe74302e5902d68ed9478c3ad1aaa713/src/transformers/modeling_utils.py#L3966
+    # see comment: https://github.com/huggingface/iantirta.models/blob/3d213b57fe74302e5902d68ed9478c3ad1aaa713/src/iantirta.models/modeling_utils.py#L3966
     if metadata is not None and metadata.get("format") not in ["pt", "mlx"]:
         raise OSError(
             f"The safetensors archive passed at {checkpoint_file} does not contain the valid metadata. Make sure "
@@ -884,7 +884,7 @@ def get_torch_storage_id(tensor: "torch.Tensor") -> tuple["torch.device", int | 
     non-overlapping lifetimes may have the same id.
     In the case of meta tensors, we return None since we can't tell if they share the same storage.
 
-    Taken from https://github.com/huggingface/transformers/blob/1ecf5f7c982d761b4daaa96719d162c324187c64/src/transformers/pytorch_utils.py#L278.
+    Taken from https://github.com/huggingface/iantirta.models/blob/1ecf5f7c982d761b4daaa96719d162c324187c64/src/iantirta.models/pytorch_utils.py#L278.
     """
     if tensor.device.type == "meta":
         return None
@@ -933,7 +933,7 @@ def is_torch_tpu_available(check_device=True):
     """
     Checks if `torch_xla` is installed and potentially if a TPU is in the environment
 
-    Taken from https://github.com/huggingface/transformers/blob/1ecf5f7c982d761b4daaa96719d162c324187c64/src/transformers/utils/import_utils.py#L463.
+    Taken from https://github.com/huggingface/iantirta.models/blob/1ecf5f7c982d761b4daaa96719d162c324187c64/src/iantirta.models/utils/import_utils.py#L463.
     """
     if importlib.util.find_spec("torch_xla") is not None:
         if check_device:

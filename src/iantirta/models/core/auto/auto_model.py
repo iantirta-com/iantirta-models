@@ -136,7 +136,7 @@ class _BaseAutoModelClass:
         has_local_code = type(config) in cls._model_mapping
         explicit_local_code = has_local_code and not _get_model_class(
             config, cls._model_mapping
-        ).__module__.startswith("transformers.")
+        ).__module__.startswith("iantirta.models.")
         if has_remote_code:
             class_ref = config.auto_map[cls.__name__]
             if "--" in class_ref:
@@ -351,15 +351,15 @@ def getattribute_from_module(module, attr):
         return getattr(module, attr)
     # Some of the mappings have entries model_type -> object of another model type. In that case we try to grab the
     # object at the top level.
-    transformers_module = importlib.import_module("iantirta.models")
+    iantirta_models_module = importlib.import_module("iantirta.models")
 
-    if module != transformers_module:
+    if module != iantirta_models_module:
         try:
-            return getattribute_from_module(transformers_module, attr)
+            return getattribute_from_module(iantirta_models_module, attr)
         except ValueError:
-            raise ValueError(f"Could not find {attr} neither in {module} nor in {transformers_module}!")
+            raise ValueError(f"Could not find {attr} neither in {module} nor in {iantirta_models_module}!")
     else:
-        raise ValueError(f"Could not find {attr} in {transformers_module}!")
+        raise ValueError(f"Could not find {attr} in {iantirta_models_module}!")
 
 
 class _LazyAutoMapping(OrderedDict[type[PreTrainedConfig], _LazyAutoMappingValue]):
@@ -467,7 +467,7 @@ class _LazyAutoMapping(OrderedDict[type[PreTrainedConfig], _LazyAutoMappingValue
         # Transformers model/processor/... corresponding to the config)
         # This is because remote/native is indistinguisable from the config class only in such cases, as they both use the same class - then
         # `from_pretrained`/`from_config` are responsible to grab the correct class depending on whether `trust_remote_code` is True/False
-        if getattr(key, "__module__", "").startswith("transformers."):
+        if getattr(key, "__module__", "").startswith("iantirta.models."):
             return
 
         # Register the new mapping (this will always take precedence in __getattr__ and __contains__ compared to base mapping)

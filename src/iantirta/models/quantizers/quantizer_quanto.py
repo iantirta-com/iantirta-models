@@ -72,7 +72,7 @@ class QuantoHfQuantizer(HfQuantizer):
                 )
         if self.quantization_config.activations is not None:
             raise ValueError(
-                "We don't support quantizing the activations with transformers library."
+                "We don't support quantizing the activations with iantirta.models library."
                 "Use quanto library for more complex use cases such as activations quantization, calibration and quantization aware training."
             )
 

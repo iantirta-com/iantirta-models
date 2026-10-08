@@ -98,7 +98,7 @@ class FineGrainedFP8HfQuantizer(HfQuantizer):
         """Rewrite the skip-list to the model's own module tree.
         For models that were already released, if they have a list of modules to not quantize
         we need to apply the weight renaming / weight conversion opérations to get the actual
-        layer name of the model in `transformers`.
+        layer name of the model in `iantirta.models`.
         """
         skip = self.quantization_config.modules_to_not_convert
         if not skip:

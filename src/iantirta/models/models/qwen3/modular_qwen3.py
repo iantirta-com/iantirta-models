@@ -125,7 +125,7 @@ class Qwen3ForCausalLM(Qwen2ForCausalLM):
         Example:
 
         ```python
-        >>> from transformers import AutoTokenizer, Qwen3ForCausalLM
+        >>> from iantirta.models import AutoTokenizer, Qwen3ForCausalLM
 
         >>> model = Qwen3ForCausalLM.from_pretrained("Qwen/Qwen3-8B")
         >>> tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-8B")

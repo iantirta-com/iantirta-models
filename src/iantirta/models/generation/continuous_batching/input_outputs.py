@@ -52,7 +52,7 @@ class PagedAttentionArgs(TypedDict):
         logits_indices: Tensor indicating which positions in the output should be used for next-token prediction.
         cache: The [`PagedAttentionCache`] instance managing the KV cache.
         block_table: Block table for paged KV cache. If provided, uses `flash_attn_with_kvcache` for fused attention +
-            cache update. More information in src/transformers/integrations/flash_paged.py
+            cache update. More information in src/iantirta.models/integrations/flash_paged.py
         logits_processor_args: List of tensors containing the arguments for the logits processors, one per request.
         use_cache: Whether to use caching (always `False` in continuous batching as the cache is managed externally).
     """

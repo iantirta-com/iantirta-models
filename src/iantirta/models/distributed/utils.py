@@ -134,7 +134,7 @@ def _distributed_barrier():
         torch.distributed.barrier()
 
 
-# Retained for the legacy transformers.integrations.tensor_parallel API.
+# Retained for the legacy iantirta.models.integrations.tensor_parallel API.
 def initialize_tensor_parallelism(
     tp_plan: str | dict[str, str] | None, tp_size: int | None = None, device_mesh=None, device_map=None
 ):

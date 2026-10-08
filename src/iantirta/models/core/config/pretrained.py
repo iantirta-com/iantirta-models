@@ -59,11 +59,11 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
     Class attributes (overridden by derived classes):
 
     - **model_type** (`str`) -- An identifier for the model type, serialized into the JSON file, and used to recreate
-      the correct object in [`~transformers.AutoConfig`].
+      the correct object in [`~iantirta.models.AutoConfig`].
     - **has_no_defaults_at_init** (`bool`) -- Whether the config class can be initialized without providing input arguments.
       Some configurations requires inputs to be defined at init and have no default values, usually these are composite configs,
-      (but not necessarily) such as [`~transformers.EncoderDecoderConfig`] or [`~RagConfig`]. They have to be initialized from
-      two or more configs of type [`~transformers.PreTrainedConfig`].
+      (but not necessarily) such as [`~iantirta.models.EncoderDecoderConfig`] or [`~RagConfig`]. They have to be initialized from
+      two or more configs of type [`~iantirta.models.PreTrainedConfig`].
     - **keys_to_ignore_at_inference** (`list[str]`) -- A list of keys to ignore by default when looking at dictionary
       outputs of the model during inference.
     - **attribute_map** (`dict[str, str]`) -- A dict that maps model specific attribute names to the standardized
@@ -89,7 +89,7 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
 
     Setting parameters for sequence generation in the model config is deprecated. For backward compatibility, loading
     some of them will still be possible, but attempting to overwrite them will throw an exception -- you should set
-    them in a [~transformers.GenerationConfig]. Check the documentation of [~transformers.GenerationConfig] for more
+    them in a [~iantirta.models.GenerationConfig]. Check the documentation of [~iantirta.models.GenerationConfig] for more
     information about the individual parameters.
 
     </Tip>
@@ -103,7 +103,7 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
         output_attentions (`bool`, *optional*, defaults to `False`):
             Whether or not the model should returns all attentions.
         return_dict (`bool`, *optional*, defaults to `True`):
-            Whether or not the model should return a [`~transformers.utils.ModelOutput`] instead of a plain tuple.
+            Whether or not the model should return a [`~iantirta.models.utils.ModelOutput`] instead of a plain tuple.
         is_encoder_decoder (`bool`, *optional*, defaults to `False`):
             Whether the model is used as an encoder/decoder or not.
         chunk_size_feed_forward (`int`, *optional*, defaults to `0`):
@@ -1120,7 +1120,7 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
         if not isinstance(auto_class, str):
             auto_class = auto_class.__name__
 
-        import transformers.models.auto as auto_module
+        import iantirta.models.models.auto as auto_module
 
         if not hasattr(auto_module, auto_class):
             raise ValueError(f"{auto_class} is not a valid auto class.")
@@ -1137,7 +1137,7 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
     def is_custom_code(cls) -> bool:
         """Return whether the current config is custom code, i.e. either code loaded from the hub, or defined in any
         user-specific module/session."""
-        return cls.is_remote_code() or not cls.__module__.startswith("transformers.")
+        return cls.is_remote_code() or not cls.__module__.startswith("iantirta.models.")
 
     def _get_generation_parameters(self) -> dict[str, Any]:
         """
