@@ -1,5 +1,8 @@
 
 from functools import cached_property, lru_cache
+from pathlib import Path
+import os
+import uuid
 
 import requests
 
@@ -14,6 +17,7 @@ from .types import (
     _REPO_URL_SUBPATHS,
     BUCKET_API_RE,
     REPO_API_RE,
+    _COMMIT_HASH_RE,
 )
 
 
@@ -296,14 +300,58 @@ class HFCachedFIle(CachedFile):
     cache_dir = CachedFile.cache_dir / "hf_hub"
     repo_id: str | None = None
     repo_type: str | None = None
+    revision: str | None = None
+    etag: str | None = None
+    
+    _relative_filename: str | None = None
 
-    def _repo_folder_name(self, repo_id: str, repo_type: str):
+    def _repo_folder_name(self, repo_id: str, repo_type: str) -> str:
         return "--".join([f"{repo_type}s", *repo_id.split("/")])
 
+    @property
+    def revision_is_commit(self):
+        return _COMMIT_HASH_RE.fullmatch(self.revision)
+
+    @property
+    def revision(self):
+        return self.revision
+
+    @revision.setter
+    def revision(self, commit_hash: str):
+        self.revision = commit_hash
+        if self.revision != commit_hash:
+            if not self.ref_path.exists() or commit_hash != self.ref_path.read_text():
+                tmp_path = self.ref_path.with_name(f"{self.ref_path.name}.{uuid.uuid4().hex[:8]}.tmp")
+                tmp_path.write_text(commit_hash)
+                os.replace(tmp_path, self.ref_path)
+
+    @property
+    def ref_path(self) -> Path:
+        ref_path = self.storage_dir / "refs" / self.revision
+        ref_path.mkdir(parents=True, exist_ok=True)
+        return ref_path
+
     @cached_property
-    def locks_path(self):
+    def locks_path(self) -> Path:
         return self.cache_dir / self._repo_folder_name(self.repo_id, self.repo_type) / f"{self.etag}.lock"
 
     @property
-    def storage_dir(self):
+    def storage_dir(self) -> Path:
         return self.cache_dir / self._repo_folder_name(self.repo_id, self.repo_type)
+
+    @cached_property
+    def snapshot_dir(self) -> Path:
+        return self.storage_dir / "snapshots"
+
+    @cached_property
+    def pointer_path(self) -> Path:
+        """Symlink pointer path"""
+        # [WARNING !!!] Don't use resolve on Symlink
+        pointer_path = self.snapshot_dir / self.revision / self.filename
+        if self.snapshot_dir.absolute() not in pointer_path.absolute().parents:
+            raise ValueError(
+                "Invalid pointer path: cannot create pointer path in snapshot folder if"
+                f" `storage_folder='{self.storage_dir}'`, `revision='{self.revision}'` and"
+                f" `relative_filename='{self.filename}'`."
+            )
+        return

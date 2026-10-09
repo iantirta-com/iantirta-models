@@ -5,15 +5,23 @@ from functools import cached_property
 import os
 from pathlib import Path
 import uuid
+from dataclasses import dataclass
 
 
+@dataclass
 class CachedFile:
 
+    filename: str
     cache_dir: Path = Path("~/.cache/iantirta").expanduser().resolve()
+    
+    @property
+    def cache_dir(self) -> Path:
+        return self._cache_dir
 
-    def __init__(self):
-        pass
-
+    @cache_dir.setter
+    def cache_dir(self, value: str | Path | None = None):
+        self._cache_dir = Path(value).expanduser().resolve() or self.cache_dir
+    
     @cached_property
     def locks_dir(self) -> Path:
         return self.cache_dir / ".locks"
@@ -22,9 +30,22 @@ class CachedFile:
     def locks_path(self) -> Path:
         return self.locks_dir / f"{uuid.uuid4().hex[:8]}.lock"
 
-    @property
+    @cached_property
     def storage_dir(self) -> Path:
         return self.cache_dir / "Downloaded"
+
+    @property
+    def filename(self) -> str:
+        return self._relative_filename
+
+    @filename.setter
+    def filename(self, value: str) -> None:
+        self._relative_filename = os.path.join(*value.split("/"))
+    
+    @cached_property
+    def pointer_path(self) -> Path:
+        """Symlink pointer path"""
+        return self.storage_dir / self.filename
 
     @staticmethod
     def as_extended_path(path: str | Path, max_length: int = 255) -> Path:
