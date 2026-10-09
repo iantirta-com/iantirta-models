@@ -1,7 +1,10 @@
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
+from typing import Any, Literal
 
 import requests
+from typing_extensions import Self
 
 from . import hf_constant
 
@@ -52,6 +55,10 @@ _REPO_URL_SUBPATHS = {"resolve", "tree", "blob", "raw", "refs", "commit", "discu
 
 # Regex to check if the revision IS directly a commit_hash
 _COMMIT_HASH_RE = re.compile(r"[0-9a-f]{40}")
+
+_REPO_DIR_RE = re.compile(rf"(?:{'|'.join(sorted(hf_constant.REPO_TYPES_MAPPING))})--.+")
+
+_MARKER_TMP_RE = re.compile(rf"{re.escape(hf_constant.SHARED_BLOBS_MARKER_NAME)}\.[0-9a-f]{{8}}\.tmp")
 
 
 @dataclass(frozen=True)
@@ -152,7 +159,7 @@ class ResolvedRevision(str):
         initial: str | None = None,
         repo_id: str | None = None,
         repo_type: str | None = None,
-    ) -> "ResolvedRevision":
+    ) -> Self:
         revision = super().__new__(cls, initial if initial is not None else "main")
         revision.initial = initial
         revision.resolved = resolved
@@ -167,3 +174,43 @@ class ResolvedRevision(str):
 
     def __repr__(self) -> str:
         return f"ResolvedRevision(initial={self.initial!r}, resolved={self.resolved!r})"
+
+
+@dataclass
+class ModelInfo:
+    id: str         # repo_id
+    author: str | None
+    # base_models: list[str] | None
+    # card_data: ModelCardData | None
+    # children_model_count: int | None
+    config: dict | None
+    created_at: datetime | None
+    disabled: bool | None
+    downloads: int | None
+    # downloads_all_time: int | None
+    # eval_results: list[EvalResultEntry] | None
+    gated: Literal["auto", "manual", False] | None
+    # gguf: dict | None
+    # inference: Literal["warm"] | None
+    # inference_provider_mapping: list[InferenceProviderMapping] | None
+    last_modified: datetime | None
+    library_name: str | None        # Transformers
+    likes: int | None
+    # mask_token: str | None
+    # model_index: dict | None
+    pipeline_tag: str | None
+    private: bool | None
+    # resource_group: dict | None
+    # safetensors: SafeTensorsInfo | None
+    # security_repo_status: dict | None
+    sha: str | None
+    # siblings: list[RepoSibling] | None
+    # spaces: list[str] | None
+    tags: list[str] | None
+    # transformers_info: TransformersInfo | None
+    # trending_score: int | None
+    used_storage: int | None
+    # widget_data: Any | None
+
+    def __init__(self, **kwargs):
+        self.__dict__.update(**kwargs)

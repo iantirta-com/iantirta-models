@@ -5,6 +5,7 @@ import time
 from abc import abstractmethod
 from collections.abc import Generator, Iterable
 from contextlib import ExitStack, contextmanager
+from pathlib import Path
 from typing import Any, BinaryIO, cast
 from urllib.parse import urljoin, urlparse
 
@@ -12,6 +13,7 @@ import requests
 from requests.exceptions import ConnectionError, HTTPError, Timeout
 
 from .. import _progress
+from ..cache_file import CachedFile
 from . import http_constant
 from .types import _RANGE_RE, HTTPHeader, HTTPStatusCode
 
@@ -71,6 +73,9 @@ class HTTPMixin:
         **kwargs
     ) -> Generator[requests.Response, None, None]:
         method = method.upper()
+
+        if not url.startswith(("http://", "https://")):
+            url = self.endpoint.rstrip("/") + "/" + url.lstrip("/")
 
         sleep_time = base_wait_time
         ratelimit_reset = None
@@ -234,7 +239,7 @@ class HTTPMixin:
         max_retries: int = 5,
         tqdm_class: type | None = None,
         _tqdm_bar = None,
-    ):
+    ) -> None:
         if expected_size is not None and resume_size == expected_size:
             return # Already downloaded
 
@@ -331,6 +336,18 @@ class HTTPMixin:
                     actual_size=downloaded,
                 )
             )
+
+    def cache_download(
+        self,
+        *,
+        url: str,
+        incomplete_path: Path,
+        destination_path: Path,
+        cache_file: CachedFile,
+        expected_size: int | None
+    ):
+        assert cache_file.filename is not None, "Downloading require a filename"
+        raise NotImplementedError()
 
 if __name__ == "__main__":
     from pprint import pprint

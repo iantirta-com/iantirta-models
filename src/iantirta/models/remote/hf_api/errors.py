@@ -1,5 +1,14 @@
 import requests
 
+# FILE METADATA ERRORS
+
+class FileMetadataError(OSError):
+    """Error triggered when the metadata of a file on the Hub cannot be retrieved (missing ETag or commit_hash).
+
+    Inherits from `OSError` for backward compatibility.
+    """
+
+
 ## Base Class For HF HUB Error
 
 class HFHubHTTPError(requests.HTTPError, OSError):
@@ -45,6 +54,14 @@ class RevisionNotFoundError(HFHubHTTPError):
 
     repo_id: str | None = None
     repo_type: str | None = None
+
+
+class RevisionResolutionError(Exception):
+    """
+    Raised by [`HfApi.resolve_revision`] when a revision cannot be resolved to a commit hash: the Hub could not be
+    reached (offline mode, connection error, timeout, Hub downtime, ...) and no matching entry was found in the
+    local cache.
+    """
 
 
 # REPOSITORY ERRORS

@@ -1,24 +1,34 @@
 
+import copy
+import logging
+import os
+import secrets
+import shutil
+import stat
+import uuid
 from functools import cached_property, lru_cache
 from pathlib import Path
-import os
-import uuid
+from urllib.parse import quote
 
 import requests
 
 from ..cache_file import CachedFile
 from ..http import HTTPHeader, HTTPMixin
-from . import errors, hf_constant
+from . import _xet, errors, hf_constant
 from .types import (
     _BUCKET_ID_FROM_URL_RE,
+    _COMMIT_HASH_RE,
     _JOB_ID_FROM_URL_RE,
+    _MARKER_TMP_RE,
+    _REPO_DIR_RE,
     _REPO_ID_FROM_RESOLVE_URL_RE,
     _REPO_ID_FROM_URL_RE,
     _REPO_URL_SUBPATHS,
     BUCKET_API_RE,
     REPO_API_RE,
-    _COMMIT_HASH_RE,
 )
+
+logger = logging.getLogger(__name__)
 
 
 class HFHTTPApi(HTTPMixin):
@@ -294,58 +304,146 @@ class HFHTTPApi(HTTPMixin):
                 res,
             ) from e
 
+    def hf_hub_url(
+        self,
+        repo_id: str,
+        filename: str,
+        *,
+        repo_type: str,
+        revision: str = "main",
+    ) -> str:
+        if not revision:
+            revision = "main"
+        
+        if repo_type in hf_constant.REPO_TYPES_URL_PREFIXES:
+            repo_id = hf_constant.REPO_TYPES_URL_PREFIXES[repo_type] + repo_id
 
-class HFCachedFIle(CachedFile):
-    
-    cache_dir = CachedFile.cache_dir / "hf_hub"
-    repo_id: str | None = None
-    repo_type: str | None = None
-    revision: str | None = None
-    etag: str | None = None
-    
-    _relative_filename: str | None = None
+        return f"{repo_id}/resolve/{quote(revision, safe='')}/{quote(filename)}"
 
-    def _repo_folder_name(self, repo_id: str, repo_type: str) -> str:
+class HFCachedFile(CachedFile):
+    
+    _cache_dir = CachedFile._cache_dir / "hf_hub"
+    
+    def __init__(
+        self,
+        *,
+        repo_id: str,
+        repo_type: str,
+        revision: str | None = None,
+        etag: str | None = None,
+        **kwargs
+    ) -> None:
+        self._revision: str | None = None
+
+        self.repo_id = repo_id
+        self.repo_type = repo_type
+        self.revision = revision
+        self.etag = etag
+        super().__init__(**kwargs)
+
+    def register(self):
+        self._cached_files[self.make_cache_key(repo_id=self.repo_id, repo_type=self.repo_type, cache_dir=self.cache_dir)] = self
+    
+    @classmethod
+    def make_cache_key(cls, repo_id: str, repo_type: str, **kwargs) -> tuple:
+        key = super().make_cache_key(**kwargs)
+        return key + (repo_id, repo_type,)
+
+    @classmethod
+    def get_cached_file(
+        cls,
+        *,
+        repo_id: str,
+        repo_type: str,
+        revision: str,
+        etag: str | None = None,
+        cache_dir: str | Path | None = None,
+        filename: str | None = None,
+    ) -> "HFCachedFile":
+        cache_key = cls.make_cache_key(repo_id=repo_id, repo_type=repo_type, cache_dir=cache_dir)
+        cache_file = cls._cached_files.get(cache_key, None)
+
+        if not cache_file:
+            cache_file = cls(
+                repo_id=repo_id,
+                repo_type=repo_type,
+                filename=filename,
+                cache_dir=cache_dir,
+                revision=revision,
+                etag=etag,
+            )
+        else:
+            # Copy it so that its not using the original object
+            cache_file = copy.deepcopy(cache_file)
+        
+        if filename is not None:
+            cache_file.filename = filename
+
+        if revision is not None:
+            cache_file.revision = revision
+
+        if etag is not None:
+            cache_file.etag = etag
+        
+        return cache_file
+
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _format_repo_folder_name(repo_id: str, repo_type: str) -> str:
         return "--".join([f"{repo_type}s", *repo_id.split("/")])
+
+    @cached_property
+    def repo_folder_name(self) -> str:
+        return self._format_repo_folder_name(self.repo_id, self.repo_type)
 
     @property
     def revision_is_commit(self):
-        return _COMMIT_HASH_RE.fullmatch(self.revision)
+        if not self.revision:
+            raise OSError(f"Revision is required to know its resolved but get: {self.revision}")
+        return _COMMIT_HASH_RE.fullmatch(self.revision) is not None
 
     @property
-    def revision(self):
-        return self.revision
+    def revision(self) -> str | None:
+        return self._revision
 
     @revision.setter
-    def revision(self, commit_hash: str):
-        self.revision = commit_hash
-        if self.revision != commit_hash:
-            if not self.ref_path.exists() or commit_hash != self.ref_path.read_text():
-                tmp_path = self.ref_path.with_name(f"{self.ref_path.name}.{uuid.uuid4().hex[:8]}.tmp")
-                tmp_path.write_text(commit_hash)
-                os.replace(tmp_path, self.ref_path)
+    def revision(self, commit_hash: str | None) -> None:
+        if self._revision and self._revision != commit_hash and (
+            not self.ref_path.exists() or commit_hash != self.ref_path.read_text()
+        ):
+            self.ref_path.parent.mkdir(parents=True, exist_ok=True)
+            tmp_path = self.ref_path.with_name(f"{self.ref_path.name}.{uuid.uuid4().hex[:8]}.tmp")
+            tmp_path.write_text(commit_hash)
+            os.replace(tmp_path, self.ref_path)
+        self._revision = commit_hash
 
     @property
     def ref_path(self) -> Path:
-        ref_path = self.storage_dir / "refs" / self.revision
-        ref_path.mkdir(parents=True, exist_ok=True)
-        return ref_path
+        if not self.revision:
+            raise OSError(f"Revision is required to get ref_path but get: {self.revision}")
+        return self.storage_dir / "refs" / self.revision
 
-    @cached_property
-    def locks_path(self) -> Path:
-        return self.cache_dir / self._repo_folder_name(self.repo_id, self.repo_type) / f"{self.etag}.lock"
+    @property
+    def lock_path(self) -> Path:
+        if not self.etag:
+            raise OSError(f"Etag is required to create the lock_path but got: {self.etag}")
+        return self.as_extended_path(self.cache_dir / self.repo_folder_name / f"{self.etag}.lock")
 
     @property
     def storage_dir(self) -> Path:
-        return self.cache_dir / self._repo_folder_name(self.repo_id, self.repo_type)
+        return self.cache_dir / self.repo_folder_name
 
-    @cached_property
+    @property
     def snapshot_dir(self) -> Path:
         return self.storage_dir / "snapshots"
 
-    @cached_property
+    @property
     def pointer_path(self) -> Path:
         """Symlink pointer path"""
+        if not self.revision:
+            raise OSError(f"Revision is required to get pointer_path but get: {self.revision}")
+        if not self.filename:
+            raise OSError(f"Filename is required to get pointer_path but get: {self.filename}")
         # [WARNING !!!] Don't use resolve on Symlink
         pointer_path = self.snapshot_dir / self.revision / self.filename
         if self.snapshot_dir.absolute() not in pointer_path.absolute().parents:
@@ -355,3 +453,298 @@ class HFCachedFIle(CachedFile):
                 f" `relative_filename='{self.filename}'`."
             )
         return
+
+    @property
+    def blob_path(self) -> Path:
+        if not self.etag:
+            raise OSError(f"Etag is required to create the lock_path but got: {self.etag}")
+        return self.as_extended_path(self.storage_dir / "blobs" / self.etag)
+
+    @property
+    def no_exist_file_path(self) -> Path:
+        if not self.revision:
+            raise OSError(f"Revision is needed to get no exist file path but got: {self.revision}")
+        if not self.filename:
+            raise OSError(f"Filename is needed to get no exist file path but got: {self.filename}")
+        return self.storage_dir / ".no_exist" / self.revision / self.filename
+
+    def cache_no_exists(self):
+        """Will only cache on non-existant file from server."""
+        if not self.no_exist_file_path.exists():
+            try:
+                self.no_exist_file_path.parent.mkdir(parents=True, exist_ok=True)
+                self.no_exist_file_path.touch()
+            except OSError as e:
+                logger.error(
+                    f"Could not cache non-existence of file. Will ignore error and continue. Error: {e}"
+                )
+
+    # Shared Store Xet
+    @property
+    def shared_blob_dir(self) -> Path:
+        return self.cache_dir / hf_constant.SHARED_BLOBS_DIR_NAME
+
+    @property
+    def shared_blob_path(self) -> Path:
+        if not self.is_xet_hash_valid:
+            raise ValueError(f"Invalid Xet file hash: '{self.xet_hash}'.")
+        return self.shared_blob_dir / self.xet_hash[:2] / self.xet_hash
+    
+    @property
+    def is_xet_hash_valid(self) -> bool:
+        if self.xet_hash is None:
+            return False
+        return _xet._XET_HASH_RE.fullmatch(self.xet_hash) is not None
+    
+    @property
+    def xet_hash(self) -> str:
+        return self._xet_hash
+
+    @xet_hash.setter
+    def xet_hash(self, value: str | None):
+        self._xet_hash = value
+
+    @property
+    def relative_blob_path(self) -> str | None:
+        blob_path = self.as_striped_path(self.blob_path)
+        cache_dir = self.as_striped_path(self.cache_dir)
+        try:
+            relative_path = blob_path.relative_to(cache_dir)
+        except ValueError:
+            return None
+        if (len(relative_path.parts) != 3
+            or relative_path.parts[1] != "blobs"
+            or not relative_path.parts[2]
+            or _REPO_DIR_RE.fullmatch(relative_path.parts[0]) is None
+        ):
+            return None
+        relative_str = relative_path.as_posix()
+        return None if "\n" in relative_str or "\r" in relative_str else relative_str
+
+    def get_shared_blob_prefix_dir(self) -> Path | None:
+        if not self._ensure_shared_blobs_dir():
+            return None
+        prefix_dir = self.shared_blob_path.parent
+        try:
+            prefix_dir.mkdir(exist_ok=True)
+        except OSError as e:
+            logger.debug(f"Could not create shared blob prefix directory '{prefix_dir}': {e}")
+            return None
+        if not self.is_dir(prefix_dir):
+            logger.debug(f"Refusing to use non-directory shared blob prefix '{prefix_dir}'.")
+            return None
+        try:
+            self._repair_shared_directory_mode(prefix_dir, self.cache_dir)
+        except OSError as e:
+            logger.debug(f"Could not set shared blob prefix permissions on '{prefix_dir}': {e}")
+            return None
+        return prefix_dir
+
+    @staticmethod
+    def is_shared_blob_dir(path: str | Path) -> bool:
+        path = Path(path)
+        marker_path = path / hf_constant.SHARED_BLOBS_MARKER_NAME
+        if not CachedFile.is_dir(path) or not CachedFile.is_regular_file(marker_path):
+            return False
+        try:
+            return marker_path.read_text() == f"{hf_constant.SHARED_BLOBS_LAYOUT_VERSION}"
+        except OSError:
+            return False
+
+    def _cleanup_abandoned_marker_temps(self) -> bool:
+        """Remove leftover marker temporaries.
+
+        Returns whether the directory is empty afterwards, i.e. safe to mark. Any foreign content returns False.
+        """
+        expected_content = f"{hf_constant.SHARED_BLOBS_LAYOUT_VERSION}\n"
+        entries = list(self.shared_blob_dir.iterdir())
+        for entry in entries:
+            if _MARKER_TMP_RE.fullmatch(entry.name) is None or not self.is_regular_file(entry):
+                return False
+            try:
+                if not expected_content.startswith(entry.read_text()):
+                    return False
+            except (OSError, UnicodeError):
+                return False
+        for entry in entries:
+            entry.unlink(missing_ok=True)
+        return not any(self.shared_blob_dir.iterdir())
+
+    def _ensure_shared_blobs_dir(self) -> bool:
+        """Create and mark the shared store, refusing to adopt an unmarked directory."""
+        marker_path = self.shared_blob_dir / hf_constant.SHARED_BLOBS_MARKER_NAME
+        try:
+            self.shared_blob_dir.mkdir(exist_ok=True)
+            if self.is_shared_blob_dir(self.shared_blob_dir):
+                return True
+            if not self.is_dir(self.shared_blob_dir) or not self._cleanup_abandoned_marker_temps():
+                logger.debug(f"Refusing to use unmarked shared blob directory '{self.shared_blob_dir}'.")
+                return False
+            self._repair_shared_directory_mode(self.shared_blob_dir, self.cache_dir)
+
+            tmp_marker = marker_path.with_name(f"{marker_path.name}.{secrets.token_hex(4)}.tmp")
+            try:
+                tmp_marker.write_text(f"{hf_constant.SHARED_BLOBS_LAYOUT_VERSION}\n")
+                tmp_marker.chmod(self._shared_blob_mode(self.cache_dir))
+                os.replace(tmp_marker, marker_path)
+            finally:
+                tmp_marker.unlink(missing_ok=True)
+            return self.is_shared_blob_dir(self.shared_blob_dir)
+        except OSError as e:
+            logger.debug(f"Could not initialize shared blob directory '{self.shared_blob_dir}': {e}")
+            return False
+
+    def is_shared_blob_usable(self, expected_size: int | None) -> bool:
+        if expected_size is None:
+            return False
+        try:
+            store_stat = self.shared_blob_path.lstat()
+        except OSError:
+            return False
+        if not stat.S_ISREG(store_stat.st_mode):
+            return False
+        if store_stat.st_size != expected_size:
+            logger.warning(
+                f"Shared blob '{self.shared_blob_path}' has an unexpected size "
+                f"({store_stat.st_size} instead of {expected_size}). Not using it."
+            )
+            return False
+        if not os.access(self.shared_blob_path, os.R_OK):
+            logger.warning(f"Shared blob '{self.shared_blob_path}' is not readable. Not using it.")
+            return False
+        return True
+
+    def get_shared_blob_temp_symlink(self) -> Path:
+        tmp_link = self.blob_path.with_name(f".{self.blob_path.name}.{secrets.token_hex(4)}.shared")
+        relative_target = os.path.relpath(
+            self.as_striped_path(self.shared_blob_path), start=self.as_striped_path(self.blob_path).parent
+        )
+        os.symlink(relative_target, str(tmp_link))
+        return tmp_link
+
+    def store_manifest_refs(self) -> None:
+        manifest_path = self.shared_blob_path.with_name(f"{self.shared_blob_path.name}.refs")
+        flags = os.O_WRONLY | os.O_APPEND | os.O_CREAT
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        fd = os.open(manifest_path, flags, 0o666)
+        try:
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
+                raise OSError(f"Shared blob manifest is not a regular file: '{manifest_path}'.")
+            if hasattr(os, "fchmod"):
+                try:
+                    os.fchmod(fd, 0o666)
+                except OSError:
+                    pass
+            line = f"{self.relative_blob_path}\n".encode()
+            if os.write(fd, line) != len(line):
+                raise OSError(f"Could not append a complete reference to '{manifest_path}'.")
+            os.fsync(fd)
+        finally:
+            os.close(fd)
+    
+    def is_shared_blob_exist(self, expected_size: int | None) -> bool:
+        """Materialize `blobs/<etag>` as a symlink to an existing store entry, if any.
+    
+        The reference manifest is flushed before the symlink becomes visible. Failures are
+        best-effort misses and leave the regular download path untouched.
+        """
+        if not self.is_xet_hash_valid or not self.is_shared_blob_dir(self.shared_blob_dir) or expected_size is None:
+            return False
+
+        if self.relative_blob_path is None:
+            return False
+
+        tmp_link: Path | None = None
+        lock_path = self.shared_blob_path.with_name(f"{self.shared_blob_path.name}.lock")
+        try:
+            with self.FileLock(lock_path):
+                if not self.is_shared_blob_usable(expected_size):
+                    return False
+
+                tmp_link = self.get_shared_blob_temp_symlink()
+                self.store_manifest_refs()
+                os.replace(str(tmp_link), str(self.blob_path))
+        except OSError as e:
+            logger.debug(f"Could not symlink '{self.blob_path}' from shared blob store: {e}")
+            return False
+        finally:
+            if tmp_link is not None:
+                tmp_link.unlink(missing_ok=True)
+            
+        logger.debug(f"Blob '{self.blob_path}' reused from shared blob store (no download needed).")
+        return True
+
+    def _prepare_shared_blob_permissions(self, prefix_dir: Path) -> None:
+        """Make a payload immutable and readable according to the shared cache policy."""
+        blob_mode = self._shared_blob_mode(self.cache_dir)
+        os.chmod(str(self.blob_path), blob_mode)
+        if os.name == "nt" or not hasattr(os, "chown"):
+            return
+        target_gid = prefix_dir.stat().st_gid
+        if self.blob_path.stat().st_gid == target_gid:
+            return
+        try:
+            os.chown(str(self.blob_path), -1, target_gid)
+        except OSError:
+            # Without other-read, a wrong group makes the entry unreadable to other users: fall back to repo-local.
+            if blob_mode & stat.S_IRGRP and not blob_mode & stat.S_IROTH:
+                raise
+
+    def store_shared_blob(self, expected_size: int | None, replace_existing: bool = False) -> bool:
+        """Move a fresh Xet download into the store and replace its repo blob with a symlink.
+
+        Best-effort: on failure the repo blob remains (or is restored as) a regular local
+        file. Returns whether the repo blob was successfully shared.
+        """
+        if not self.is_xet_hash_valid or not expected_size:
+            return False
+
+        prefix_dir = self.get_shared_blob_prefix_dir()
+        if self.relative_blob_path is None or prefix_dir is None:
+            return False
+
+        tmp_link: Path | None = None
+        lock_path = self.shared_blob_path.with_name(f"{self.shared_blob_path.name}.lock")
+        blob_moved = False
+        try:
+            with self.FileLock(lock_path):
+                tmp_link = self.get_shared_blob_temp_symlink()
+                store_is_usable = not replace_existing and self.is_shared_blob_usable(expected_size)
+                self.store_manifest_refs()
+
+                if not store_is_usable:
+                    self._prepare_shared_blob_permissions(prefix_dir)
+                    os.replace((self.blob_path), str(self.shared_blob_path))
+                    blob_moved = True
+
+                try:
+                    os.replace(str(tmp_link), str(self.blob_path))
+                except OSError:
+                    if blob_moved:
+                        shutil.copyfile(str(self.shared_blob_path), str(self.blob_path))  # restore under the lock, before GC can run
+                        blob_moved = False
+                    raise
+
+        except OSError as e:
+            logger.debug(f"Could not publish '{self.blob_path}' to shared blob store: {e}")
+            if blob_moved:
+                raise OSError(f"Could not restore repo blob '{self.blob_path}' after shared-store failure") from e
+            return False
+
+        finally:
+            if tmp_link is not None:
+                tmp_link.unlink(missing_ok=True)
+
+        logger.debug(f"Blob '{self.blob_path}' published to shared blob store.")
+        return True
+
+if __name__ == "__main__":
+    from rich import inspect
+    repo_id = "test/iantirta"
+    repo_type = "model"
+    file1 = HFCachedFile(repo_type=repo_type, repo_id=repo_id, revision="main", filename="hello.py")
+    file2 = HFCachedFile(repo_type=repo_type, repo_id=repo_id,)
+    file3 = HFCachedFile(repo_type=repo_type, repo_id=repo_id, cache_dir="~/123")
+    file4 = HFCachedFile(repo_type=repo_type, repo_id=repo_id, cache_dir="~/123", filename="hello.py")
+    inspect(file1)
