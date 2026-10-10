@@ -37,11 +37,9 @@ class HFHTTPApi(HTTPMixin):
     _WARNED_TOPICS = set()  # noqa: RUF012
 
     def _warn_on_warning_headers(self, headers: dict[str, str]) -> None:
-        server_warnings = []
-        for k, v in headers.items():
-            if k.lower() == "x-hf-warning":
-                server_warnings.append(v)
-        
+        server_warnings = headers.getlist("X-HF-Warning")
+        if len(server_warnings) == 1 and "," in server_warnings[0]:
+            server_warnings = server_warnings[0].split(",")
         for warning in server_warnings:
             topic, message = warning.split(";", 1) if ";" in warning else ("", warning)
             topic = topic.strip()
@@ -161,7 +159,7 @@ class HFHTTPApi(HTTPMixin):
 
     def raise_for_status(self, res: requests.Response, endpoint_name: str | None = None) -> None:
         try:
-            self._warn_on_warning_headers(res.headers)
+            self._warn_on_warning_headers(res.raw.headers)
         except Exception as e:
             self.logger.debug(f"Failed to parse warning headers: {e}", exc_info=True)
 
@@ -309,9 +307,12 @@ class HFHTTPApi(HTTPMixin):
         repo_id: str,
         filename: str,
         *,
-        repo_type: str,
+        repo_type: str = "model",
         revision: str = "main",
     ) -> str:
+        if not repo_type:
+            repo_type = "model"
+        
         if not revision:
             revision = "main"
         
@@ -319,6 +320,7 @@ class HFHTTPApi(HTTPMixin):
             repo_id = hf_constant.REPO_TYPES_URL_PREFIXES[repo_type] + repo_id
 
         return f"{repo_id}/resolve/{quote(revision, safe='')}/{quote(filename)}"
+
 
 class HFCachedFile(CachedFile):
     
@@ -397,10 +399,10 @@ class HFCachedFile(CachedFile):
         return self._format_repo_folder_name(self.repo_id, self.repo_type)
 
     @property
-    def revision_is_commit(self):
+    def revision_is_commit(self) -> bool:
         if not self.revision:
             raise OSError(f"Revision is required to know its resolved but get: {self.revision}")
-        return _COMMIT_HASH_RE.fullmatch(self.revision) is not None
+        return bool(_COMMIT_HASH_RE.fullmatch(self.revision))
 
     @property
     def revision(self) -> str | None:

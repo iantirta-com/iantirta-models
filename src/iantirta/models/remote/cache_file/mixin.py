@@ -40,7 +40,7 @@ class CachedFile:
         if not cache_dir:
             cache_dir = cls._cache_dir
         cache_dir = str(cache_dir)
-        return tuple(cache_dir,)
+        return (cache_dir,)
 
     @classmethod
     def get_cached_file(cls, *, cache_dir: str | Path | None, filename: str | None) -> "CachedFile":

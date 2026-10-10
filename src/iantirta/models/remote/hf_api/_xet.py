@@ -4,8 +4,20 @@ import threading
 from typing import Any
 from .types import XetFileData
 from pathlib import Path
+import os
+import logging
+from dataclasses import dataclass
+import time
+from . import hf_constant
+from ._xet_progress import XetDownloadProgressReporter
+
+logger = logging.getLogger(__name__)
+
 
 _XET_HASH_RE = re.compile(r"[0-9a-f]{64}")
+
+XET_CONNECTION_INFO_SAFETY_PERIOD = 60  # seconds
+
 
 @lru_cache
 def available() -> bool:
@@ -16,6 +28,31 @@ def available() -> bool:
 
     return True
 
+
+@dataclass(frozen=True)
+class XetConnectionInfo:
+    access_token: str
+    expiration_unix_epoch: int
+    endpoint: str
+
+    @classmethod
+    def from_headers(cls, headers: dict[str, str]) -> "XetConnectionInfo | None":
+        try:
+            endpoint = headers[hf_constant.HUGGINGFACE_HEADER_X_XET_ENDPOINT]
+            access_token = headers[hf_constant.HUGGINGFACE_HEADER_X_XET_ACCESS_TOKEN]
+            expiration_unix_epoch = int(headers[hf_constant.HUGGINGFACE_HEADER_X_XET_EXPIRATION])
+        except (KeyError, ValueError, TypeError):
+            return None
+    
+        return cls(
+            endpoint=endpoint,
+            access_token=access_token,
+            expiration_unix_epoch=expiration_unix_epoch,
+        )
+
+    @property
+    def is_expired(self) -> bool:
+        return self.expiration_unix_epoch <= int(time.time()) + XET_CONNECTION_INFO_SAFETY_PERIOD
 
 
 class XetSessionHolder:
@@ -69,6 +106,7 @@ class XetSessionHolder:
 
 _xet_session: XetSessionHolder = XetSessionHolder()
 
+
 def get_xet_session():
     """Return the global :class:`hf_xet.XetSession`, creating it on first call.
 
@@ -76,7 +114,7 @@ def get_xet_session():
     client returned by :func:`~huggingface_hub.utils._http.get_session` is shared.
     It is created lazily and is fork-safe and thread-safe.
     """
-    return _GLOBAL_XET_HOLDER.get()
+    return _xet_session.get()
 
 
 def abort_xet_session():
@@ -85,13 +123,30 @@ def abort_xet_session():
     Cancels any in-flight Rust operation and clears the session so the next
     call to :func:`get_xet_session` starts fresh (notebook-friendly).
     """
-    _GLOBAL_XET_HOLDER.sigint_abort()
+    _xet_session.sigint_abort()
 
 
 class HFXetAPI:
+    __lock = threading.Lock() # is this lock the same across different thread and instance?
+    _key_locks: dict[str, threading.Lock]
+
+    _connection_infos_max_size: int = 1_000
+    _connection_infos: dict[str,"XetConnectionInfo"] = {}
+
     def __init__(self):
         super().__init__()
         self.xet_session = get_xet_session()
+
+    def _cache_key(self, url: str, headers: dict[str, str]) -> str:
+        """Return a unique cache key for the given request parameters."""
+        lower_headers = {k.lower(): v for k, v in headers.items()}  # casing is not guaranteed here
+        auth_header = lower_headers.get("authorization", "")
+        return f"{url}|{auth_header}"
+
+    def key_lock(self, cache_key: str):
+        """Return the lock guarding token fetches for `cache_key`, creating it if needed."""
+        with HFXetAPI.__lock:
+            return HFXetAPI._key_locks.setdefault(cache_key, threading.Lock())
 
     def _make_xet_headers_without_auth(self, headers: dict[str, str]) -> dict[str, str]:
         """Return a copy of headers with the authorization header removed.
@@ -100,6 +155,48 @@ class HFXetAPI:
         Hub authorization header must not be forwarded to xet storage endpoints.
         """
         return {key: value for key, value in headers.items() if key.lower() != "authorization"}
+
+    def refresh_xet_connection_info(self, *, file_data: XetFileData, headers: dict[str, str],) -> XetConnectionInfo:
+        if file_data.refresh_route is None:
+            raise ValueError("The provided xet metadata does not contain a refresh endpoint.")
+
+        url = file_data.refresh_route
+        # Check cache first
+        cache_key = self._cache_key(url, headers)
+        cached_info = HFXetAPI._connection_infos.get(cache_key)
+        if cached_info is not None and not cached_info.is_expired:
+            return cached_info
+    
+        # A per-key lock collapses concurrent workers into a single token request per expired/missing
+        # key, without blocking fetches for other keys (e.g. other repos downloaded in parallel).
+        with self.key_lock(cache_key):
+            cached_info = HFXetAPI._connection_infos.get(cache_key)
+            if cached_info is not None and not cached_info.is_expired:
+                return cached_info
+    
+            # Fetch from server
+            # This needed to combine with HTTPMixin class
+            resp = self.request("GET", url, headers=headers)
+            self.raise_for_status(resp)
+    
+            metadata = XetConnectionInfo.from_headers(resp.headers)
+            if metadata is None:
+                raise ValueError("Xet headers have not been correctly set by the server.")
+    
+            with HFXetAPI.__lock:
+                # Delete expired cache entries
+                for k, v in list(HFXetAPI._connection_infos.items()):
+                    if v.is_expired:
+                        HFXetAPI._connection_infos.pop(k, None)
+    
+                # Enforce cache size limit
+                if len(HFXetAPI._connection_infos) >= HFXetAPI._connection_infos_max_size:
+                    HFXetAPI._connection_infos.pop(next(iter(HFXetAPI._connection_infos)))
+    
+                # Update cache
+                HFXetAPI._connection_infos[cache_key] = metadata
+    
+            return metadata
 
     def xet_download(
         self,
@@ -130,28 +227,23 @@ class HFXetAPI:
         if len(displayed_filename) > 40:
             displayed_filename = f"{displayed_filename[:40]}(…)"
 
-        from .utils._xet import abort_xet_session, get_xet_session, refresh_xet_connection_info, xet_headers_without_auth
-        from .utils._xet_progress_reporting import XetDownloadProgressReporter
-
         xet_headers = self._make_xet_headers_without_auth(headers)
 
         # Fetched once per repo revision and cached; otherwise each download group would request its own
         # token, i.e. one Hub API call per file (rate-limited on large snapshot downloads, see #4722).
-        connection_info = refresh_xet_connection_info(file_data=xet_file_data, headers=headers)
-
-        session = get_xet_session()
+        connection_info = self.refresh_xet_connection_info(file_data=xet_file_data, headers=headers)
 
         with XetDownloadProgressReporter(
             reconstruction_desc=f"{displayed_filename}: reconstructing file",
             transfer_desc=f"{displayed_filename}: downloading bytes",
             total=expected_size,
             log_level=logger.getEffectiveLevel(),
-            name="huggingface_hub.xet_get",
+            name="iantirta.models.xet_download",
             tqdm_class=tqdm_class,
             external_reconstruction_bar=_tqdm_bar,
         ) as progress:
             try:
-                with session.new_file_download_group(
+                with self.xet_session.new_file_download_group(
                     endpoint=connection_info.endpoint,
                     token=connection_info.access_token,
                     token_expiry_unix_secs=connection_info.expiration_unix_epoch,

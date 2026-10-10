@@ -31,7 +31,8 @@ class HFApi(HFHTTPApi, _xet.HFXetAPI):
     ) -> HFCachedFile:
         return HFCachedFile.get_cached_file(repo_id=repo_id, repo_type=repo_type, filename=filename, revision=revision, **kwargs)
 
-    def get_file_metadata(self, url: str, headers: dict[str, str]) -> HFFileMetadata:
+    def get_file_metadata(self, url: str, headers: dict[str, str] | None = None) -> HFFileMetadata:
+        headers = headers or {}
         headers["Accept-Encoding"] = "identity"  # prevent any compression => we want to know the real size of the file
 
         res = self.request_follow_redirect("HEAD", url)
