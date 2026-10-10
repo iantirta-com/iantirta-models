@@ -1,4 +1,6 @@
 
+from collections.abc import Generator
+from contextlib import contextmanager
 import copy
 import logging
 import os
@@ -11,6 +13,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 import requests
+from filelock import FileLock, SoftFileLock
 
 from ..cache_file import CachedFile
 from ..http import HTTPHeader, HTTPMixin
@@ -29,6 +32,9 @@ from .types import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+_SOFT_LOCK_TIMEOUT = 10
 
 
 class HFHTTPApi(HTTPMixin):
@@ -454,7 +460,7 @@ class HFCachedFile(CachedFile):
                 f" `storage_folder='{self.storage_dir}'`, `revision='{self.revision}'` and"
                 f" `relative_filename='{self.filename}'`."
             )
-        return
+        return pointer_path
 
     @property
     def blob_path(self) -> Path:
@@ -549,7 +555,7 @@ class HFCachedFile(CachedFile):
         if not CachedFile.is_dir(path) or not CachedFile.is_regular_file(marker_path):
             return False
         try:
-            return marker_path.read_text() == f"{hf_constant.SHARED_BLOBS_LAYOUT_VERSION}"
+            return marker_path.read_text() == f"{hf_constant.SHARED_BLOBS_LAYOUT_VERSION}\n"
         except OSError:
             return False
 
@@ -658,9 +664,8 @@ class HFCachedFile(CachedFile):
             return False
 
         tmp_link: Path | None = None
-        lock_path = self.shared_blob_path.with_name(f"{self.shared_blob_path.name}.lock")
         try:
-            with self.FileLock(lock_path):
+            with self.SharedBlobLock():
                 if not self.is_shared_blob_usable(expected_size):
                     return False
 
@@ -707,10 +712,9 @@ class HFCachedFile(CachedFile):
             return False
 
         tmp_link: Path | None = None
-        lock_path = self.shared_blob_path.with_name(f"{self.shared_blob_path.name}.lock")
         blob_moved = False
         try:
-            with self.FileLock(lock_path):
+            with self.SharedBlobLock():
                 tmp_link = self.get_shared_blob_temp_symlink()
                 store_is_usable = not replace_existing and self.is_shared_blob_usable(expected_size)
                 self.store_manifest_refs()
@@ -741,12 +745,37 @@ class HFCachedFile(CachedFile):
         logger.debug(f"Blob '{self.blob_path}' published to shared blob store.")
         return True
 
-if __name__ == "__main__":
-    from rich import inspect
-    repo_id = "test/iantirta"
-    repo_type = "model"
-    file1 = HFCachedFile(repo_type=repo_type, repo_id=repo_id, revision="main", filename="hello.py")
-    file2 = HFCachedFile(repo_type=repo_type, repo_id=repo_id,)
-    file3 = HFCachedFile(repo_type=repo_type, repo_id=repo_id, cache_dir="~/123")
-    file4 = HFCachedFile(repo_type=repo_type, repo_id=repo_id, cache_dir="~/123", filename="hello.py")
-    inspect(file1)
+    @contextmanager
+    def SharedBlobLock(self) -> Generator[None, None, None]:
+        """Lock publication, reference creation, and GC for one content hash."""
+        lock_path = self.shared_blob_path.with_name(f"{self.shared_blob_path.name}.lock")
+        # Create the lock file ourselves: `O_NOFOLLOW` refuses a planted symlink and 0o666 lets other users of a
+        # shared cache take the same lock. `FileLock` alone would follow symlinks and apply the umask.
+        flags = os.O_WRONLY | os.O_CREAT
+        if hasattr(os, "O_NOFOLLOW"):
+            flags |= os.O_NOFOLLOW
+        fd = os.open(lock_path, flags, 0o666)
+        try:
+            if not stat.S_ISREG(os.fstat(fd).st_mode):
+                raise OSError(f"Shared blob lock is not a regular file: '{lock_path}'.")
+            if hasattr(os, "fchmod"):
+                try:
+                    os.fchmod(fd, 0o666)
+                except OSError:
+                    pass
+        finally:
+            os.close(fd)
+        lock = FileLock(lock_path, mode=0o666)
+        try:
+            lock.acquire()
+        except NotImplementedError:
+            # SoftFileLock uses file existence as the lock, so it cannot reuse the flock file above.
+            lock = SoftFileLock(f"{lock_path}.soft", mode=0o666)
+            lock.acquire(timeout=_SOFT_LOCK_TIMEOUT)
+        try:
+            yield
+        finally:
+            try:
+                lock.release()
+            except OSError:
+                pass

@@ -25,9 +25,7 @@ class HFHubHTTPError(requests.HTTPError, OSError):
             or response.headers.get("x-amz-cf-id")
         )
         self.server_message = server_message
-        self.response = response
-        self.request = response.request
-        super().__init__(message)
+        super().__init__(message, response=response)
 
     
     def append_to_message(self, additional_message: str) -> None:

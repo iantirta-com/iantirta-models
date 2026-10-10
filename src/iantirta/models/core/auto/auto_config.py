@@ -5,10 +5,7 @@ from collections import OrderedDict
 
 from ..config import PreTrainedConfig
 
-__all__ = [
-    "CONFIG_MAPPING",
-    "AutoConfig",
-]
+
 
 CONFIG_MAPPING_NAMES = OrderedDict(
     [
@@ -122,3 +119,9 @@ class AutoConfig:
             f"Unrecognized model in {pretrained_model_name_or_path}. "
             f"Should have a `model_type` key in its 'config.json'."
         )
+
+
+__all__ = [
+    "CONFIG_MAPPING",
+    "AutoConfig",
+]

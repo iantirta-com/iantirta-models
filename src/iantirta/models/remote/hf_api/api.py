@@ -1,10 +1,12 @@
 import logging
+import os
 import uuid
 from pathlib import Path
 from urllib.parse import quote
 
 import requests
 
+from .._file_lock import WeakFileLock
 from . import _xet, hf_constant
 from .errors import (
     FileMetadataError,
@@ -19,7 +21,7 @@ from .types import HFFileMetadata, ModelInfo, ResolvedRevision, XetFileData
 logger = logging.getLogger(__name__)
 
 
-class HFApi(HFHTTPApi, _xet.HFXetAPI):
+class HFApi(_xet.HFXetAPI, HFHTTPApi):
 
     def get_cache_file(
         self,
@@ -86,13 +88,14 @@ class HFApi(HFHTTPApi, _xet.HFXetAPI):
                     cache_file.revision = commit_hash
                     cache_file.cache_no_exists()
             raise
-        except RevisionNotFoundError as e:
+        except RevisionNotFoundError:
             raise
         except Exception as e:
             if isinstance(e, (requests.exceptions.ConnectTimeout, requests.Timeout, requests.HTTPError, HFHubHTTPError)):
                 # Try to get from cache file
-                if local_only != False and not cache_file.revision_is_commit and cache_file.ref_path.is_file():
-                    self.revision = cache_file.ref_path.read_text()
+                if local_only != False:
+                    if not cache_file.revision_is_commit and cache_file.ref_path.is_file():
+                        cache_file.revision = cache_file.ref_path.read_text()
                     if cache_file.pointer_path.exists():
                         return cache_file.pointer_path
                 raise
@@ -130,10 +133,10 @@ class HFApi(HFHTTPApi, _xet.HFXetAPI):
 
         cache_file.pointer_path.parent.mkdir(parents=True, exist_ok=True)
         cache_file.blob_path.parent.mkdir(parents=True, exist_ok=True)
-        cache_file.lock_path.parent.mkdir(parents=True)
+        cache_file.lock_path.parent.mkdir(parents=True, exist_ok=True)
 
         if local_only != False and cache_file.blob_path.exists():
-            with cache_file.FileLock(cache_file.lock_path):
+            with WeakFileLock(cache_file.lock_path):
                 if not cache_file.pointer_path.exists():
                     cache_file.create_symlink(cache_file.blob_path, cache_file.pointer_path, new_blob=False)
                 return cache_file.pointer_path
@@ -144,12 +147,13 @@ class HFApi(HFHTTPApi, _xet.HFXetAPI):
         # (see `utils/_shared_blobs.py`).
         shared_blob_hash = (
             file_metadata.xet_file_data.file_hash
-            if file_metadata.xet_file_data is not None and cache_file(cache_file.cache_dir)
+            if file_metadata.xet_file_data is not None
+            and cache_file.support_symlink(cache_file.cache_dir)
             else None
         )
         cache_file.xet_hash = shared_blob_hash
     
-        with cache_file.FileLock(cache_file.lock_path):
+        with WeakFileLock(cache_file.lock_path):
             reused_blob_from_store = (
                 shared_blob_hash is not None
                 and local_only != False
@@ -228,6 +232,35 @@ class HFApi(HFHTTPApi, _xet.HFXetAPI):
             # No-op on success (file has been moved). On failure, do not keep a partial file around:
             # it could not be reused anyway since the temporary name is unique to this download.
             tmp_path.unlink(missing_ok=True)
+
+    def load_file_from_cache(
+        self,
+        repo_id: str,
+        filename: str,
+        *,
+        revision: str = "main",
+        repo_type: str = "model",
+        cache_dir: str | None = None,
+    ) -> Path | None:
+        if not revision:
+            revision = "main"
+
+        if not repo_type:
+            repo_type = "model"
+
+        cache_file = self.get_cache_file(repo_id, repo_type, filename=filename, revision=revision, cache_dir=cache_dir)
+
+        if not cache_file.storage_dir.is_dir():
+            return None
+
+        if cache_file.ref_path.is_file():
+            cache_file.revision = cache_file.ref_path.read_text()
+
+        if cache_file.no_exist_file_path.is_file():
+            return None
+
+        return cache_file.pointer_path if cache_file.pointer_path.is_file() else None
+        
 
     def model_info(self, repo_id: str, *, revision: str ="main"):
         if not revision:
@@ -324,37 +357,141 @@ class HFApi(HFHTTPApi, _xet.HFXetAPI):
     def list_repo_tree(
         self,
         repo_id: str,
-        subfolder: str,
+        path_in_repo: str | None = None,
         *,
         revision: str = "main",
         repo_type: str = "model",
         recursive: bool = False,
         expand: bool = False,
     ):
-        revision = revision or "main"
-        repo_type = repo_type or "model"
-        encoded_subfolder = (
-            "/" + quote(subfolder, safe="")
-            if subfolder
-            else ""
-        )
+        if not revision:
+            revision = "main"
+        revision = quote(revision, safe="")
+
+        if not repo_type:
+            repo_type = "model"
+
+        encoded_path_in_repo = "/" + quote(path_in_repo, safe="") if path_in_repo else ""
+        
         path = (
             f"api/{repo_type}s/{repo_id}/"
-            f"tree/{revision}{encoded_subfolder}"
+            f"tree/{revision}{encoded_path_in_repo}"
         )
-        self.paginate(
-            path=path,
-            params={
-                "recursive": recursive, "expand": expand
-            }
-        )
+        from pprint import pprint
+        for path_info in self.paginate(url=path, params={"recursive": recursive, "expand": expand}):
+            pprint(path_info)
 
 
-if __name__ == "__main__":
-    from rich import inspect
-    # repo_id = "Qwen/Qwen3-ASR-1.7B-hf"
-    repo_id = "facebook/mms-1b-all"
-    api = HFApi()
-    inspect(api.resolve_revision(repo_id, local_only=False))
-    cache_file = api.get_cache_file(repo_id=repo_id, repo_type="model")
-    inspect(cache_file)
+_hf_api: HFApi | None = None
+
+
+def get_hf_api():
+    global _hf_api
+
+    if _hf_api is None:
+        _hf_api = HFApi()
+
+    return _hf_api
+
+
+# Transfromers implemenetation
+
+def resolve_revision(
+    path_or_repo_id: str | os.PathLike | None,
+    revision: str = "main",
+    *,
+    repo_type: str = "model",
+    local_only: bool = False,
+) -> str | None:
+    if os.path.exists(path_or_repo_id):
+        return revision
+
+    try:
+        get_hf_api().resolve_revision(
+            str(path_or_repo_id),
+            repo_type=repo_type,
+            revision=revision,
+            local_only=local_only
+        )
+    except Exception:
+        # Fail open: any error (repo not found, gated repo, rate limit, no network, ...) is reported by the regular
+        # loading path, with a much more helpful error message - or recovered from, using the local cache. Only the
+        # revision the caller asked for is kept: a revision resolved for another repository does not apply here.
+        logger.debug(f"Could not resolve revision {revision} of {path_or_repo_id}.", exc_info=True)
+        return revision
+
+
+def cached_file(
+    path_or_repo_id: str | os.PathLike,
+    filename: str,
+    **kwargs,
+):
+    file = cached_files(
+        path_or_repo_id=path_or_repo_id,
+        filenames=[filename],
+        **kwargs
+    )
+    file = file[0] if file is not None else file
+    return file
+
+
+def cached_files(
+    path_or_repo_id: str | os.PathLike,
+    filenames: list[str],
+    *,
+    revision: str = "main",
+    repo_type: str = "model",
+    subfolder: str = "",
+    cache_dir: str | None = None,
+    local_only: bool | None = None,
+    **unused_kwargs
+):
+    if unused_kwargs:
+        logger.warning(f"Unused Kwargs for `cached_files` parameters: {unused_kwargs!r}")
+
+    
+    if len(filenames) == 1:
+        result = get_hf_api().hf_hub_download(
+            path_or_repo_id,
+            filenames[0],
+            subfolder=subfolder,
+            repo_type=repo_type,
+            revision=revision,
+            cache_dir=cache_dir,
+            local_only=local_only
+        )
+        return [str(result)]
+    else:
+        raise NotImplementedError()
+
+
+def has_file(
+    path_or_repo_id: str | os.PathLike,
+    filename: str,
+    *,
+    revision: str = "main",
+    repo_type: str = "model",
+):
+    # If path to local directory, check if the file exists
+    if os.path.isdir(path_or_repo_id):
+        return os.path.isfile(os.path.join(path_or_repo_id, filename))
+
+    try:
+        api = get_hf_api()
+        res = api.request_follow_redirect(
+            "head",
+            api.hf_hub_url(path_or_repo_id, filename, revision=revision, repo_type=repo_type)
+        )
+        api.raise_for_status(res)
+        return True
+    except HFHubHTTPError:
+        return api.load_file_from_cache(repo_id=path_or_repo_id, filename=filename, revision=revision, repo_type=repo_type) is not None
+
+
+__all__ = [
+    "HFApi",
+    "cached_file",
+    "cached_files",
+    "get_hf_api",
+    "has_file",
+]

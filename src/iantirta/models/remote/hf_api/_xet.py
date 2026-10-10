@@ -128,14 +128,21 @@ def abort_xet_session():
 
 class HFXetAPI:
     __lock = threading.Lock() # is this lock the same across different thread and instance?
-    _key_locks: dict[str, threading.Lock]
+    _key_locks: dict[str, threading.Lock] = {}
 
     _connection_infos_max_size: int = 1_000
     _connection_infos: dict[str,"XetConnectionInfo"] = {}
 
-    def __init__(self):
-        super().__init__()
-        self.xet_session = get_xet_session()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        try:
+            self.xet_session = get_xet_session()
+        except ImportError:
+            def _xet_unavailable(*args, **kwargs):
+                raise NotImplementedError()
+            self.xet_download = _xet_unavailable
+        else:
+            self.xet_download = self._xet_download
 
     def _cache_key(self, url: str, headers: dict[str, str]) -> str:
         """Return a unique cache key for the given request parameters."""
@@ -198,12 +205,12 @@ class HFXetAPI:
     
             return metadata
 
-    def xet_download(
+    def _xet_download(
         self,
         *,
         incomplete_path: Path,
         xet_file_data: XetFileData,
-        headers: dict[str, str],
+        headers: dict[str, Any] | None = None,
         expected_size: int | None = None,
         displayed_filename: str | None = None,
         tqdm_class: type | None = None,
@@ -219,6 +226,8 @@ class HFXetAPI:
                 "To use optimized download using Xet storage, you need to install the hf_xet package. "
                 'Try `pip install "huggingface_hub[hf_xet]"` or `pip install hf_xet`.'
             )
+
+        headers = dict(headers or {})
 
         if not displayed_filename:
             displayed_filename = incomplete_path.name

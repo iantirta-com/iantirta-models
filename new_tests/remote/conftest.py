@@ -8,8 +8,16 @@ def mms_repo():
     return "facebook/mms-1b-all"
 
 @pytest.fixture
+def qwen_repo():
+    return "Qwen/Qwen3-ASR-1.7B-hf"
+
+@pytest.fixture
 def mock_repo():
     return "pytest/model_name"
+
+@pytest.fixture
+def xet_repo():
+    return "hf-internal-testing/tiny-processor-phi4_multimodal"
 
 @pytest.fixture
 def repo_id(request):

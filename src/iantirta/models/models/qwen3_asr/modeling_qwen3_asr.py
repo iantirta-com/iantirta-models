@@ -624,11 +624,10 @@ class Qwen3ASRForConditionalGeneration(Qwen3ASRPreTrainedModel, GenerationMixin)
             audio_hidden_states=outputs.audio_hidden_states,
         )
 
-
+# "Qwen3ASRForTokenClassification",
 __all__ = [
     "Qwen3ASREncoder",
     "Qwen3ASRForConditionalGeneration",
-    # "Qwen3ASRForTokenClassification",
     "Qwen3ASRModel",
     "Qwen3ASRPreTrainedModel",
 ]

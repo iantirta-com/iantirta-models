@@ -1,6 +1,7 @@
 
 
 
+from contextlib import contextmanager
 import errno
 import os
 import stat
@@ -275,6 +276,7 @@ class CachedFile:
             logger.debug(f"Creating pointer from {src_rel_or_abs} to {dst}")
             try:
                 os.symlink(str(src_rel_or_abs), str(dst))
+                return
             except FileExistsError:
                 if dst.is_symlink():
                     # `abs_dst` already exists and is a symlink to the `abs_src` blob. It is most likely that the file has

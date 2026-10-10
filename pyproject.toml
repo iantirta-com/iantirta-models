@@ -54,6 +54,7 @@ classifiers = [
 
 dependencies = [
     "numpy",
+    "filelock>=3.10.0",
 ]
 
 

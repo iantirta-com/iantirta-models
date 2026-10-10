@@ -8,16 +8,19 @@ from iantirta.models._lazy_import import _LazyModule, define_import_structure
 
 __version__ = version("iantirta-models")
 
+_import_structure = {
+    "core": [],
+}
 
 if TYPE_CHECKING:
-    from .demucs import *
+    from .core import *
 else:
     import sys
     
     _file = globals()["__file__"]
     sys.modules[__name__] = _LazyModule(
         __name__,
-        globals()["__file__"],
+        _file,
         define_import_structure(_file),
         module_spec=__spec__,
         extra_objects={"__version__": __version__},
