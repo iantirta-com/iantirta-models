@@ -1,49 +1,39 @@
 from __future__ import annotations
 
 import copy
-import json
-import logging
-import math
 import os
-from collections.abc import Sequence
-from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, ClassVar, Literal
-
+import json
+from dataclasses import MISSING, dataclass, fields
 from typing_extensions import dataclass_transform
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, TypeVar
+from collections.abc import Sequence
 
-from iantirta.models import __version__
-from iantirta.models.remote.files import cached_file
-from iantirta.models.tools._torch import is_torch_available
-from iantirta.models.vendor.huggingface_hub.dataclasses import strict
+from ... import t_constant
+from ...strict_dataclasses import strict, wrap_init_to_accept_kwargs
 
-from ...generation import GenerationConfig
-from ...integrations.heterogeneity import HeterogeneousConfigMixin
-from ...nn.positional.rope import RotaryEmbeddingConfigMixin
-from .utils import (
-    _FLOAT_TAG_KEY,
-    _FLOAT_TAG_VALUES,
+from .configuration_utils import (
+    classproperty,
+    logger,
+    SubConfigSpec,
     ALLOWED_ATTN_LAYER_TYPES,
     ALLOWED_MLP_LAYER_TYPES,
-    CONFIG_NAME,
-    SpecificPreTrainedConfigType,
-    get_configuration_file,
-    is_timm_config_dict,
-    recursive_diff_dict,
     remap_legacy_layer_types,
-    wrap_init_to_accept_kwargs,
 )
+from .configuration_mixin import ConfigMixin
+from .configuration_heterogeneity import HeterogeneousConfigMixin
+from .configuration_rope import RotaryEmbeddingConfigMixin
 
 if TYPE_CHECKING:
     import torch
 
 
-logger = logging.getLogger(__name__)
+__all__ = [
+    "PreTrainedConfig",
+    "SubConfigSpec"
+]
 
 
-@dataclass_transform(kw_only_default=True)
-@strict(accept_kwargs=True)
-@dataclass(repr=False)
-class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
+class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin, ConfigMixin):
     # no-format
     r"""
     Base class for all configuration classes. Handles a few parameters common to all models' configurations as well as
@@ -59,13 +49,7 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
     Class attributes (overridden by derived classes):
 
     - **model_type** (`str`) -- An identifier for the model type, serialized into the JSON file, and used to recreate
-      the correct object in [`~iantirta.models.AutoConfig`].
-    - **has_no_defaults_at_init** (`bool`) -- Whether the config class can be initialized without providing input arguments.
-      Some configurations requires inputs to be defined at init and have no default values, usually these are composite configs,
-      (but not necessarily) such as [`~iantirta.models.EncoderDecoderConfig`] or [`~RagConfig`]. They have to be initialized from
-      two or more configs of type [`~iantirta.models.PreTrainedConfig`].
-    - **keys_to_ignore_at_inference** (`list[str]`) -- A list of keys to ignore by default when looking at dictionary
-      outputs of the model during inference.
+      the correct object in [`~transformers.AutoConfig`].
     - **attribute_map** (`dict[str, str]`) -- A dict that maps model specific attribute names to the standardized
       naming of attributes.
     - **base_model_tp_plan** (`dict[str, Any]`) -- A dict that maps sub-modules FQNs of a base model to a tensor
@@ -89,7 +73,7 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
 
     Setting parameters for sequence generation in the model config is deprecated. For backward compatibility, loading
     some of them will still be possible, but attempting to overwrite them will throw an exception -- you should set
-    them in a [~iantirta.models.GenerationConfig]. Check the documentation of [~iantirta.models.GenerationConfig] for more
+    them in a [~transformers.GenerationConfig]. Check the documentation of [~transformers.GenerationConfig] for more
     information about the individual parameters.
 
     </Tip>
@@ -103,7 +87,7 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
         output_attentions (`bool`, *optional*, defaults to `False`):
             Whether or not the model should returns all attentions.
         return_dict (`bool`, *optional*, defaults to `True`):
-            Whether or not the model should return a [`~iantirta.models.utils.ModelOutput`] instead of a plain tuple.
+            Whether or not the model should return a [`~transformers.utils.ModelOutput`] instead of a plain tuple.
         is_encoder_decoder (`bool`, *optional*, defaults to `False`):
             Whether the model is used as an encoder/decoder or not.
         chunk_size_feed_forward (`int`, *optional*, defaults to `0`):
@@ -144,9 +128,8 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
     # They are not supposed to be set/changed by users. Each field is set when
     # creating a model class
     base_config_key: ClassVar[str] = ""
-    sub_configs: ClassVar[dict[str, type[PreTrainedConfig]]] = {}
-    has_no_defaults_at_init: ClassVar[bool] = False
-    keys_to_ignore_at_inference: ClassVar[list[str]] = []
+    sub_configs_defaults: ClassVar[dict[str, SubConfigSpec]] = {}
+
     attribute_map: ClassVar[dict[str, str]] = {}
     base_model_tp_plan: ClassVar[dict[str, Any] | None] = None
     base_model_fsdp_plan: ClassVar[dict[Any, str]] = {
@@ -156,59 +139,17 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
     }
     base_model_pp_plan: ClassVar[dict[str, Sequence[list[str]]] | None] = None
     base_model_ep_plan: ClassVar[dict[str, Sequence[list[str]]] | None] = None
-    _auto_class: ClassVar[str | None] = None
-
-    # Attributes set internally when saving and used to infer model
-    # class for `Auto` mapping
-    model_type: ClassVar[str] = ""
-    transformers_version: str | None = None
-    architectures: list[str] | None = None
-
-    # Common attributes for all models
-    output_hidden_states: bool | None = False
-    return_dict: bool | None = True
-    dtype: str | torch.dtype | None = None
-    chunk_size_feed_forward: int = 0
-    is_encoder_decoder: bool = False
-
-    # Fine-tuning task arguments
-    id2label: dict[int, str] | dict[str, str] | None = None
-    label2id: dict[str, int] | dict[str, str] | None = None
-    problem_type: Literal["regression", "single_label_classification", "multi_label_classification"] | None = None
-
+    
+    
     def __post_init__(self, **kwargs):
-        # BC for the `torch_dtype` argument instead of the simpler `dtype`
-        # Do not warn, as it would otherwise always be triggered since most configs on the hub have `torch_dtype`
-        if (torch_dtype := kwargs.pop("torch_dtype", None)) is not None:
-            # If both are provided, keep `dtype`
-            self.dtype = self.dtype if self.dtype is not None else torch_dtype
-        if self.dtype is not None and isinstance(self.dtype, str) and is_torch_available():
-            # we will start using self.dtype in v5, but to be consistent with
-            # from_pretrained's dtype arg convert it to an actual torch.dtype object
-            import torch
-
-            self.dtype = getattr(torch, self.dtype)
-
-        # Keep the default value of `num_labels=2` in case users have saved a classifier with 2 labels
-        # Our configs prev wouldn't save `id2label` for 2 labels because it is the default. In all other
-        # cases we expect the config dict to have an `id2label` field if it's a clf model, or not otherwise
-        if self.id2label is None:
-            self.num_labels = kwargs.get("num_labels", self.num_labels if self.num_labels is not None else 2)
-        else:
-            if kwargs.get("num_labels") is not None and len(self.id2label) != kwargs.get("num_labels"):
-                logger.warning(
-                    f"You passed `num_labels={kwargs.get('num_labels')}` which is incompatible to "
-                    f"the `id2label` map of length `{len(self.id2label)}`."
-                )
-            # Keys are always strings in JSON so convert ids to int
-            self.id2label = {int(key): value for key, value in self.id2label.items()}
-
-        if self.problem_type == "single_label_classification" and self.num_labels == 1:
-            raise ValueError(
-                '`problem_type="single_label_classification"` requires `num_labels > 1`. For binary '
-                'classification use `num_labels=2`, or use `problem_type="regression"` for a '
-                "single-output regression head."
-            )
+        # Initialize sub-configs with fallback to defaults if `None` is set
+        if self.sub_configs_defaults:
+            for key, specs in self.sub_configs_defaults.items():
+                subconfig = getattr(self, key)
+                if subconfig is None and specs.optional:
+                    continue
+                subconfig, kwargs = specs.create_subconfig(key, subconfig, **kwargs)
+                setattr(self, key, subconfig)
 
         # BC for rotary embeddings. We will pop out legacy keys from kwargs and rename to new format
         if hasattr(self, "rope_parameters"):
@@ -221,37 +162,16 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
             kwargs = self.convert_rope_params_to_dict(**kwargs)
 
         # Parameters for sequence generation saved in the config are popped instead of loading them.
-        for parameter_name in GenerationConfig._get_default_generation_params():
-            kwargs.pop(parameter_name, None)
-
-        # Name or path to the pretrained checkpoint
-        self._name_or_path = str(kwargs.pop("name_or_path", ""))
-        # BC: configs saved by older versions may still carry this key, it is not used anymore. The revision of a
-        # repository is now resolved once per load and passed around as `revision` (see `utils.hub.resolve_revision`).
-        kwargs.pop("_commit_hash", None)
+        # for parameter_name in GenerationConfig._get_default_generation_params().keys():
+        #     kwargs.pop(parameter_name, None)
 
         # Attention/Experts implementation to use, if relevant (it sets it recursively on sub-configs)
         self._output_attentions: bool | None = kwargs.pop("output_attentions", False)
         self._attn_implementation: str | None = kwargs.pop("attn_implementation", None)
         self._experts_implementation: str | None = kwargs.pop("experts_implementation", None)
 
-        # HeterogeneousConfigMixin: `per_layer_config` should be applied last, as heterogeneity needs to have all of the other kwargs set
-        per_layer_config = kwargs.pop("per_layer_config", None)
-
-        # Additional attributes without default values
-        for key, value in kwargs.items():
-            # Check this to avoid deserializing problematic fields from hub configs - they should use the public field
-            if key not in ("_attn_implementation_internal", "_experts_implementation_internal"):
-                try:
-                    setattr(self, key, value)
-                except AttributeError:
-                    logger.error(f"Can't set {key} with value {value} for {self}")
-                    raise
-
-        # HeterogeneousConfigMixin
-        if per_layer_config is not None:
-            self.per_layer_config = per_layer_config
-
+        super().__post_init__(**kwargs)
+        
         # TODO: to support models whose input embedding module is not named `embed_tokens` (e.g. GPT-NeoX's `embed_in`).
         if getattr(self, "tie_word_embeddings", False) and self.base_model_tp_plan is not None:
             self.base_model_tp_plan = {
@@ -268,38 +188,21 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
         # kw_only=True ensures fields without defaults in subclasses can follow
         # parent fields that have defaults (Python dataclass ordering rule).
         # Config fields are always passed as keyword arguments, so this is safe.
-        cls = dataclass(cls, repr=False, kw_only=True)  # noqa: PLW0642
+        cls = dataclass(cls, repr=False, kw_only=True)
 
         if not cls_has_custom_init:
             # Wrap all subclasses to accept arbitrary kwargs for BC
             # only if the subclass has no custom `__init__`. Most
             # remote code has an init defined, but some model are not
             # See https://huggingface.co/hmellor/Ilama-3.2-1B/blob/main/configuration_ilama.py
-            cls = wrap_init_to_accept_kwargs(cls)  # noqa: PLW0642
+            cls = wrap_init_to_accept_kwargs(cls)
 
-    @property
-    def name_or_path(self) -> str | None:
-        return getattr(self, "_name_or_path", None)
-
-    @name_or_path.setter
-    def name_or_path(self, value):
-        self._name_or_path = str(value)  # Make sure that name_or_path is a string (for JSON encoding)
-
-    @property
-    def num_labels(self) -> int | None:
-        """
-        `int` or `None`: The number of labels for classification models, or
-        `None` when `id2label` is not set.
-        """
-        return len(self.id2label) if self.id2label is not None else None
-
-    @num_labels.setter
-    def num_labels(self, num_labels: int):
-        # we do not store `num_labels` attribute in config, but instead
-        # compute it based on the length of the `id2label` map
-        if self.id2label is None or self.num_labels != num_labels:
-            self.id2label = {i: f"LABEL_{i}" for i in range(num_labels)}
-            self.label2id = dict(zip(self.id2label.values(), self.id2label.keys()))
+    @classproperty
+    def sub_configs(cls):
+        """Backwards compatible `ClassVar` which is now superseded by more fine-grained `sub_configs_defaults`"""
+        if cls.sub_configs_defaults:
+            return {key: specs.config_class for key, specs in cls.sub_configs_defaults.items()}
+        return {}
 
     @property
     def output_attentions(self):
@@ -364,21 +267,6 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
                 )
                 subconfig._experts_implementation = sub_implementation
 
-    @property
-    def torch_dtype(self):
-        logger.warning_once("`torch_dtype` is deprecated! Use `dtype` instead!")
-        return self.dtype
-
-    @property
-    def use_return_dict(self):
-        logger.warning_once("`use_return_dict` is deprecated! Use `return_dict` instead!")
-        return self.return_dict
-
-    @torch_dtype.setter
-    def torch_dtype(self, value):
-        logger.warning_once("`torch_dtype` is deprecated! Use `dtype` instead!")
-        self.dtype = value
-
     def __setattr__(self, key, value):
         if key in super().__getattribute__("attribute_map"):
             key = super().__getattribute__("attribute_map")[key]
@@ -394,23 +282,6 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
             raise ValueError(
                 "The `output_attentions` attribute is not supported when using the `attn_implementation` set to "
                 f"{self._attn_implementation}. Please set it to 'eager' instead."
-            )
-
-    def validate_architecture(self):
-        """Part of `@strict`-powered validation. Validates the architecture of the config."""
-        if self.is_heterogeneous:
-            for config in self.per_layer_config:
-                config.validate_architecture()
-            return
-        if (
-            hasattr(self, "head_dim")
-            and hasattr(self, "num_heads")
-            and hasattr(self, "embed_dim")
-            and self.head_dim * self.num_heads != self.embed_dim
-        ):
-            raise ValueError(
-                f"The embed_dim ({self.embed_dim}) is not a multiple of the number of attention "
-                f"heads ({self.num_heads})."
             )
 
     def validate_token_ids(self):
@@ -456,7 +327,7 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
 
     def save_pretrained(self, save_directory: str | os.PathLike, push_to_hub: bool = False, **kwargs):
         raise NotImplementedError()
-    
+
     @classmethod
     def from_pretrained(
         cls: type[SpecificPreTrainedConfigType],
@@ -584,14 +455,16 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
             `tuple[Dict, Dict]`: The dictionary(ies) that will be used to instantiate the configuration object.
 
         """
+        from ...remote.hf_api import resolve_revision
+        
         # Resolve the revision once, so that both config files below are read from the exact same repository state.
-        # kwargs["revision"] = resolve_revision(
-        #     pretrained_model_name_or_path,
-        #     kwargs.get("revision"),
-        #     token=kwargs.get("token"),
-        #     local_files_only=kwargs.get("local_files_only", False),
-        #     cache_dir=kwargs.get("cache_dir"),
-        # )
+        kwargs["revision"] = resolve_revision(
+            pretrained_model_name_or_path,
+            kwargs.get("revision"),
+            token=kwargs.get("token"),
+            local_files_only=kwargs.get("local_files_only", False),
+            cache_dir=kwargs.get("cache_dir"),
+        )
 
         original_kwargs = copy.deepcopy(kwargs)
         # Get config dict associated with the base config file
@@ -643,7 +516,9 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
             resolved_config_file = pretrained_model_name_or_path
             is_local = True
         else:
-            configuration_file = kwargs.pop("_configuration_file", CONFIG_NAME) if gguf_file is None else gguf_file
+            from ...remote.hf_api import cached_file
+
+            configuration_file = kwargs.pop("_configuration_file", t_constant.CONFIG_NAME) if gguf_file is None else gguf_file
 
             try:
                 # Load from local folder or from cache or download from model Hub and cache
@@ -665,7 +540,7 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
                 # Raise any environment error raise by `cached_file`. It will have a helpful error message adapted to
                 # the original exception.
                 raise
-            except Exception:  # noqa: BLE001
+            except Exception:
                 # For any other exception, we throw a generic error.
                 raise OSError(
                     f"Can't load the configuration of '{pretrained_model_name_or_path}'. If you were trying to load it"
@@ -676,22 +551,15 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
 
         try:
             if gguf_file:
-                raise NotImplementedError()
                 # A GGUF repo ships no `config.json`: the metadata is the config. Architectures the fast
                 # reader covers rebuild it from those keys; the rest go to the legacy reader.
-                # from ...integrations.gguf import (
-                #     GGUF_CONFIG_ARCHS,
-                #     get_gguf_config,
-                #     read_gguf_metadata,
-                # )
-                # def load_gguf_checkpoint(*args, **kwargs):
-                #     pass
+                from .integrations.gguf import GGUF_CONFIG_ARCHS, get_gguf_config, read_gguf_metadata
 
-                # metadata, tensor_names = read_gguf_metadata(resolved_config_file)
-                # if metadata["general.architecture"] in GGUF_CONFIG_ARCHS:
-                #     config_dict = get_gguf_config(metadata, tensor_names)
-                # else:
-                #     config_dict = load_gguf_checkpoint(resolved_config_file, return_tensors=False)["config"]
+                metadata, tensor_names = read_gguf_metadata(resolved_config_file)
+                if metadata["general.architecture"] in GGUF_CONFIG_ARCHS:
+                    config_dict = get_gguf_config(metadata, tensor_names)
+                else:
+                    config_dict = load_gguf_checkpoint(resolved_config_file, return_tensors=False)["config"]
             else:
                 # Load config dict
                 config_dict = cls._dict_from_json_file(resolved_config_file)
@@ -806,62 +674,32 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
         return cls._decode_special_floats(config_dict)
 
     @classmethod
-    def _encode_special_floats(cls, obj: Any) -> Any:
+    def default_config_fields(cls):
         """
-        Iterates over the passed object and encode specific floats that cannot be JSON-serialized. Python's JSON
-        engine saves floats like `Infinity` (+/-) or `NaN` which are not compatible with other JSON engines.
-
-        It serializes floats like `Infinity` as an object: `{'__float__': Infinity}`.
+        Gets default values for each annotated fields in a dataclass, used to save diff-dict.
+        For configs that are created in v4 with custom `__init__`, it will return
+        an empty dict, thus saving all keys in `self.__dict__`. For newer config, it will
+        return keys that have defaults declared as a fields, rather than in `__post_init__`,
+        which filters out only these specific fields from serialized json file.
         """
-        if isinstance(obj, float):
-            if math.isnan(obj):
-                return {_FLOAT_TAG_KEY: "NaN"}
-            if obj == float("inf"):
-                return {_FLOAT_TAG_KEY: "Infinity"}
-            if obj == float("-inf"):
-                return {_FLOAT_TAG_KEY: "-Infinity"}
-            return obj
+        default_config_fields = {}
+        for f in fields(cls):
+            default_value = None
+            if f.default is not MISSING:
+                default_value = f.default
+            elif f.default_factory is not MISSING:
+                default_value = f.default_factory
 
-        if isinstance(obj, dict):
-            return {k: cls._encode_special_floats(v) for k, v in obj.items()}
+            if default_value is not None:
+                default_config_fields[f.name] = default_value
 
-        if isinstance(obj, (list, tuple)):
-            return [cls._encode_special_floats(v) for v in obj]
+        if cls.sub_configs_defaults:
+            for key, specs in cls.sub_configs_defaults.items():
+                # Backbone configs are special as they sometimes hold timm-configs that can't be resolved via `AutoConfig`
+                if key != "backbone_config":
+                    default_config_fields[key] = specs.default_config_fields()
 
-        return obj
-
-    @classmethod
-    def _decode_special_floats(cls, obj: Any) -> Any:
-        """
-        Iterates over the passed object and decode specific floats that cannot be JSON-serialized. Python's JSON
-        engine saves floats like `Infinity` (+/-) or `NaN` which are not compatible with other JSON engines.
-
-        This method deserializes objects like `{'__float__': Infinity}` to their float values like `Infinity`.
-        """
-        if isinstance(obj, dict):
-            if set(obj.keys()) == {_FLOAT_TAG_KEY} and isinstance(obj[_FLOAT_TAG_KEY], str):
-                tag = obj[_FLOAT_TAG_KEY]
-                if tag in _FLOAT_TAG_VALUES:
-                    return _FLOAT_TAG_VALUES[tag]
-                return obj
-
-            return {k: cls._decode_special_floats(v) for k, v in obj.items()}
-
-        if isinstance(obj, list):
-            return [cls._decode_special_floats(v) for v in obj]
-
-        return obj
-
-    def __eq__(self, other):
-        return isinstance(other, PreTrainedConfig) and (self.__dict__ == other.__dict__)
-
-    def __repr__(self):
-        return f"{self.__class__.__name__} {self.to_json_string()}"
-
-    def __iter__(self):
-        # HeterogeneousConfigMixin: keys of `self.__dict__` that are per-layer attributes
-        # may require hiding when using a heterogeneous config.
-        yield from self._iter_config_keys_with_heterogeneous_adjustment(self.__dict__)
+        return default_config_fields
 
     def to_diff_dict(self) -> dict[str, Any]:
         """
@@ -872,14 +710,13 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
         Returns:
             dict[str, Any]: Dictionary of all the attributes that make up this configuration instance.
         """
+        from .configuration_utils import recursive_diff_dict
+
         config_dict = self.to_dict()
 
         # Get the default config dict (from a fresh PreTrainedConfig instance)
         default_config_dict = PreTrainedConfig().to_dict()
-
-        # get class specific config dict
-        class_config_dict = self.__class__().to_dict() if not self.has_no_defaults_at_init else {}
-
+        class_config_dict = self.default_config_fields()
         serializable_config_dict = {}
 
         # Only serialize values that differ from the default config,
@@ -912,7 +749,8 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
         self._remove_keys_not_serialized(serializable_config_dict)
 
         # Key removed only in diff dict
-        serializable_config_dict.pop("_name_or_path", None)
+        if "_name_or_path" in serializable_config_dict:
+            del serializable_config_dict["_name_or_path"]
 
         if hasattr(self, "quantization_config"):
             serializable_config_dict["quantization_config"] = (
@@ -926,56 +764,6 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
         self._update_heterogeneous_to_dict_output(serializable_config_dict)
 
         return serializable_config_dict
-
-    def to_dict(self) -> dict[str, Any]:
-        """
-        Serializes this instance to a Python dictionary.
-
-        Returns:
-            `dict[str, Any]`: Dictionary of all the attributes that make up this configuration instance.
-        """
-        output = copy.deepcopy(self.__dict__)
-        if hasattr(self.__class__, "model_type"):
-            output["model_type"] = self.__class__.model_type
-
-        # Transformers version when serializing the model
-        output["transformers_version"] = __version__
-
-        # Pop "kwargs" since they are unpacked and set in the post init
-        output.pop("kwargs", None)
-
-        def to_list(value):
-            if isinstance(value, tuple):
-                value = [to_list(item) for item in value]
-            return value
-
-        for key, value in output.items():
-            # Deal with nested configs like CLIP
-            if isinstance(value, PreTrainedConfig):
-                value = value.to_dict()
-                del value["transformers_version"]
-
-            # Some models have defaults as tuples because dataclass
-            # doesn't allow mutables. Let's convert back to `list``
-            elif isinstance(value, tuple):
-                value = to_list(value)
-
-            output[key] = value
-
-        self._remove_keys_not_serialized(output)
-
-        if hasattr(self, "quantization_config"):
-            output["quantization_config"] = (
-                self.quantization_config.to_dict()
-                if not isinstance(self.quantization_config, dict) and self.quantization_config is not None
-                else self.quantization_config
-            )
-        self.dict_dtype_to_str(output)
-
-        # HeterogeneousConfigMixin: update the serialized output.
-        self._update_heterogeneous_to_dict_output(output)
-
-        return output
 
     def to_json_string(self, use_diff: bool = True) -> str:
         """
@@ -1061,84 +849,6 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
 
             setattr(self, k, v)
 
-    def dict_dtype_to_str(self, d: dict[str, Any]) -> None:
-        """
-        Checks whether the passed dictionary and its nested dicts have a *dtype* key and if it's not None,
-        converts torch.dtype to a string of just the type. For example, `torch.float32` get converted into *"float32"*
-        string, which can then be stored in the json format.
-        """
-        if d.get("dtype") is not None:
-            if isinstance(d["dtype"], dict):
-                d["dtype"] = {k: str(v).split(".")[-1] for k, v in d["dtype"].items()}
-            # models like Emu3 can have "dtype" as token in config's vocabulary map,
-            # so we also exclude int type here to avoid error in this special case.
-            elif not isinstance(d["dtype"], (str, int)):
-                d["dtype"] = str(d["dtype"]).split(".")[1]
-        for value in d.values():
-            if isinstance(value, dict):
-                self.dict_dtype_to_str(value)
-
-    def _remove_keys_not_serialized(self, d: dict[str, Any]) -> None:
-        """
-        Checks and removes if there are any keys in the dict that should not be serialized when saving the config.
-        Runs recursive check on the dict, to remove from all sub configs.
-        """
-
-        for key_to_remove in [
-            "_is_quantized",
-            "_auto_class",
-            "_commit_hash",
-            "_attn_implementation_internal",
-            "_experts_implementation_internal",
-            "ignore_keys_at_rope_validation",
-            "base_model_tp_plan",
-            "base_model_pp_plan",
-            "base_model_fsdp_plan",
-            "distributed_config",
-        ]:
-            d.pop(key_to_remove, None)
-
-        if "_output_attentions" in d:
-            d["output_attentions"] = d.pop("_output_attentions")
-
-        for value in d.values():
-            if isinstance(value, dict):
-                self._remove_keys_not_serialized(value)
-
-    @classmethod
-    def register_for_auto_class(cls, auto_class="AutoConfig"):
-        """
-        Register this class with a given auto class. This should only be used for custom configurations as the ones in
-        the library are already mapped with `AutoConfig`.
-
-
-
-        Args:
-            auto_class (`str` or `type`, *optional*, defaults to `"AutoConfig"`):
-                The auto class to register this new configuration with.
-        """
-        if not isinstance(auto_class, str):
-            auto_class = auto_class.__name__
-
-        import iantirta.models.models.auto as auto_module
-
-        if not hasattr(auto_module, auto_class):
-            raise ValueError(f"{auto_class} is not a valid auto class.")
-
-        cls._auto_class = auto_class
-
-    @classmethod
-    def is_remote_code(cls) -> bool:
-        """Return whether the current config is custom code, i.e. code loaded from the hub, or class that we just
-        registered via `register_for_auto_class`."""
-        return cls._auto_class is not None
-
-    @classmethod
-    def is_custom_code(cls) -> bool:
-        """Return whether the current config is custom code, i.e. either code loaded from the hub, or defined in any
-        user-specific module/session."""
-        return cls.is_remote_code() or not cls.__module__.startswith("iantirta.models.")
-
     def _get_generation_parameters(self) -> dict[str, Any]:
         """
         Checks if there are generation parameters in `PreTrainedConfig` instance. Note that
@@ -1146,11 +856,12 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
         if there are any.
         """
         generation_params = {}
-        default_config = self.__class__().to_dict() if not self.has_no_defaults_at_init else {}
-        for key in GenerationConfig._get_default_generation_params():
+        # Declared model config fields are valid even when their default is None (e.g. Whisper's suppress_tokens).
+        config_fields = {field.name for field in fields(self)}
+        for key in GenerationConfig._get_default_generation_params().keys():
             if key == "use_cache":
                 continue  # common key for most models
-            if hasattr(self, key) and getattr(self, key) is not None and key not in default_config:
+            if hasattr(self, key) and getattr(self, key) is not None and key not in config_fields:
                 generation_params[key] = getattr(self, key)
 
         return generation_params
@@ -1279,7 +990,18 @@ class PreTrainedConfig(RotaryEmbeddingConfigMixin, HeterogeneousConfigMixin):
         return text_config
 
 
-__all__ = [
-    "CONFIG_NAME",
-    "PreTrainedConfig",
-]
+if __name__ == "__main__":
+    from rich import inspect
+    from pprint import pprint
+    import time
+    start_time = time.time()
+    config = PreTrainedConfig()
+    end_time = time.time()
+    inspect(config)
+    print(config)
+    print("Initialized Within", end_time - start_time)
+    from ..auto import AutoConfig
+    config = PreTrainedConfig.from_pretrained("Qwen/Qwen3-ASR-1.7B-hf")
+    pprint(config)
+
+    

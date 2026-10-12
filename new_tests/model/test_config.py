@@ -2,6 +2,8 @@ import pytest
 
 from iantirta.models import AutoConfig
 
+from pprint import pprint
+from rich import inspect
 
 @pytest.mark.manual
 @pytest.mark.parametrize(
@@ -19,3 +21,4 @@ def test_auto_config(repo, class_name):
     assert config.__class__.__name__ == class_name
     assert config.__module__.startswith("iantirta.models.")
     assert "vendor" not in config.__module__
+

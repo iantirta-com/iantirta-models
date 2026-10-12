@@ -14,16 +14,16 @@
 """Qwen3 model configuration"""
 
 
-from iantirta.models.core.config import PreTrainedConfig
+from iantirta.models import PreTrainedConfig
 from iantirta.models.nn.positional.rope import RopeParameters
-from iantirta.models.vendor.huggingface_hub.dataclasses import strict
+from ...strict_dataclasses import strict
 
 
 @strict
 class Qwen3Config(PreTrainedConfig):
     r"""
     ```python
-    >>> from iantirta.models import Qwen3Model, Qwen3Config
+    >>> from transformers import Qwen3Model, Qwen3Config
 
     >>> # Initializing a Qwen3 style configuration
     >>> configuration = Qwen3Config()
@@ -37,10 +37,10 @@ class Qwen3Config(PreTrainedConfig):
     """
 
     model_type = "qwen3"
-    keys_to_ignore_at_inference = ["past_key_values"]  # noqa: RUF012
+    keys_to_ignore_at_inference = ["past_key_values"]
 
     # Default tensor parallel plan for base model `Qwen3`
-    base_model_tp_plan = {  # noqa: RUF012
+    base_model_tp_plan = {
         "layers.*.self_attn.q_proj": "colwise",
         "layers.*.self_attn.k_proj": "colwise",
         "layers.*.self_attn.v_proj": "colwise",
@@ -51,7 +51,7 @@ class Qwen3Config(PreTrainedConfig):
         "layers.*.mlp.up_proj": "colwise",
         "layers.*.mlp.down_proj": "rowwise",
     }
-    base_model_pp_plan = {  # noqa: RUF012
+    base_model_pp_plan = {
         "embed_tokens": (["input_ids"], ["inputs_embeds"]),
         "layers": (["hidden_states", "attention_mask"], ["hidden_states"]),
         "norm": (["hidden_states"], ["hidden_states"]),

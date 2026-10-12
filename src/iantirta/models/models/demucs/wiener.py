@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of demucs, improved by iantirta.com
-#
 # Vendored from Open-Unmix (https://github.com/sigsep/open-unmix-pytorch),
 # `openunmix/filtering.py`, without modification except for unused imports.
 # Used for Wiener filtering of the spectrogram outputs of the models.

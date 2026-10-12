@@ -567,7 +567,7 @@ class DemucsPreTrainedModel(PreTrainedModel):
     config: DemucsConfig
 
     @classmethod
-    def from_pretrained(
+    def from_pretrained2(
         cls: type[Self],
         pretrained_model_name_or_path: str | os.PathLike | None,
         *model_args,

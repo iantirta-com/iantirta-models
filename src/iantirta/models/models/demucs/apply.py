@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of demucs, improved by iantirta.com
-#
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 #
@@ -12,21 +7,87 @@
 Code to apply a model to a mix. It will handle chunking with overlaps and
 inteprolation between chunks, as well as the "shift trick".
 """
-
+from concurrent.futures import ThreadPoolExecutor
 import copy
 import random
-from collections.abc import Callable, Hashable
-from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
-from typing import Any
+import typing as tp
 
 import torch as th
+from torch import nn
 from torch.nn import functional as F
 
-from iantirta.models.tools._tqdm import tqdm
+from .demucs import Demucs
+from .hdemucs import HDemucs
+from .htdemucs import HTDemucs
+from .utils import center_trim, DummyPoolExecutor
 
-from .modeling_utils import DemucsBagOfModel, DemucsHTDemucs, DemucsModel
-from .utils import DummyPoolExecutor, center_trim
+try:
+    import tqdm
+except ImportError:
+    from iantirta.media import tqdm
+
+
+__all__ = [
+    "BagOfModels",
+    "apply_model",
+]
+
+
+Model = tp.Union[Demucs, HDemucs, HTDemucs]
+
+
+class BagOfModels(nn.Module):
+    def __init__(self, models: tp.List[Model],
+                 weights: tp.Optional[tp.List[tp.List[float]]] = None,
+                 segment: tp.Optional[float] = None):
+        """
+        Represents a bag of models with specific weights.
+        You should call `apply_model` rather than calling directly the forward here for
+        optimal performance.
+
+        Args:
+            models (list[nn.Module]): list of Demucs/HDemucs models.
+            weights (list[list[float]]): list of weights. If None, assumed to
+                be all ones, otherwise it should be a list of N list (N number of models),
+                each containing S floats (S number of sources).
+            segment (None or float): overrides the `segment` attribute of each model
+                (this is performed inplace, be careful is you reuse the models passed).
+        """
+        super().__init__()
+        assert len(models) > 0
+        first = models[0]
+        for other in models:
+            assert other.sources == first.sources
+            assert other.samplerate == first.samplerate
+            assert other.audio_channels == first.audio_channels
+            if segment is not None:
+                if not isinstance(other, HTDemucs) or segment <= other.segment:
+                    other.segment = segment
+
+        self.audio_channels = first.audio_channels
+        self.samplerate = first.samplerate
+        self.sources = first.sources
+        self.models = nn.ModuleList(models)
+
+        if weights is None:
+            weights = [[1. for _ in first.sources] for _ in models]
+        else:
+            assert len(weights) == len(models)
+            for weight in weights:
+                assert len(weight) == len(first.sources)
+        self.weights = weights
+
+    @property
+    def max_allowed_segment(self) -> float:
+        max_allowed_segment = float('inf')
+        for model in self.models:
+            if isinstance(model, HTDemucs):
+                max_allowed_segment = min(max_allowed_segment, float(model.segment))
+        return max_allowed_segment
+
+    def forward(self, x):
+        raise NotImplementedError("Call `apply_model` on this.")
 
 
 class TensorChunk:
@@ -82,10 +143,7 @@ def tensor_chunk(tensor_or_chunk):
         return TensorChunk(tensor_or_chunk)
 
 
-def _replace_dict(
-    _dict: dict | None,
-    *subs: tuple[Hashable, Any]
-) -> dict:
+def _replace_dict(_dict: tp.Optional[dict], *subs: tp.Tuple[tp.Hashable, tp.Any]) -> dict:
     if _dict is None:
         _dict = {}
     else:
@@ -95,22 +153,15 @@ def _replace_dict(
     return _dict
 
 
-def apply_model(
-    model: DemucsBagOfModel | DemucsModel,
-    mix: th.Tensor | TensorChunk,
-    shifts: int = 1,
-    split: bool = True,
-    overlap: float = 0.25,
-    transition_power: float = 1.,
-    progress: bool = False,
-    device=None,
-    num_workers: int = 0,
-    segment: float | None = None,
-    pool=None,
-    lock=None,
-    callback: Callable[[dict], None] | None = None,
-    callback_arg: dict | None = None
-) -> th.Tensor:
+def apply_model(model: tp.Union[BagOfModels, Model],
+                mix: tp.Union[th.Tensor, TensorChunk],
+                shifts: int = 1, split: bool = True,
+                overlap: float = 0.25, transition_power: float = 1.,
+                progress: bool = False, device=None,
+                num_workers: int = 0, segment: tp.Optional[float] = None,
+                pool=None, lock=None,
+                callback: tp.Optional[tp.Callable[[dict], None]] = None,
+                callback_arg: tp.Optional[dict] = None) -> th.Tensor:
     """
     Apply model to a given mixture.
 
@@ -145,7 +196,7 @@ def apply_model(
     callback_arg = _replace_dict(
         callback_arg, *{"model_idx_in_bag": 0, "shift_idx": 0, "segment_offset": 0}.items()
     )
-    kwargs: dict[str, Any] = {
+    kwargs: tp.Dict[str, tp.Any] = {
         'shifts': shifts,
         'split': split,
         'overlap': overlap,
@@ -156,27 +207,21 @@ def apply_model(
         'segment': segment,
         'lock': lock,
     }
-    out: float | th.Tensor
-    res: float | th.Tensor
-    if isinstance(model, DemucsBagOfModel):
+    out: tp.Union[float, th.Tensor]
+    res: tp.Union[float, th.Tensor]
+    if isinstance(model, BagOfModels):
         # Special treatment for bag of model.
         # We explicitely apply multiple times `apply_model` so that the random shifts
         # are different for each model.
-        estimates: float | th.Tensor = 0.
+        estimates: tp.Union[float, th.Tensor] = 0.
         totals = [0.] * len(model.sources)
         callback_arg["models"] = len(model.models)
-        for sub_model, model_weights in zip(
-            model.models, model.weights
-        ):
+        for sub_model, model_weights in zip(model.models, model.weights):
             kwargs["callback"] = ((
-                lambda d, i=callback_arg["model_idx_in_bag"]:
-                callback(
-                    _replace_dict(d, ("model_idx_in_bag", i))
-                ) if callback else None
-            ))
-            original_model_device = next(
-                iter(sub_model.parameters())
-            ).device
+                    lambda d, i=callback_arg["model_idx_in_bag"]: callback(
+                        _replace_dict(d, ("model_idx_in_bag", i))) if callback else None)
+            )
+            original_model_device = next(iter(sub_model.parameters())).device
             sub_model.to(device)
 
             res = apply_model(sub_model, mix, **kwargs, callback_arg=callback_arg)
@@ -210,12 +255,10 @@ def apply_model(
         for shift_idx in range(shifts):
             offset = random.randint(0, max_shift)
             shifted = TensorChunk(padded_mix, offset, length + max_shift - offset)
-            kwargs["callback"] = ((
-                lambda d, i=shift_idx:
-                callback(
-                    _replace_dict(d, ("shift_idx", i)))
-                    if callback else None
-                ))
+            kwargs["callback"] = (
+                    (lambda d, i=shift_idx: callback(_replace_dict(d, ("shift_idx", i)))
+                     if callback else None)
+                )
             res = apply_model(model, shifted, **kwargs, callback_arg=callback_arg)
             shifted_out = res
             out += shifted_out[..., max_shift - offset:]
@@ -251,7 +294,7 @@ def apply_model(
                                            if callback else None))
             futures.append((future, offset))
         if progress:
-            futures = tqdm(futures, unit_scale=scale, ncols=120, unit='seconds')
+            futures = tqdm.tqdm(futures, unit_scale=scale, ncols=120, unit='seconds')
         for future, offset in futures:
             try:
                 chunk_out = future.result()  # type: th.Tensor
@@ -270,7 +313,7 @@ def apply_model(
         return out
     else:
         valid_length: int
-        if isinstance(model, DemucsHTDemucs) and segment is not None:
+        if isinstance(model, HTDemucs) and segment is not None:
             valid_length = int(segment * model.samplerate)
         elif hasattr(model, 'valid_length'):
             valid_length = model.valid_length(length)  # type: ignore
@@ -289,7 +332,3 @@ def apply_model(
                 callback(_replace_dict(callback_arg, ("state", "end")))  # type: ignore
         assert isinstance(out, th.Tensor)
         return center_trim(out, length)
-
-__all__ = [
-    "apply_model",
-]

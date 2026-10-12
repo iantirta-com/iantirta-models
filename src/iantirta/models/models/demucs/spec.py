@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of demucs, improved by iantirta.com
-#
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 #

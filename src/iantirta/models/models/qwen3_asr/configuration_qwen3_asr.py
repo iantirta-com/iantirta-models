@@ -18,15 +18,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from iantirta.models.core.auto import CONFIG_MAPPING, AutoConfig
-from iantirta.models.core.config import PreTrainedConfig
-from iantirta.models.vendor.huggingface_hub.dataclasses import strict
+from iantirta.models import (
+    CONFIG_MAPPING,
+    AutoConfig,
+    PreTrainedConfig,
+    SubConfigSpec,
+)
+from ...strict_dataclasses import strict
 
 
 @strict
 class Qwen3ASREncoderConfig(PreTrainedConfig):
+    r"""
+    n_window (`int`, *optional*, defaults to 50):
+        Half the number of mel frames in one encoder chunk. Each chunk processed by the conv stack has
+        ``2 * n_window`` mel frames (1 second of audio at 16 kHz with a 10 ms hop).
+    output_dim (`int`, *optional*, defaults to 3584):
+        Dimensionality of the output.
+    n_window_infer (`int`, *optional*, defaults to 800):
+        Number of mel frames worth of audio over which each attention window spans. Must be a multiple
+        of ``n_window * 2`` so attention windows align with encoder chunks.
+    downsample_hidden_size (`int`, *optional*, defaults to 480):
+        Hidden size of the convolutional downsampling stack.
+    """
+
     model_type = "qwen3_asr_encoder"
-    attribute_map = {  # noqa: RUF012
+    attribute_map = {
         "num_hidden_layers": "encoder_layers",
         "hidden_size": "d_model",
         "num_attention_heads": "encoder_attention_heads",
@@ -54,8 +71,48 @@ class Qwen3ASREncoderConfig(PreTrainedConfig):
 
 @strict
 class Qwen3ASRConfig(PreTrainedConfig):
+    r"""
+    audio_token_id (`int`, *optional*, defaults to 151676):
+        The audio token id to encode the audio prompt.
+    timestamp_token_id (`int`, *optional*, defaults to 151705):
+        Token ID of the ``<timestamp>`` marker in the tokenizer vocabulary. These markers
+        delimit word boundaries in the forced-alignment input sequence.
+    token_classification_bias (`bool`, *optional*, defaults to False):
+        Whether the token classification head for forced alignment should have a bias term.
+
+    Example:
+
+    ```python
+    >>> from transformers import Qwen3ASRForConditionalGeneration, Qwen3ASRConfig
+
+    >>> # Initializing a Qwen3ASR style configuration
+    >>> configuration = Qwen3ASRConfig()
+
+    >>> # Initializing a model from the configuration
+    >>> model = Qwen3ASRForConditionalGeneration(configuration)
+
+    >>> # Accessing the model configuration
+    >>> configuration = model.config
+    ```"""
+
     model_type = "qwen3_asr"
-    sub_configs = {"audio_config": AutoConfig, "text_config": AutoConfig}  # noqa: RUF012
+    sub_configs_defaults = {
+        "audio_config": SubConfigSpec(config_class=AutoConfig, model_type="qwen3_asr_encoder"),
+        "text_config": SubConfigSpec(
+            config_class=AutoConfig,
+            model_type="qwen3",
+            init_kwargs={
+                "hidden_size": 2048,
+                "intermediate_size": 6144,
+                "num_hidden_layers": 28,
+                "num_attention_heads": 16,
+                "num_key_value_heads": 8,
+                "head_dim": 128,
+                "max_position_embeddings": 65536,
+                "tie_word_embeddings": True,
+            },
+        ),
+    }
 
     audio_config: dict | PreTrainedConfig | None = None
     text_config: dict | PreTrainedConfig | None = None
@@ -66,30 +123,6 @@ class Qwen3ASRConfig(PreTrainedConfig):
     initializer_range: float = 0.02
     tie_word_embeddings: bool = True
     token_classification_bias: bool = False
-
-    def __post_init__(self, **kwargs):
-        if isinstance(self.audio_config, dict):
-            self.audio_config["model_type"] = self.audio_config.get("model_type", "qwen3_asr_encoder")
-            self.audio_config = CONFIG_MAPPING[self.audio_config["model_type"]](**self.audio_config)
-        elif self.audio_config is None:
-            self.audio_config = CONFIG_MAPPING["qwen3_asr_encoder"]()
-
-        if isinstance(self.text_config, dict):
-            self.text_config["model_type"] = self.text_config.get("model_type", "qwen3")
-            self.text_config = CONFIG_MAPPING[self.text_config["model_type"]](**self.text_config)
-        elif self.text_config is None:
-            self.text_config = CONFIG_MAPPING["qwen3"](
-                hidden_size=2048,
-                intermediate_size=6144,
-                num_hidden_layers=28,
-                num_attention_heads=16,
-                num_key_value_heads=8,
-                head_dim=128,
-                max_position_embeddings=65536,
-                tie_word_embeddings=True,
-            )
-
-        super().__post_init__(**kwargs)
 
 
 __all__ = ["Qwen3ASRConfig", "Qwen3ASREncoderConfig"]

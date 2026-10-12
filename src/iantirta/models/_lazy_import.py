@@ -15,8 +15,6 @@ from typing import Any
 
 from packaging import version
 
-from .tools._deps import _is_package_available
-
 logger = logging.getLogger(__name__)
 
 
@@ -508,6 +506,8 @@ class Backend:
 
     def get_installed_version(self) -> str:
         """Return the currently installed version of the backend"""
+        from .tools._deps import _is_package_available
+
         is_available, current_version = _is_package_available(self.package_name, return_version=True)
         if not is_available:
             raise RuntimeError(f"Backend {self.package_name} is not available.")
@@ -567,7 +567,7 @@ def fetch__all__(file_content) -> list[str]:
     else:
         _all: list[str] = []
         for __all__line_index in range(1, len(lines)):
-            if lines[__all__line_index].strip() == "]":
+            if lines[__all__line_index].strip().startswith("]"):
                 return _all
             else:
                 _all.append(lines[__all__line_index].strip("\"', "))
@@ -940,3 +940,9 @@ def define_import_structure(
             for k, v in spread_dict.items()
         }
         return spread_dict
+
+if __name__ == "__main__":
+    from rich import inspect as i
+    _file = globals()["__file__"]
+    i(_file)
+    i(_LazyModule("iantirta.models", _file, define_import_structure(_file)), all=True)

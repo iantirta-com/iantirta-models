@@ -401,11 +401,17 @@ def resolve_revision(
     revision: str = "main",
     *,
     repo_type: str = "model",
+    token: bool | str | None = None,
+    cache_dir: str | os.PathLike | None = None,
     local_only: bool = False,
+    local_files_only: bool = False, # The same as local_only
 ) -> str | None:
-    if os.path.exists(path_or_repo_id):
+    if path_or_repo_id is None or os.path.exists(path_or_repo_id):
         return revision
 
+    if local_files_only and not local_only:
+        local_only = local_files_only
+    
     try:
         get_hf_api().resolve_revision(
             str(path_or_repo_id),
@@ -486,12 +492,3 @@ def has_file(
         return True
     except HFHubHTTPError:
         return api.load_file_from_cache(repo_id=path_or_repo_id, filename=filename, revision=revision, repo_type=repo_type) is not None
-
-
-__all__ = [
-    "HFApi",
-    "cached_file",
-    "cached_files",
-    "get_hf_api",
-    "has_file",
-]

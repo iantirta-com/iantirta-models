@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of demucs, improved by iantirta.com
-#
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 #
@@ -11,13 +6,14 @@
 """
 Utilities to save and load models.
 """
+from contextlib import contextmanager
+
 import functools
 import hashlib
 import inspect
 import io
-import warnings
-from contextlib import contextmanager
 from pathlib import Path
+import warnings
 
 import torch
 

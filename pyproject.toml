@@ -59,6 +59,10 @@ dependencies = [
 
 
 [project.optional-dependencies]
+demucs = [
+    "einops",
+    "pyyaml",
+]
 separation = ["torch",]
 asr = ["torch",]
 

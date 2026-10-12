@@ -1,22 +1,17 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of demucs, improved by iantirta.com
-#
 # Copyright (c) Meta Platforms, Inc. and affiliates.
 # All rights reserved.
 #
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+from collections import defaultdict
+from concurrent.futures import CancelledError
+from contextlib import contextmanager
 import math
 import os
 import sys
 import tempfile
 import typing as tp
-from collections import defaultdict
-from concurrent.futures import CancelledError
-from contextlib import contextmanager
 
 import torch
 from torch.nn import functional as F

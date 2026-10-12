@@ -1,8 +1,3 @@
-# Part of Iantirta.com
-# See LICENSE file for full copyright and licensing details.
-#
-# Partial code of demucs, improved by iantirta.com
-#
 # Copyright (c) 2019-present, Meta, Inc.
 # All rights reserved.
 #
@@ -10,15 +5,15 @@
 # LICENSE file in the root directory of this source tree.
 # First author is Simon Rouard.
 
-import math
 import random
 import typing as tp
 
-import numpy as np
 import torch
+import torch.nn as nn
 import torch.nn.functional as F
+import numpy as np
+import math
 from einops import rearrange
-from torch import nn
 
 
 def create_sin_embedding(

@@ -156,8 +156,8 @@ class Qwen3ForQuestionAnswering(Qwen2ForQuestionAnswering):
 __all__ = [
     "Qwen3ForCausalLM",
     "Qwen3ForQuestionAnswering",
-    "Qwen3PreTrainedModel",  # noqa: F822
-    "Qwen3Model",  # noqa: F822
+    "Qwen3PreTrainedModel",
+    "Qwen3Model",
     "Qwen3ForSequenceClassification",
     "Qwen3ForTokenClassification",
 ]
