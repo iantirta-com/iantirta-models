@@ -54,7 +54,8 @@ classifiers = [
 
 dependencies = [
     "numpy",
-    "filelock>=3.10.0",
+    "torch",
+    "iantirta-lazy_import"
 ]
 
 

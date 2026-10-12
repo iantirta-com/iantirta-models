@@ -6,18 +6,18 @@
 """
 This code contains the spectrogram and Hybrid version of Demucs.
 """
-from copy import deepcopy
 import math
 import typing as tp
+from copy import deepcopy
 
-from .wiener import wiener
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 from .demucs import DConv, rescale_module
+from .spec import ispectro, spectro
 from .states import capture_init
-from .spec import spectro, ispectro
+from .wiener import wiener
 
 
 def pad1d(x: torch.Tensor, paddings: tp.Tuple[int, int], mode: str = 'constant', value: float = 0.):

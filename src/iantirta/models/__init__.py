@@ -4,13 +4,10 @@
 from importlib.metadata import version
 from typing import TYPE_CHECKING
 
-from iantirta.models._lazy_import import _LazyModule, define_import_structure
+from iantirta.lazy_import import LazyModule, define_import_structure
 
 __version__ = version("iantirta-models")
 
-_import_structure = {
-    "core": [],
-}
 
 if TYPE_CHECKING:
     from .core import *
@@ -18,7 +15,7 @@ else:
     import sys
     
     _file = globals()["__file__"]
-    sys.modules[__name__] = _LazyModule(
+    sys.modules[__name__] = LazyModule(
         __name__,
         _file,
         define_import_structure(_file),

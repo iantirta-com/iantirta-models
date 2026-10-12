@@ -1,9 +1,16 @@
-import os
-import json
 import importlib
+import json
+import os
+from fractions import Fraction
+from pathlib import Path
+from typing import Any
 
-from .states import load_model
 from .apply import BagOfModels, Model
+from .states import load_model
+
+__all__ = [
+    "DemucsPreTrainedModel"
+]
 
 
 class DemucsPreTrainedModel:
@@ -15,7 +22,7 @@ class DemucsPreTrainedModel:
         **kwargs,
     ):
         import yaml
-        from transformers.utils.hub import cached_files, cached_file
+        from transformers.utils.hub import cached_file, cached_files
 
         _, name = repo_id.rsplit("/", 1)
         if "-" in name and name.startswith("Demucs-"):
@@ -33,14 +40,14 @@ class DemucsPreTrainedModel:
         return BagOfModels(models, bag.get('weights'), bag.get('segment'))
 
     @staticmethod
-    def load_safetensors_model(path: Union[str, Path]) -> Model:
+    def load_safetensors_model(path: str | Path) -> Model:
         """Load a single model from a safetensors file, with the model class and init
         arguments stored as json in the safetensors metadata."""
         from safetensors import safe_open
         with safe_open(str(path), framework="pt") as file:
             metadata = file.metadata()
             tensors = {key: file.get_tensor(key) for key in file.keys()}
-        state: tp.Any
+        state: Any
         if 'structure' in metadata:
             state = _unflatten_state(tensors, json.loads(metadata['structure']))
         else:
@@ -68,7 +75,7 @@ def _decode_json(value):
     return value
 
 
-def _unflatten_state(tensors: tp.Dict[str, tp.Any], structure):
+def _unflatten_state(tensors: dict[str, Any], structure):
     """Rebuild a nested model state (e.g. diffq packed states) from the flat
     safetensors tensor dict and the json structure stored in its metadata.
     Inverse of `_flatten_state` in `tools/export_hf.py`."""

@@ -5,15 +5,15 @@
 # LICENSE file in the root directory of this source tree.
 # First author is Simon Rouard.
 
+import math
 import random
 import typing as tp
 
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
-import math
+import torch
+import torch.nn.functional as F
 from einops import rearrange
+from torch import nn
 
 
 def create_sin_embedding(

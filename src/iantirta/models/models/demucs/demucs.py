@@ -7,14 +7,14 @@
 import math
 import typing as tp
 
-from . import _julius
 import torch
 from torch import nn
 from torch.nn import functional as F
 
+from . import _julius
 from .states import capture_init
-from .utils import center_trim, unfold
 from .transformer import LayerScale
+from .utils import center_trim, unfold
 
 
 class BLSTM(nn.Module):

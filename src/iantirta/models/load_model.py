@@ -2,6 +2,7 @@
 from pathlib import Path
 from typing import Literal
 
+
 class AutoModel:
 
     @classmethod
@@ -11,9 +12,9 @@ class AutoModel:
         **kwargs
     ):
         if "adefossez" in model_name_or_path or "demucs" in model_name_or_path:
-            from .models.demucs import DemucsBagOfModel
+            from .models.demucs import DemucsPreTrainedModel
             
-            return DemucsBagOfModel.from_pretrained(model_name_or_path, **kwargs)
+            return DemucsPreTrainedModel.from_pretrained(model_name_or_path, **kwargs)
         else:
             import transformers
             from transformers import AutoConfig
@@ -32,6 +33,7 @@ class AutoModel:
                 raise NotImplementedError("Empty model class is not supported")
 
             return model_class.from_pretrained(model_name_or_path, config=config, **kwargs)
+
 
 def load_model(
     model_name_or_path: str | Path,

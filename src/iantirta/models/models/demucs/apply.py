@@ -7,11 +7,11 @@
 Code to apply a model to a mix. It will handle chunking with overlaps and
 inteprolation between chunks, as well as the "shift trick".
 """
-from concurrent.futures import ThreadPoolExecutor
 import copy
 import random
-from threading import Lock
 import typing as tp
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
 
 import torch as th
 from torch import nn
@@ -20,7 +20,7 @@ from torch.nn import functional as F
 from .demucs import Demucs
 from .hdemucs import HDemucs
 from .htdemucs import HTDemucs
-from .utils import center_trim, DummyPoolExecutor
+from .utils import DummyPoolExecutor, center_trim
 
 try:
     import tqdm

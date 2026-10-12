@@ -6,14 +6,13 @@
 """
 Utilities to save and load models.
 """
-from contextlib import contextmanager
-
 import functools
 import hashlib
 import inspect
 import io
-from pathlib import Path
 import warnings
+from contextlib import contextmanager
+from pathlib import Path
 
 import torch
 
