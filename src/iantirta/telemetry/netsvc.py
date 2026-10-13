@@ -1,13 +1,13 @@
 
+import locale
 import logging
 import logging.handlers
-import warnings
 import os
-from typing import Literal
-import sys
 import platform
-import locale
-
+import sys
+import warnings
+from collections.abc import Callable
+from typing import Literal
 
 DEFAULT_LOGGING_FORMAT = '[%(asctime)s] %(levelname)s %(name)s: %(message)s %(perf_info)s'
 
@@ -94,7 +94,8 @@ def setup_logger(
     format: str = DEFAULT_LOGGING_FORMAT,
     handler_type: Literal["syslog", "filelog", "streamlog"] = "streamlog",
     filelog_path: str | None = None, # Required if filelog
-    default_level=logging.DEBUG
+    default_level=logging.WARNING,
+    post_log_hook: Callable | None = None
 ):
     if logging.getLogRecordFactory() is LogRecord:
         return
@@ -154,6 +155,9 @@ def setup_logger(
     logging.getLogger(appname).setLevel(default_level)
 
     logging.getLogger(__name__).debug('logger initialized with default: "%s"', default_level)
+
+    if post_log_hook:
+        pass
 
 if __name__ == "__main__":
     setup_logger("test.logging")

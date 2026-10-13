@@ -1,10 +1,12 @@
 import os
-from typing import TYPE_CHECKING, Literal
+from collections.abc import Callable
 from dataclasses import dataclass
-from collections.abs import Callable
+from typing import TYPE_CHECKING, Literal
+import logging
 
 if TYPE_CHECKING:
     import torch
+
     from ..models.demucs import BagOfModels
 
 
@@ -18,6 +20,7 @@ class SeparationData:
     """"""
     vocal: "torch.Tensor"
     instrument: "torch.Tensor"
+    samplerate: int
 
 
 class AudioSeparation:
@@ -34,6 +37,7 @@ class AudioSeparation:
         progress: bool = False,
         callback: Callable[[dict], None] | None = None,
         callback_arg: dict | None = None,
+        logger: logging.Logger | None = None,
     ):
         self._model = model
         self._audio_channels = self._model.audio_channels
@@ -54,16 +58,21 @@ class AudioSeparation:
             self._device = "cuda" if torch.cuda.is_available() else "cpu"
         else:
             self._device = device
+
+        self.logger = logger
+        if not logger:
+            self.logger = logging.getLogger(__name__)
+            self.logger.setLevel(logging.INFO)
         
     def separate_tensor(
         self,
         wav: "torch.Tensor",
         sample_rate: int,
     ):
-        if sample_rate != self.sample_rate:
+        if sample_rate != self._samplerate:
             pass
 
-        from ..models.demucs.apply import apply_model, _replace_dict
+        from ..models.demucs.apply import _replace_dict, apply_model
 
         ref = wav.mean(0)
         mean = ref.mean()
@@ -91,26 +100,29 @@ class AudioSeparation:
     def separate(
         self,
         audio_path: str | os.PathLike,
-        mix_method: Literal["subtract", "add"] = "minus"
+        mix_method: Literal["subtract", "add"] = "subtract"
     ):
         if mix_method not in ("subtract", "add",):
             raise ValueError(f"Invalid mix method: {mix_method}")
+        
+        import torch
+        from iantirta.audio import load_audio
 
-        from .audio_utils import load_audio
-
+        wav: np.ndarray
         wav, sr = load_audio(
             audio_path,
             sampling_rate=self._samplerate,
             num_channels=self._audio_channels,
         )
+        self.logger.debug(f'Successfully loading audio: sr={sr}, wav={wav.shape}',)
+        wav: torch.Tensor = torch.from_numpy(wav)
+        self.logger.debug(f'Successfully convert: wav={wav.shape}',)
 
         origin, res = self.separate_tensor(wav, sr)
 
         vocal = res.pop("vocals")
 
         if mix_method == "add":
-            import torch
-
             instrument = torch.zeros_like(next(iter(res.values())))
             for i in res.values():
                 instrument += i
@@ -121,6 +133,7 @@ class AudioSeparation:
         return SeparationData(
             vocal=vocal,
             instrument=instrument,
+            samplerate=sr
         )
 
 if __name__ == "__main__":
@@ -130,9 +143,8 @@ if __name__ == "__main__":
     import librosa
     import numpy as np
     import torchaudio
+    from iantirta.audio import load_audio
     from rich import inspect as i
-
-    from iantirta.models.audio_separation.audio_utils.load_audio import load_audio
 
     audio_path = Path("~/.cache/iantirta/downloaded_video/Bernadya - Kita Buat Menyenangkan (Official Lyric Video).wav").expanduser().resolve()
     assert audio_path.is_file(), str(audio_path)
