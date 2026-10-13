@@ -10,6 +10,10 @@ import numpy as np
 if TYPE_CHECKING:
     pass
 
+__all__ = [
+    "load_audio",
+]
+
 
 logger = logging.getLogger(__name__)
 
@@ -71,14 +75,14 @@ def resolve_audio_from_source(source: str):
         return source
     # Not a URL or a local path — assume base64, optionally wrapped as a `data:<media-type>;base64,` URI
     if source.startswith("data:"):
-        audio = source.split(",", 1)[1]
+        source = source.split(",", 1)[1]
     try:
         import base64
-        return base64.b64decode(audio)
+        return base64.b64decode(source)
     except Exception as e:
         raise ValueError(
             "Incorrect audio source. Must be a valid URL starting with `http://` or `https://`, "
-            f"a valid path to an audio file, or a base64 encoded string. Got {audio}. Failed with {e}"
+            f"a valid path to an audio file, or a base64 encoded string. Got {source}. Failed with {e}"
         )
 
 
@@ -192,23 +196,6 @@ def load_audio(
     audio = str(audio)
     filetype = get_file_type_from_source(audio)
 
-    # if Path(audio).is_file() and backend in ("auto", "torchaudio") and not filetype in TORCHCODEC_ONLY_FILETYPES:
-    #     try:
-    #         import torchaudio
-    #         wav, src_sr = torchaudio.load(audio)
-
-    #         if sampling_rate and sampling_rate != src_sr:
-    #             wav = torchaudio.functional.resample(wav, orig_freq=src_sr, new_freq=sampling_rate)
-
-    #         if num_channels is not None:
-    #             from ._audio import convert_audio_channels
-    #             wav = convert_audio_channels(wav, num_channels)
-
-    #         return wav.numpy().astype(np.float32)
-    #     except Exception as e:
-    #         # Fall back to AudioLoader if torchaudio fails on this specific format
-    #         logger.debug(f"Failed while using torchaudio to load: {e}")
-    
     audio_source = resolve_audio_from_source(audio)
 
     use_torchcodec = False

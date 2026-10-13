@@ -6,10 +6,17 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, TYPE_CHECKING
 
-import numpy as np
-import torch
+if TYPE_CHECKING:
+    import numpy as np
+    import torch
+
+
+__all__ = [
+    "AudioLoader",
+    "convert_audio_channels"
+]
 
 
 @contextmanager
@@ -56,6 +63,7 @@ class AudioLoader:
             tf.close()
             self._temp_file = tf.name
             self.audio_source = self._temp_file
+
         else:
             self.audio_source = str(self.audio_source)
 
@@ -97,7 +105,7 @@ class AudioLoader:
         streams=slice(None),
         sampling_rate: int | None = None,
         num_channels: int | None = None,
-    ) -> torch.Tensor:
+    ) -> "torch.Tensor":
         """
         Slightly more efficient implementation than stempeg,
         in particular, this will extract all stems at once
@@ -119,6 +127,9 @@ class AudioLoader:
                 Our definition of mono is simply the average of the two channels. Any other
                 value will be ignored.
         """
+        import numpy as np
+        import torch
+
         streams = np.array(range(len(self)))[streams]
         single = not isinstance(streams, np.ndarray)
         if single:
@@ -127,6 +138,7 @@ class AudioLoader:
         if stop_seconds is None:
             target_size = None
             query_duration = None
+
         else:
             target_size = int((sampling_rate or self.samplerate()) * stop_seconds)
             query_duration = float((target_size + 1) / (sampling_rate or self.samplerate()))
@@ -134,17 +146,24 @@ class AudioLoader:
         with temp_filenames(len(streams)) as filenames:
             command = ['ffmpeg', '-y']
             command += ['-loglevel', 'panic']
+
             if start_seconds:
                 command += ['-ss', str(start_seconds)]
+
             command += ['-i', str(self.audio_source)]
+
             for stream, filename in zip(streams, filenames):
                 command += ['-map', f'0:{self._audio_streams[stream]}']
+
                 if query_duration is not None:
                     command += ['-t', str(query_duration)]
+
                 command += ['-threads', '1']
                 command += ['-f', 'f32le']
+
                 if sampling_rate is not None:
                     command += ['-ar', str(sampling_rate)]
+
                 command += [filename]
 
             subprocess.run(command, check=True)
@@ -154,10 +173,13 @@ class AudioLoader:
                 wav = np.fromfile(filename, dtype=np.float32)
                 wav = torch.from_numpy(wav)
                 wav = wav.view(-1, self.channels(stream)).t()
+
                 if num_channels is not None:
                     wav = convert_audio_channels(wav, num_channels)
+
                 if target_size is not None:
                     wav = wav[..., :target_size]
+
                 wavs.append(wav)
 
         wav = torch.stack(wavs, dim=0)
@@ -167,29 +189,38 @@ class AudioLoader:
         return wav
 
 
-def convert_audio_channels(wav: torch.Tensor, channels=2):
+def convert_audio_channels(
+    wav: "torch.Tensor",
+    channels=2
+) -> "torch.Tensor":
     """Convert audio to the given number of channels."""
     *shape, src_channels, length = wav.shape
+
     if src_channels == channels:
         pass
+
     elif channels == 1:
         # Case 1:
         # The caller asked 1-channel audio, but the stream have multiple
         # channels, downmix all channels.
         wav = wav.mean(dim=-2, keepdim=True)
+
     elif src_channels == 1:
         # Case 2:
         # The caller asked for multiple channels, but the input file have
         # one single channel, replicate the audio over all channels.
         wav = wav.expand(*shape, channels, length)
+
     elif src_channels >= channels:
         # Case 3:
         # The caller asked for multiple channels, and the input file have
         # more channels than requested. In that case return the first channels.
         wav = wav[..., :channels, :]
+
     else:
         # Case 4: What is a reasonable choice here?
         raise ValueError('The audio file has less channels than requested but is not mono.')
+
     return wav
 
 

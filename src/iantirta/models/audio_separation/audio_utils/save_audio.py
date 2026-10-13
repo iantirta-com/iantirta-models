@@ -2,10 +2,17 @@
 import struct
 import subprocess
 from pathlib import Path
-from typing import Literal
+from typing import Literal, TYPE_CHECKING
 
 import numpy as np
-import torch
+
+if TYPE_CHECKING:
+    import torch
+
+
+__all__ = [
+    "save_audio"
+]
 
 
 def prevent_clip(wav: "torch.Tensor", mode='rescale'):
@@ -24,6 +31,8 @@ def prevent_clip(wav: "torch.Tensor", mode='rescale'):
         wav = wav.clamp(-0.99, 0.99)
 
     elif mode == 'tanh':
+        import torch
+        
         wav = torch.tanh(wav)
 
     else:
@@ -32,7 +41,7 @@ def prevent_clip(wav: "torch.Tensor", mode='rescale'):
     return wav
 
 
-def i16_pcm(wav: torch.Tensor):
+def i16_pcm(wav: "torch.Tensor"):
     """Convert audio to 16 bits integer PCM format."""
     if wav.dtype.is_floating_point:
         return (wav.clamp_(-1, 1) * (2**15 - 1)).short()
@@ -74,7 +83,7 @@ def encode_mp3(
 
 
 def _pcm_bytes(
-    wav: torch.Tensor,
+    wav: "torch.Tensor",
     bits_per_sample: int
 ) -> bytes:
     """Convert a `[C, T]` float tensor to raw interleaved little-endian PCM bytes.
@@ -148,9 +157,11 @@ def encode_ffmpeg(
     command = [
         'ffmpeg', '-y', '-loglevel', 'error',
         '-f', input_format, '-ar', str(samplerate), '-ac', str(channels), '-i', '-',
-        str(outpath)]
+        str(outpath)
+    ]
     try:
         subprocess.run(command, input=_pcm_bytes(wav, bits_per_sample), check=True)
+
     except FileNotFoundError:
         raise RuntimeError(f"Saving as {Path(outpath).suffix} requires ffmpeg to be installed.")
 
@@ -176,6 +187,7 @@ def save_audio(
         2 for highest quality,
         7 for fastest speed
     """
+    import torch
 
     if not isinstance(audio, (torch.Tensor, np.ndarray)):
         raise TypeError(f"Invalud audio type: {type(audio)}")

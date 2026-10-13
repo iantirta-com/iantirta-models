@@ -6,13 +6,13 @@ import numpy as np
 import pytest
 
 # Import your audio utilities (adjust package path as needed)
-from iantirta.models.audio_separation.audio_utils import (
+from iantirta.models.audio_separation.audio_utils.load_audio import (
     get_file_type_from_source,
     get_file_type_from_bytes,
     resolve_audio_from_source,
     load_audio,
-    AudioLoader,
 )
+from iantirta.models.audio_separation.audio_utils._audio import AudioLoader
 
 
 def test_get_file_type_from_source_extensions():
