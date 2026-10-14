@@ -34,7 +34,7 @@ class AudioSeparation:
         split: bool = True,
         segment: int | None = None,
         jobs: int = 0,
-        progress: bool = False,
+        progress: bool = True,
         callback: Callable[[dict], None] | None = None,
         callback_arg: dict | None = None,
         logger: logging.Logger | None = None,
@@ -116,10 +116,11 @@ class AudioSeparation:
             sampling_rate=self._samplerate,
             num_channels=self._audio_channels,
         )
-        (logger or self.logger).debug(f'Successfully loading audio: sr={sr}, wav={wav.shape}',)
+        (logger or self.logger).debug(f'Successfully loading audio: sr={sr}, wav={wav.shape}, audio_path={audio_path}',)
         wav: torch.Tensor = torch.from_numpy(wav)
         (logger or self.logger).debug(f'Successfully convert: wav={wav.shape}',)
 
+        (logger or self.logger).debug(f"Will separate with mix_method={mix_method}")
         origin, res = self.separate_tensor(wav, sr)
 
         vocal = res.pop("vocals")
@@ -132,6 +133,7 @@ class AudioSeparation:
         elif mix_method == "subtract":
             instrument = origin - vocal
 
+        (logger or self.logger).debug("separation Success")
         return SeparationData(
             vocal=vocal,
             instrument=instrument,
