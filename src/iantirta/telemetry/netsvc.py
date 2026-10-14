@@ -65,6 +65,24 @@ def resetlocale():
             continue
 
 
+class LoggingHookManager:
+    _hooks: list[Callable] = []
+
+    @classmethod
+    def dispatch(cls, record):
+        if not cls._hooks:
+            return
+        try:
+            for hook in cls._hooks:
+                hook(record)
+        except:
+            pass
+
+
+def add_hook(hook: Callable):
+    LoggingHookManager._hooks.append(hook)
+
+
 class WatchedFileHandler(logging.handlers.WatchedFileHandler):
     def __init__(self, filename):
         self.errors = None  # py38
@@ -95,7 +113,7 @@ def setup_logger(
     handler_type: Literal["syslog", "filelog", "streamlog"] = "streamlog",
     filelog_path: str | None = None, # Required if filelog
     default_level=logging.WARNING,
-    post_log_hook: Callable | None = None
+    post_emit: bool = True
 ):
     if logging.getLogRecordFactory() is LogRecord:
         return
@@ -156,12 +174,37 @@ def setup_logger(
 
     logging.getLogger(__name__).debug('logger initialized with default: "%s"', default_level)
 
-    if post_log_hook:
-        pass
+    if post_emit:
+        original_emit = handler.emit
+
+        def new_emit(record):
+            try:
+                original_emit(record)
+            except:
+                raise
+            else:
+                LoggingHookManager.dispatch(record)
+
+        handler.emit = new_emit
+
 
 if __name__ == "__main__":
-    setup_logger("test.logging")
+    setup_logger("iantirta", default_level=logging.DEBUG)
     logger = logging.getLogger(__name__)
+    from rich import inspect as i
+
+    i(logging.Handler.format)
+
+    def custom_hook(record):
+        root_handler = logging.getLogger().handlers[0]
+        msg = root_handler.formatter.format(record)
+        
+        print("--- HOOK INTERCEPTED ---")
+        print(msg)
+        print("========================")
+        
+
+    add_hook(custom_hook)
     logger.debug("debug")
     logger.info("info")
     logger.warning("warning")
