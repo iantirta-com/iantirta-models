@@ -100,7 +100,9 @@ class AudioSeparation:
     def separate(
         self,
         audio_path: str | os.PathLike,
-        mix_method: Literal["subtract", "add"] = "subtract"
+        mix_method: Literal["subtract", "add"] = "subtract",
+        *,
+        logger: logging.Logger | None = None
     ):
         if mix_method not in ("subtract", "add",):
             raise ValueError(f"Invalid mix method: {mix_method}")
@@ -114,9 +116,9 @@ class AudioSeparation:
             sampling_rate=self._samplerate,
             num_channels=self._audio_channels,
         )
-        self.logger.debug(f'Successfully loading audio: sr={sr}, wav={wav.shape}',)
+        (logger or self.logger).debug(f'Successfully loading audio: sr={sr}, wav={wav.shape}',)
         wav: torch.Tensor = torch.from_numpy(wav)
-        self.logger.debug(f'Successfully convert: wav={wav.shape}',)
+        (logger or self.logger).debug(f'Successfully convert: wav={wav.shape}',)
 
         origin, res = self.separate_tensor(wav, sr)
 
