@@ -38,6 +38,8 @@ class AutoModel:
 def load_model(
     model_name_or_path: str | Path,
     model_type: Literal["separation", "asr"],
+    *,
+    model_type_options: dict | None = None,
     **kwargs
 ):
     model = AutoModel.from_pretrained(model_name_or_path, **kwargs)
@@ -45,7 +47,7 @@ def load_model(
     match model_type:
         case "separation":
             from .audio_separation import AudioSeparation
-            wrapper = AudioSeparation(model)
+            wrapper = AudioSeparation(model, **model_type_options)
         case "asr":
             from .asr import ASRModel
             wrapper = ASRModel(model)
