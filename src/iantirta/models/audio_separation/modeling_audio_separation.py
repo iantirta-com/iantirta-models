@@ -1,8 +1,8 @@
+import logging
 import os
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
-import logging
 
 if TYPE_CHECKING:
     import torch

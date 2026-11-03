@@ -2,6 +2,10 @@
 from pathlib import Path
 from typing import Literal
 
+_all__ = [
+    "load_model"
+]
+
 
 class AutoModel:
 
@@ -37,12 +41,18 @@ class AutoModel:
 
 def load_model(
     model_name_or_path: str | Path,
-    model_type: Literal["separation", "asr"],
+    model_type: Literal["separation", "asr", 'ctc_align'],
     *,
     model_type_options: dict | None = None,
     **kwargs
 ):
     model = AutoModel.from_pretrained(model_name_or_path, **kwargs)
+    model.eval()
+    processor = None
+
+    if model_type in ('asr', 'ctc_align'):
+        from transformers import AutoProcessor
+        processor = AutoProcessor.from_pretrained(model_name_or_path, **kwargs)
 
     match model_type:
         case "separation":
@@ -50,7 +60,10 @@ def load_model(
             wrapper = AudioSeparation(model, **model_type_options)
         case "asr":
             from .asr import ASRModel
-            wrapper = ASRModel(model, **model_type_options)
+            wrapper = ASRModel(model, processor=processor, **model_type_options)
+        case 'ctc_align':
+            from .ctc import CTCModel
+            wrapper = CTCModel(model, processor=processor, **model_type_options)
         case _:
             raise ValueError("Not Implemented")
 
