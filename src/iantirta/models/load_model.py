@@ -50,7 +50,7 @@ def load_model(
             wrapper = AudioSeparation(model, **model_type_options)
         case "asr":
             from .asr import ASRModel
-            wrapper = ASRModel(model)
+            wrapper = ASRModel(model, **model_type_options)
         case _:
             raise ValueError("Not Implemented")
 
