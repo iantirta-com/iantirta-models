@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from iantirta.lazy_import import LazyModule, define_import_structure
 
 if TYPE_CHECKING:
+    from .model_audio_separation import *
     from .modeling_audio_separation import *
 else:
     import sys

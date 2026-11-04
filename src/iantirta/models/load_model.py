@@ -7,38 +7,6 @@ _all__ = [
 ]
 
 
-class AutoModel:
-
-    @classmethod
-    def from_pretrained(
-        cls,
-        model_name_or_path: str | Path,
-        **kwargs
-    ):
-        if "adefossez" in model_name_or_path or "demucs" in model_name_or_path:
-            from .models.demucs import DemucsPreTrainedModel
-            
-            return DemucsPreTrainedModel.from_pretrained(model_name_or_path, **kwargs)
-        else:
-            import transformers
-            from transformers import AutoConfig
-            config = AutoConfig.from_pretrained(model_name_or_path, **kwargs)
-            architectures = getattr(config, "architectures", None)
-
-            if not architectures:
-                raise NotImplementedError("empty arch not supported.")
-
-            if len(architectures) > 1:
-                raise NotImplementedError("Multiple Architectures Not implemented")
-
-            model_class = getattr(transformers, architectures[0], None)
-
-            if not model_class:
-                raise NotImplementedError("Empty model class is not supported")
-
-            return model_class.from_pretrained(model_name_or_path, config=config, **kwargs)
-
-
 def load_model(
     model_name_or_path: str | Path,
     model_type: Literal["separation", "asr", 'ctc_align'],
@@ -46,24 +14,16 @@ def load_model(
     model_type_options: dict | None = None,
     **kwargs
 ):
-    model = AutoModel.from_pretrained(model_name_or_path, **kwargs)
-    model.eval()
-    processor = None
-
-    if model_type in ('asr', 'ctc_align'):
-        from transformers import AutoProcessor
-        processor = AutoProcessor.from_pretrained(model_name_or_path, **kwargs)
-
     match model_type:
         case "separation":
-            from .audio_separation import AudioSeparation
-            wrapper = AudioSeparation(model, **model_type_options)
+            from .audio_separation import AudioSeparationModel
+            wrapper = AudioSeparationModel(model_name_or_path, **model_type_options)
         case "asr":
-            from .asr import ASRModel
-            wrapper = ASRModel(model, processor=processor, **model_type_options)
+            from .asr import Qwen3ASRModel
+            wrapper = Qwen3ASRModel(model_name_or_path, **model_type_options)
         case 'ctc_align':
-            from .ctc import CTCModel
-            wrapper = CTCModel(model, processor=processor, **model_type_options)
+            from .asr import Wav2Vec2CTCModel
+            wrapper = Wav2Vec2CTCModel(model_name_or_path, **model_type_options)
         case _:
             raise ValueError("Not Implemented")
 

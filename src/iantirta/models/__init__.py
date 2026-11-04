@@ -10,9 +10,11 @@ __version__ = version("iantirta-models")
 
 
 if TYPE_CHECKING:
-    from .core import *
     from .load_model import *
     from .generic_audio_utils import *
+    from .base_model import *
+    from .asr import *
+    from .audio_separation import *
 else:
     import sys
     

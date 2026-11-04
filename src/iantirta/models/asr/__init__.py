@@ -6,7 +6,9 @@ from typing import TYPE_CHECKING
 from iantirta.lazy_import import LazyModule, define_import_structure
 
 if TYPE_CHECKING:
-    from .modeling_asr import *
+    from .base_asr_model import *
+    from .model_ctc_wav2vec2 import *
+    from .model_qwen3asr import *
 else:
     import sys
 
