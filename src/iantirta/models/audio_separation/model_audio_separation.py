@@ -229,11 +229,11 @@ class AudioSeparationModel(BaseModelMixin):
             state = _unflatten_state(tensors, json.loads(metadata['structure']))
         else:
             state = tensors
-        
+
         module, name = metadata['klass'].rsplit(".", 1)
         if module.startswith("demucs."):
             module = f"iantirta.models.vendor.demucs.{module[len('demucs.'):]}"
-        
+
         klass = getattr(importlib.import_module(module), name)
         args = _decode_json(json.loads(metadata['args']))
         kwargs = _decode_json(json.loads(metadata['kwargs']))

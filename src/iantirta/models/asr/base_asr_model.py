@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 
-from iantirta.audio import AudioSegment, slice_np
+from iantirta.audio import AudioSegment, slice_audio
 
 from iantirta.models import BaseModelMixin, TextTiming
 
@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     import numpy as np
 
 __all__ = [
-    "BaseASRModelMixin",
     "ASRResult",
+    "BaseASRModelMixin",
 ]
 
 
@@ -137,7 +137,7 @@ class BaseASRModelMixin(BaseModelMixin):
         offsets, langs, wavs = [], [], []
 
         for aseg, lang, ref in zip(audio_segments, languages, references):
-            wavs.append(slice_np(wav, aseg.start, aseg.end, self.samplerate))
+            wavs.append(slice_audio(wav, aseg.start, aseg.end, self.samplerate))
             offsets.append(aseg.start)
             langs.append(
                 lang
