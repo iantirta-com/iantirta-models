@@ -18,7 +18,7 @@ class BaseModelMixin:
         *,
         logger: logging.Logger | None = None
     ):
-        self.logger = logger or  logging.getLogger(__name__)
+        self.logger = logger or logging.getLogger(__name__)
 
     @abstractmethod
     def load_model(self):

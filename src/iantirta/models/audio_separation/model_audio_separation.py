@@ -111,6 +111,19 @@ class AudioSeparationModel(BaseModelMixin):
 
         self.load_model()
 
+        self.logger.info(
+            f"Running {self.model_name} with:\n"
+            f"  device={self.max_inference_batch_size}\n"
+            f"  shifts={self.num_beams}\n"
+            f"  overlap={self.max_new_tokens}\n"
+            f"  split={self.max_new_tokens}\n"
+            f"  segment={self.max_new_tokens}\n"
+            f"  jobs={self.max_new_tokens}\n"
+            f"  progress={self.max_new_tokens}\n"
+            f"  callback={self.max_new_tokens}\n"
+            f"  callback_arg={self.max_new_tokens}"
+        )
+
     # ---------------------
     # API Method
     # ---------------------

@@ -23,17 +23,24 @@ class Qwen3ASRModel(BaseASRModelMixin):
 
     def __init__(
         self,
-        *,
+        *args,
         max_inference_batch_size: int | None = 4,
         num_beams: int = 4,
         max_new_tokens: int = 256,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
 
         self.max_inference_batch_size = max_inference_batch_size
         self.num_beams = num_beams
         self.max_new_tokens = max_new_tokens
+
+        self.logger.info(
+            "Running QwenASR with:\n"
+            f"  max_inference_batch_size={self.max_inference_batch_size}\n"
+            f"  num_beams={self.num_beams}\n"
+            f"  max_new_tokens={self.max_new_tokens}"
+        )
 
     @property
     def force_aligner(self):

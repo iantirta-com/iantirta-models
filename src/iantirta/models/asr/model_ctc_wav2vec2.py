@@ -19,6 +19,11 @@ T = TypeVar("T")
 
 class Wav2Vec2CTCModel(BaseASRModelMixin):
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.logger.info("Running Wav2Vec2CTC")
+
     # ------------------
     # Inference Method
     # ------------------
