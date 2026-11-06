@@ -1,8 +1,8 @@
-from dataclasses import dataclass
 import importlib
 import json
 import logging
 from collections.abc import Callable
+from dataclasses import dataclass
 from fractions import Fraction
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
@@ -232,7 +232,7 @@ class AudioSeparationModel(BaseModelMixin):
         
         module, name = metadata['klass'].rsplit(".", 1)
         if module.startswith("demucs."):
-            module = f"iantirta.models.models.demucs.{module[len('demucs.'):]}"
+            module = f"iantirta.models.vendor.demucs.{module[len('demucs.'):]}"
         
         klass = getattr(importlib.import_module(module), name)
         args = _decode_json(json.loads(metadata['args']))
