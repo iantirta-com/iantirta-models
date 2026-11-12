@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 
 from iantirta.audio import HumanTiming, TimingMixin
+import iantirta.text as text_utils
 
 __all__ = [
     "TextTiming",
@@ -21,6 +22,14 @@ class WordTiming(TimingMixin):
     word: str
     score: float
 
+    _clean: str | None = None
+
+    @property
+    def clean(self) -> str:
+        if self._clean is None:
+            self._clean = text_utils.normalize(self.word, kaldi=True)
+        return self._clean
+
 
 @dataclass(slots=True)
 class TextTiming(HumanTiming):
@@ -32,6 +41,7 @@ class TextTiming(HumanTiming):
     words: list[WordTiming]
     language: str
 
+    _clean: str | None = None
 
     @property
     def start(self) -> float:
@@ -45,3 +55,9 @@ class TextTiming(HumanTiming):
     def duration(self) -> float:
         if self.start is None or self.end is None: return 0.0
         return float(round(self.end - self.start, 2))
+
+    @property
+    def clean(self) -> str:
+        if self._clean is None:
+            self._clean = " ".join([w.clean for w in self.words])
+        return self._clean
