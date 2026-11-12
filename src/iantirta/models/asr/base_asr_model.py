@@ -36,7 +36,7 @@ def detect_text_language(text: str, *, logger: logging.Logger | None = None):
     lang = max(text_langs, key=lambda l: l.prob)
     (logger or _logger).debug(f"New End Detected Language: `{lang}`")
 
-    return lang
+    return lang.lang
 
 
 def ensure_list(data):

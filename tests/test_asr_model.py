@@ -2,6 +2,7 @@
 import pytest
 
 from iantirta.models import BaseASRModelMixin
+from iantirta.models.asr.base_asr_model import detect_text_language
 
 
 class TestASRModel:
@@ -43,6 +44,9 @@ class TestASRModel:
         print(infer_data)
         offsets = infer_data.pop("offsets")
 
+    def test_detect_language(self, lyrics):
+        lang = detect_text_language(lyrics)
+        assert isinstance(lang, str)
 
 if __name__ == "__main__":
     import sys
