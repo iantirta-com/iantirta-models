@@ -106,6 +106,14 @@ class BaseASRModelMixin(BaseModelMixin):
 
         return groups
 
+    def detect_text_lang(self, ref: str) -> str:
+        """
+        Wrapper method for detect text languages,
+        so that each model with its own unique lang, can
+        override the result.
+        """
+        return detect_text_language(ref)
+
     def prepare_infer_data(
         self,
         wav: np.ndarray,
@@ -131,7 +139,7 @@ class BaseASRModelMixin(BaseModelMixin):
 
         global_detected_lang = None
         if reference is not None:
-            global_detected_lang = detect_text_language(reference)
+            global_detected_lang = self.detect_text_lang(reference)
         references = ensure_list(references)
 
         languages = ensure_list(languages)
@@ -157,7 +165,7 @@ class BaseASRModelMixin(BaseModelMixin):
                 if lang not in (None, "auto")
                 else global_detected_lang
                 if global_detected_lang
-                else detect_text_language(ref)
+                else self.detect_text_lang(ref)
                 if ref is not None
                 else None
             )

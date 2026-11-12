@@ -51,6 +51,17 @@ class Qwen3ASRModel(BaseASRModelMixin):
                 device=self.device
             )
         return self._force_aligner
+    
+    def detect_text_lang(self, ref: str) -> str:
+        """
+        Wrapper method for detect text languages,
+        so that each model with its own unique lang, can
+        override the result.
+        """
+        res = super().detect_text_lang(ref)
+        if res in ("zh-cn", "zh-tw"):
+            res = "zh"
+        return res
 
     # ------------------
     # Inference Method
