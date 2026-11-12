@@ -1,12 +1,13 @@
 
 import pytest
 
+from iantirta.models import AudioSeparationModel, BaseASRModelMixin, BaseModelMixin
 from iantirta.models.load_model import load_model
 
 
 @pytest.mark.manual
 def test_load_model_qwen():
-    load_model(
+    qwen_model = load_model(
         'Qwen/Qwen3-ASR-1.7B-hf',
         'asr',
         model_type_options={
@@ -14,6 +15,9 @@ def test_load_model_qwen():
             'num_beams': 4,
         }
     )
+
+    assert isinstance(qwen_model, BaseASRModelMixin)
+
 
 
 if __name__ == "__main__":

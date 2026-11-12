@@ -134,6 +134,19 @@ class BaseASRModelMixin(BaseModelMixin):
             global_detected_lang = detect_text_language(reference)
         references = ensure_list(references)
 
+        languages = ensure_list(languages)
+
+        languages = languages + [None] * (len(audio_segments) - len(languages))
+        assert len(languages) == len(audio_segments), (
+            "Given languages length missmatch "
+            f"{len(languages)} == {len(audio_segments)}"
+        )
+        references = references + [None] * (len(audio_segments) - len(references))
+        assert len(references) == len(audio_segments), (
+            "Given references length missmatch "
+            f"{len(references)} == {len(audio_segments)}"
+        )
+
         offsets, langs, wavs = [], [], []
 
         for aseg, lang, ref in zip(audio_segments, languages, references):
@@ -149,12 +162,12 @@ class BaseASRModelMixin(BaseModelMixin):
                 else None
             )
 
-            return {
-                "wavs": wavs,
-                "offsets": offsets,
-                "languages": langs,
-                "references": references,
-            }
+        return {
+            "wavs": wavs,
+            "offsets": offsets,
+            "languages": langs,
+            "references": references,
+        }
 
     # ------------------
     # Inference Method
