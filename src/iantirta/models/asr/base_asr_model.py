@@ -280,6 +280,9 @@ class BaseASRModelMixin(BaseModelMixin):
         wav, sr = self.load_audio(audio_path=audio_path)
         (logger or self.logger).debug(f'Successfully loading audio: sr={sr}, wav={wav.shape}, audio_path={audio_path}',)
 
+        wav = wav.squeeze()
+        (logger or self.logger).debug(f"Squeezing audio: wav={wav.shape}")
+
         infer_data = self.prepare_infer_data(
             wav=wav,
             audio_segments=audio_segments,
