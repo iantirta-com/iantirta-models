@@ -30,6 +30,7 @@ class TextTiming(HumanTiming):
     :param list[WordTiming] words:
     """
     words: list[WordTiming]
+    language: str
 
 
     @property
