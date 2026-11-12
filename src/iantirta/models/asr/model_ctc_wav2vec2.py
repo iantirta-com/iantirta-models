@@ -35,7 +35,12 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
         res = BASE_LANGS_2_MMS.get(res, None)
         return res
 
-    def _normalize_languages(self, languages: list[str] | None = None) -> list[str] | None:
+    def _normalize_languages(
+        self,
+        languages: list[str] | None = None,
+        *,
+        logger: logging.Logger | None = None
+    ) -> list[str] | None:
         if languages is None:
             return None
 
@@ -43,7 +48,13 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
 
         new_langs = []
         for lang in languages:
-            new_langs.append(BASE_LANGS_2_MMS.get(lang, None))
+            new_lang = BASE_LANGS_2_MMS.get(lang, "eng")
+            if lang != "eng" and new_lang == "eng":
+                (logger or self.logger).debug(
+                    f"Failed to get lang: {lang}."
+                    "Requesting falling back to ``eng``."
+                )
+            new_langs.append(new_lang)
 
         assert len(new_langs) == len(languages)
 
@@ -179,7 +190,7 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
         # If `audios` is pass group by lang
         # Else adapter already loaded
         if wavs is not None:
-            languages = self._normalize_languages(languages)
+            languages = self._normalize_languages(languages, logger=logger)
             audio_groups: dict[str | None, list[tuple[int, np.ndarray]]] = self.group_by_language(
                 wavs, languages
             )
