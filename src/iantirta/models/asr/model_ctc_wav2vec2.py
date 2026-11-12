@@ -24,6 +24,17 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
 
         self.logger.info("Running Wav2Vec2CTC")
 
+    def detect_text_lang(self, ref: str) -> str:
+        """
+        Wrapper method for detect text languages,
+        so that each model with its own unique lang, can
+        override the result.
+        """
+        from .languages import BASE_LANGS_2_MMS
+        res = super().detect_text_lang(ref)
+        res = BASE_LANGS_2_MMS.get(res, None)
+        return res
+
     # ------------------
     # Inference Method
     # ------------------
