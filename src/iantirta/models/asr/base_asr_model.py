@@ -50,6 +50,7 @@ class ASRResult:
     """
     Class used to represent ASR Result from align or transcribe.
     """
+    texts: list[TextTiming]
 
 
 class BaseASRModelMixin(BaseModelMixin):
