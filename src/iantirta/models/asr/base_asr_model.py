@@ -431,7 +431,7 @@ class BaseASRModelMixin(BaseModelMixin):
             if (ori_lang:=hypothesis[i].language) != lang:
                 (logger or self.logger).warning(f"Alignment result Language is different: ori {ori_lang} != {lang}")
 
-        return ASRResult(texts=results)
+        return ASRResult(texts=hypothesis)
 
     def populate_timestamp(
         self,
