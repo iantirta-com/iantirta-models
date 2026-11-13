@@ -41,7 +41,7 @@ class TextTiming(HumanTiming):
     :param list[WordTiming] words:
     """
     words: list[WordTiming]
-    language: str
+    language: str | None = None
     ass_event: str | None = None
 
     _clean: str | None = None
