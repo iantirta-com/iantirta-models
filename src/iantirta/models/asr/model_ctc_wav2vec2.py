@@ -48,10 +48,10 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
 
         new_langs = []
         for lang in languages:
-            new_lang = BASE_LANGS_2_MMS.get(lang, "eng")
+            new_lang = BASE_LANGS_2_MMS.get(lang, None) or "eng"
             if lang != "eng" and new_lang == "eng":
                 (logger or self.logger).debug(
-                    f"Failed to get lang: {lang}."
+                    f"Failed to get lang of: ``{lang}``. "
                     "Requesting falling back to ``eng``."
                 )
             new_langs.append(new_lang)

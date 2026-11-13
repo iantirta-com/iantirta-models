@@ -1,8 +1,7 @@
 
-import pytest
-import numpy as np
-
 from unittest.mock import patch
+
+import pytest
 
 from iantirta.models import BaseASRModelMixin, Qwen3ASRModel, Wav2Vec2CTCModel
 from iantirta.models.asr.base_asr_model import detect_text_language
@@ -111,10 +110,28 @@ class TestASRModel:
         assert len(lang) == 3  # 3 letter
         print(lang)
 
+    @pytest.mark.parametrize(
+        ("lang", "expected"), [
+            ('zh', 'cmn-script_simplified'),
+            ('zh-tw', 'cmn-script_simplified'),
+            ('zh-cn', 'cmn-script_simplified'),
+            ('id', 'ind'),
+            ('sw', 'eng'),
+            ('no', 'eng')
+        ]
+    )
+    def test_mms_normalization_language(self, use_model_mms, lang, expected):
+        langs = self.model._normalize_languages([lang])
+        for new_lang in langs:
+            assert new_lang == expected
+            assert isinstance(new_lang, str)
+            assert len(new_lang) >= 3 # 3 letter
+
 
 if __name__ == "__main__":
     import sys
     sys.exit(pytest.main([
         '-v', '-s',
+        '--log-cli-level=DEBUG',
         __file__
     ]))

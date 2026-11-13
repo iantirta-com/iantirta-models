@@ -1413,6 +1413,8 @@ BASE_LANGS_2_MMS = {
     "uk": "ukr",
     "ur": "urd-script_latin",
     "vi": "vie",
-    "zh-cn": "cmn",
-    "zh-tw": "cmn",
+    "zh-cn": "cmn-script_simplified",
+    "zh-tw": "cmn-script_simplified",
+    # Added for normalization ISO 636
+    "zh": "cmn-script_simplified",
 }
