@@ -22,6 +22,8 @@ class WordTiming(TimingMixin):
     word: str
     score: float
 
+    language: str | None = None
+
     _clean: str | None = None
 
     @property
@@ -40,8 +42,10 @@ class TextTiming(HumanTiming):
     """
     words: list[WordTiming]
     language: str
+    ass_event: str | None = None
 
     _clean: str | None = None
+    _text: str | None = None
 
     @property
     def start(self) -> float:
@@ -61,3 +65,9 @@ class TextTiming(HumanTiming):
         if self._clean is None:
             self._clean = " ".join([w.clean for w in self.words])
         return self._clean
+
+    @property
+    def text(self) -> str:
+        if self._text is None:
+            self._text = " ".join([w.word for w in self.words])
+        return self._text

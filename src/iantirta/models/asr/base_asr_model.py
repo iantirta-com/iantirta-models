@@ -5,6 +5,7 @@ from abc import abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+import re
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from iantirta.audio import AudioSegment, slice_audio
@@ -45,6 +46,15 @@ def ensure_list(data):
     return data
 
 
+RE_CJK = re.compile(r'[\u4e00-\u9fff\u3040-\u30ff\uac00-\ud7af]+')
+
+
+def sec2ass(s: float) -> str:
+    m, s = divmod(s, 60)
+    h, m = divmod(m, 60)
+    return f'{h:0>1.0f}:{m:0>2.0f}:{s:0>2.2f}'
+
+
 @dataclass(slots=True)
 class ASRResult:
     """
@@ -52,6 +62,110 @@ class ASRResult:
     """
     texts: list[TextTiming]
 
+    def to_line_idx(self, reference: str):
+        # import iantirta.text as text_utils
+        # reference = normalizekaldi(reference)
+        lines = [
+            line.strip()
+            for line in reference.split("\n")
+            if line.strip() and
+            not line.startswith('[')
+        ]
+        clusters, i = [], 0
+        n = [
+            len(line.split())
+            for line in lines
+        ]
+        words = [
+            w
+            for text in self.texts
+            for w in text.words
+        ]
+        assert len(words) == sum(n)
+        for l in n:
+            clusters.append(words[i: i + l])
+            i += l
+        assert len(clusters) == len(lines)
+        new_group_texts = [
+            TextTiming(words=cluster)
+            for cluster in clusters
+        ]
+        self.texts = new_group_texts
+        return self
+
+    def populate_ass(self):
+        n_segments = len(self.texts)
+
+        # Text Gap
+        gaps = []
+        for i in range(n_segments - 1):
+            next_start = float(round(self.texts[i+1].start, 2))
+            current_end = float(round(self.texts[i].end, 2))
+            gap = round(next_start - current_end, 2)
+            gaps.append(gap)
+        assert len(gaps) == n_segments - 1
+
+        # Populating Gaps
+        sliced_gaps = []
+        for gap in gaps:
+            start_gap = round(gap * 0.3, 2)
+            end_gap = round(gap - start_gap, 2)
+            sliced_gaps.append((start_gap, end_gap))
+        
+        for i, text in enumerate(self.texts):
+            if i == n_segments - 1:
+                pad_end = 1.0 # just add 1.0s
+            else:
+                pad_end = min(sliced_gaps[i][0], 1.0)
+            padded_end = round(text.end + pad_end, 2)
+            if i == 0:
+                pad_start = 0.8
+            else:
+                pad_start = min(sliced_gaps[i-1][1], 0.8)
+            padded_start = max(0.0, round(text.start - pad_start, 2))
+
+            # Effect
+            fade_in_ms = max(0, min(300, int((text.start - padded_start) * 1000))) # 300ms max to show text before highlighting
+            fade_out_ms = max(0, min(300, int((padded_end - text.end) * 1000))) # 300ms max to hide text before next word
+
+            # TODO: Find better way
+            is_cjk = bool(RE_CJK.search(text.text))
+            style = "CJK_Duet" if is_cjk else "Lat_Duet"
+            
+            # Karaoke Content
+            k_tokens = []
+            total_word_dur = 0
+            for j, word in enumerate(text.words):
+                dur_cs = max(0.0, round(word.duration * 100))
+                tokens = f"{{\\kf{dur_cs}}}{word.word.strip()} "
+                if j == 0:
+                    prev_gap = word.start - padded_start
+                else:
+                    prev_gap = word.start - text.words[j-1].end
+
+                dur_start_cs = max(0.0, round(prev_gap * 100))
+                tokens = f"{{\\kf{dur_start_cs}}}" + tokens
+                total_dur = dur_cs + dur_start_cs
+
+                if j == len(text.words) - 1:
+                    next_gap = padded_end - word.end
+                    dur_end_cs = max(0.0, round(next_gap * 100))
+                    tokens = tokens + f"{{\\kf{dur_end_cs}}}"
+                    total_dur += dur_end_cs
+                
+                k_tokens.append(tokens)
+                total_word_dur += total_dur
+            assert total_word_dur == round((padded_end - padded_start) * 100)
+
+            karaoke_content = "".join(k_tokens)
+            text.ass_event = (
+                f"Dialogue: 0,{sec2ass(padded_start)},{sec2ass(padded_end)},"
+                f"{style},,0,0,0,,"
+                f"{{\\fad({fade_in_ms},{fade_out_ms})}}"
+                f"{{\\an2}}{karaoke_content}"
+            )
+
+        return self
 
 class BaseASRModelMixin(BaseModelMixin):
     """
