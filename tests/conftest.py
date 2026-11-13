@@ -12,7 +12,7 @@ def separated_path() -> Path:
 
 
 @pytest.fixture
-def lyrics() -> str:
+def indo_lyric() -> str:
     return """Belum ada satu bulan
 Ku yakin masih ada sisa wangiku di bajumu
 Namun, kau tampak baik saja
@@ -50,7 +50,7 @@ Hu-uh
 
 
 @pytest.fixture
-def mandarin_lyrics() -> str:
+def mandarin_lyric() -> str:
     return """
 慌啥子嘛，慢慢慢来  
 太阳下山，有月亮爬上来  

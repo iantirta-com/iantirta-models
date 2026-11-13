@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "iantirta-models"
-version = "0.1.0rc5"
+version = "0.1.0rc6"
 
 authors = [
     { name = "Iantirta.com", email = "ian@iantirta.com" },
@@ -55,7 +55,9 @@ classifiers = [
 dependencies = [
     "numpy",
     "torch",
-    "iantirta-lazy_import"
+    "iantirta-lazy_import",
+    "iantirta-audio>=1.0.0",
+    "iantirta-text",
 ]
 
 
@@ -63,6 +65,7 @@ dependencies = [
 demucs = [
     "einops",
     "pyyaml",
+    "diffq",
 ]
 separation = ["torch",]
 asr = ["torch", 'langdetect']
