@@ -39,7 +39,8 @@ class Qwen3ASRModel(BaseASRModelMixin):
             "Running QwenASR with:\n"
             f"  max_inference_batch_size={self.max_inference_batch_size}\n"
             f"  num_beams={self.num_beams}\n"
-            f"  max_new_tokens={self.max_new_tokens}"
+            f"  max_new_tokens={self.max_new_tokens}\n"
+            f"  dtype={self.model.dtype}"
         )
 
     @property

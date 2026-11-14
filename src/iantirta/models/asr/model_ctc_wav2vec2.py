@@ -22,7 +22,10 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.logger.info("Running Wav2Vec2CTC")
+        self.logger.info(
+            "Running Wav2Vec2CTC with:\n"
+            f"  dtype={self.model.dtype}"
+        )
 
     def detect_text_lang(self, ref: str) -> str:
         """
