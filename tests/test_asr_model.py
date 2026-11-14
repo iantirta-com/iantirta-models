@@ -7,6 +7,10 @@ from iantirta.models import BaseASRModelMixin, Qwen3ASRModel, Wav2Vec2CTCModel
 from iantirta.models.asr.base_asr_model import detect_text_language
 
 
+def lyrics() -> list[str]:
+    return ["indo_lyric", "mandarin_lyric"]
+
+
 class TestASRModel:
     @pytest.fixture(autouse=True)
     def setup_class_model(self):
@@ -14,22 +18,6 @@ class TestASRModel:
 
         assert self.model.samplerate == 16000
         assert self.model.audio_channels == 1
-
-    @pytest.fixture
-    def use_model_qwen(self):
-        with patch.object(Qwen3ASRModel, "load_model"):
-            self.model = Qwen3ASRModel(
-                "unit_test_qwen"
-            )
-            yield
-
-    @pytest.fixture
-    def use_model_mms(self):
-        with patch.object(Wav2Vec2CTCModel, "load_model"):
-            self.model = Wav2Vec2CTCModel(
-                "unit_test_mms"
-            )
-            yield
 
     @pytest.fixture(autouse=True)
     def setup_class_vars(self, separated_path, setup_class_model):
@@ -41,10 +29,7 @@ class TestASRModel:
 
         self.wav = wav.squeeze()
 
-    @pytest.mark.parametrize(
-        "lyric_fname",
-        ["indo_lyric", "mandarin_lyric"]
-    )
+    @pytest.mark.parametrize("lyric_fname", lyrics())
     def test_prepare_infer_data(self, request, audio_segments, lyric_fname):
         """
         Test againts infer data.
@@ -71,45 +56,68 @@ class TestASRModel:
 
             assert len(outvar) == len(audio_segments)
 
-        print(infer_data)
         offsets = infer_data.pop("offsets")
 
         assert len(offsets) == len(audio_segments)
         assert len(infer_data["wavs"]) == len(audio_segments)
 
-    @pytest.mark.parametrize(
-        "lyric_fname",
-        ["indo_lyric", "mandarin_lyric"]
-    )
+    @pytest.mark.parametrize("lyric_fname", lyrics())
     def test_detect_language(self, request, lyric_fname):
         lyric = request.getfixturevalue(lyric_fname)
         lang = detect_text_language(lyric)
         assert isinstance(lang, str)
 
-    @pytest.mark.parametrize(
-        "lyric_fname",
-        ["indo_lyric", "mandarin_lyric"]
-    )
-    def test_qwen_detect_language_iso636(self, use_model_qwen, lyric_fname, request):
+
+class TestQwenASRModel:
+    """
+    Wrapper class for testing Qwen ASR Model
+    """
+    @pytest.fixture
+    def use_model_qwen(self):
+        with patch.object(Qwen3ASRModel, "load_model"):
+            self.model = Qwen3ASRModel(
+                "unit_test_qwen"
+            )
+            yield
+
+    @pytest.mark.parametrize("lyric_fname", lyrics())
+    def test_qwen_detect_language_iso639_1(self, use_model_qwen, lyric_fname, request):
+        """
+        Test Qwen model uses ISO 639-1 ``Country Name`` language.
+        """
         lyric = request.getfixturevalue(lyric_fname)
         lang = self.model.detect_text_lang(lyric)
 
         assert isinstance(lang, str)
-        assert len(lang) == 2  # 2 letter
-        print(lang)
+        assert len(lang) == 2  # 2 letter ISO 639-1 ``Country Name``
 
-    @pytest.mark.parametrize(
-        "lyric_fname",
-        ["indo_lyric", "mandarin_lyric"]
-    )
-    def test_mms_detect_language_iso(self, use_model_mms, lyric_fname, request):
+
+class TestMMSASRModel:
+    """
+    Wrapper class for testing MMS Facebook CTC Model
+    """
+    
+    @pytest.fixture
+    def use_model_mms(self):
+        with patch.object(Wav2Vec2CTCModel, "load_model"):
+            self.model = Wav2Vec2CTCModel(
+                "unit_test_mms"
+            )
+            yield
+
+    
+    @pytest.mark.parametrize("lyric_fname", lyrics())
+    def test_mms_detect_language_iso639_3(self, use_model_mms, lyric_fname, request):
+        """
+        MMS Model uses iso639-3 with some exception to some of its script language
+        """
         lyric = request.getfixturevalue(lyric_fname)
         lang = self.model.detect_text_lang(lyric)
 
         assert isinstance(lang, str)
-        assert len(lang) == 3  # 3 letter
-        print(lang)
+        assert len(lang) >= 3  # 3 letter
 
+    
     @pytest.mark.parametrize(
         ("lang", "expected"), [
             ('zh', 'cmn-script_simplified'),
@@ -117,15 +125,22 @@ class TestASRModel:
             ('zh-cn', 'cmn-script_simplified'),
             ('id', 'ind'),
             ('sw', 'eng'),
-            ('no', 'eng')
+            ('no', 'eng'),
+            ('ind', 'ind'),
+            ('cmn-script_simplified', 'cmn-script_simplified')
         ]
     )
     def test_mms_normalization_language(self, use_model_mms, lang, expected):
+        """
+        Test mms normalization language for its alignment.
+        """
         langs = self.model._normalize_languages([lang])
         for new_lang in langs:
             assert new_lang == expected
             assert isinstance(new_lang, str)
             assert len(new_lang) >= 3 # 3 letter
+
+
 
 
 if __name__ == "__main__":

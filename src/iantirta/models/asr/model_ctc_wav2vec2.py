@@ -24,7 +24,6 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
 
         self.logger.info(
             "Running Wav2Vec2CTC with:\n"
-            f"  dtype={self.model.dtype}"
         )
 
     def detect_text_lang(self, ref: str) -> str:
@@ -51,7 +50,11 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
 
         new_langs = []
         for lang in languages:
-            new_lang = BASE_LANGS_2_MMS.get(lang, None) or "eng"
+            new_lang = (
+                BASE_LANGS_2_MMS.get(lang, None) or "eng"
+                if len(lang.split('-')[0]) == 2
+                else lang
+            )
             if lang != "eng" and new_lang == "eng":
                 (logger or self.logger).debug(
                     f"Failed to get lang of: ``{lang}``. "

@@ -58,6 +58,7 @@ BASE_LANGS = [
     "zh-tw",
 ]
 
+
 QWEN_LANGUAGE_CODE_TO_NAME = {
     "ar": "Arabic",
 
@@ -1417,4 +1418,5 @@ BASE_LANGS_2_MMS = {
     "zh-tw": "cmn-script_simplified",
     # Added for normalization ISO 636
     "zh": "cmn-script_simplified",
+    'cmn-script_simplified': 'cmn-script_simplified',
 }

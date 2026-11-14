@@ -19,6 +19,15 @@ T = TypeVar("T")
 
 
 class Qwen3ASRModel(BaseASRModelMixin):
+    """
+    Qwen Wrapper for ASR Model.
+    Mostly use for transcribing only and not timestamp
+    alignment.
+    
+    as the backend for alignment of QwenASR3,
+    uses a decode head where it uses LLM auto complete or guessing,
+    for the timestampt, and not actual emissions of the audio.
+    """
     _force_aligner = None
 
     def __init__(
@@ -40,7 +49,6 @@ class Qwen3ASRModel(BaseASRModelMixin):
             f"  max_inference_batch_size={self.max_inference_batch_size}\n"
             f"  num_beams={self.num_beams}\n"
             f"  max_new_tokens={self.max_new_tokens}\n"
-            f"  dtype={self.model.dtype}"
         )
 
     @property
@@ -53,17 +61,6 @@ class Qwen3ASRModel(BaseASRModelMixin):
             )
         return self._force_aligner
     
-    def detect_text_lang(self, ref: str) -> str:
-        """
-        Wrapper method for detect text languages,
-        so that each model with its own unique lang, can
-        override the result.
-        """
-        res = super().detect_text_lang(ref)
-        if res in ("zh-cn", "zh-tw"):
-            res = "zh"
-        return res
-
     # ------------------
     # Inference Method
     # ------------------
@@ -186,6 +183,17 @@ class Qwen3ASRModel(BaseASRModelMixin):
             references=references,
             languages=languages
         )
+
+    def detect_text_lang(self, ref: str) -> str:
+        """
+        Wrapper method for detect text languages,
+        so that each model with its own unique lang, can
+        override the result.
+        """
+        res = super().detect_text_lang(ref)
+        if res in ("zh-cn", "zh-tw"):
+            res = "zh"
+        return res
 
     def load_model(self):
         super().load_model()
