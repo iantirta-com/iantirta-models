@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, TypeVar
 
+import logging
 import torch
 
 from iantirta.models import TextTiming, WordTiming
@@ -108,6 +109,7 @@ class Qwen3ASRModel(BaseASRModelMixin):
         references: list[str | None],
         *,
         return_timestamps: bool = True,
+        logger: logging.Logger | None = None,
     ) -> list[TextTiming]:
         """
         Actually transcribe given audio
@@ -155,6 +157,10 @@ class Qwen3ASRModel(BaseASRModelMixin):
                 words=words, language=lang
             ))
 
+        (logger or self.logger).debug(
+            "Transcribe Result: %s",
+            results
+        )
         if return_timestamps:
             align_results = self._align(
                 wavs=wavs,

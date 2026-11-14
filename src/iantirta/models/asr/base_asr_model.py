@@ -377,6 +377,7 @@ class BaseASRModelMixin(BaseModelMixin):
         results = self._transcribe(
             **infer_data,
             return_timestamps=return_timestamps,
+            logger=logger,
         )
 
         assert len(results) == len(offsets), f"produced asr result length missmatch, {len(results)} == len{offsets}"
