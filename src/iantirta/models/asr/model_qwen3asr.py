@@ -36,7 +36,7 @@ class Qwen3ASRModel(BaseASRModelMixin):
         *args,
         max_inference_batch_size: int | None = 4,
         num_beams: int = 4,
-        max_new_tokens: int = 256,
+        max_new_tokens: int = 8192,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
