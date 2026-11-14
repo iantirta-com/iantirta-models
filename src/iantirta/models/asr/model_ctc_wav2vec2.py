@@ -250,6 +250,7 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
         self.model = AutoModelForCTC.from_pretrained(
             self.model_name_or_path,
             device_map=self.device,
+            dtype=self.dtype,
         ).to(self.device).eval()
         self.processor = AutoProcessor.from_pretrained(
             self.model_name_or_path,

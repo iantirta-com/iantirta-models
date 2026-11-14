@@ -195,6 +195,7 @@ class Qwen3ASRModel(BaseASRModelMixin):
         self.model = AutoModelForMultimodalLM.from_pretrained(
             self.model_name_or_path,
             device_map=self.device,
+            dtype=self.dtype,
         ).to(self.device).eval()
         self.processor = AutoProcessor.from_pretrained(
             self.model_name_or_path,

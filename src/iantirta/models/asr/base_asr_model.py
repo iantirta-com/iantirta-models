@@ -187,6 +187,13 @@ class BaseASRModelMixin(BaseModelMixin):
         self.audio_channels = 1
 
         self.device = device or "cuda" if torch.cuda.is_available() else "cpu"
+        self.dtype = (
+            torch.bfloat16
+            if torch.cuda.is_bf16_supported() and torch.cuda.get_device_capability()[0] >= 8
+            else torch.float16
+            if torch.cuda.is_available()
+            else torch.float32
+        )
 
         self.model_name_or_path = model_name_or_path
 
