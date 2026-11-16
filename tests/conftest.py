@@ -283,14 +283,14 @@ def transcribe_res():
             WordTiming(start=None, end=None, word='dalam', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='hit', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Dan', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='bisa', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='jadi', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='kita', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='tak.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Jangan', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='takut,', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='jangan', score=None, language=None, _clean=None),
@@ -395,19 +395,19 @@ def transcribe_res():
             WordTiming(start=None, end=None, word='takut.', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='J', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Terima', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='kasih', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='karena', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='mengenalmu.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Aku', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='yang', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='seperti', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='ini.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Anggap', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='saja', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='besok', score=None, language=None, _clean=None),
@@ -419,11 +419,11 @@ def transcribe_res():
             WordTiming(start=None, end=None, word='ingat', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='hanya.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Kita', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='buat', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='This', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='is', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='how', score=None, language=None, _clean=None),
@@ -431,7 +431,7 @@ def transcribe_res():
             WordTiming(start=None, end=None, word='do', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='it.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Jika', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='ada', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='yang', score=None, language=None, _clean=None),
@@ -440,62 +440,62 @@ def transcribe_res():
             WordTiming(start=None, end=None, word='kau', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='kecewa.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Makan,', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='kita', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='buat', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='makan.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Tak', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='akan', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='tahu', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='sampai', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='kapan.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Kita', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='buat', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='dunia', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Aku', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='takkan', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='pernah', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='menyerah.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Oke.', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='Oke.Oke', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Oke.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Aku', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='takkan', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='pernah', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='menyerah.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Aku', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='takkan', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='pernah', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='menyerah.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Kita', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='buat', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='menyanyi.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Angka', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='desa', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='satu', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='yang', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='ada.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Jika', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='ada', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='yang', score=None, language=None, _clean=None),
@@ -506,12 +506,12 @@ def transcribe_res():
             WordTiming(start=None, end=None, word='tolong', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='maaf.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Kita', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='buat', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='manusia.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Takkan', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='tahu', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='sampai', score=None, language=None, _clean=None),
@@ -520,11 +520,11 @@ def transcribe_res():
             WordTiming(start=None, end=None, word='kau', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='masih', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Di', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='bintang.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Walaupun', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='nangka', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='selagi', score=None, language=None, _clean=None),
@@ -532,12 +532,12 @@ def transcribe_res():
             WordTiming(start=None, end=None, word='masih', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='bisa.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Kita', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='buat', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='menangga.', score=None, language=None, _clean=None)
         ], language='id', ass_event=None, _clean=None, _text=None),
-        Textiming(words=[
+        TextTiming(words=[
             WordTiming(start=None, end=None, word='Aku', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='takkan', score=None, language=None, _clean=None),
             WordTiming(start=None, end=None, word='pernah', score=None, language=None, _clean=None),
