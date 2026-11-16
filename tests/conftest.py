@@ -14,39 +14,47 @@ def separated_path() -> Path:
 
 @pytest.fixture
 def indo_lyric() -> str:
-    return """Belum ada satu bulan
-Ku yakin masih ada sisa wangiku di bajumu
-Namun, kau tampak baik saja
-Bahkan senyummu lebih lepas
-Sedang aku di sini hampir gila
-Kita tak temukan jalan
-Sepakat akhiri setelah beribu debat panjang
-Namun, kau tampak baik saja
-Bahkan senyummu lebih lepas
-Sedang aku di sini belum terima
-Bohongkah tangismu sore itu di pelukku?
-Nyatanya pergiku pun tak lagi mengganggumu
-Apa sudah ada kabar lain yang kautunggu?
-Sudah adakah yang gantikanku?
-Yang khawatirkanmu setiap waktu
-Yang cerita tentang apa pun sampai hal-hal tak perlu
-Kalau bisa, jangan buru-buru
-Kalau bisa, jangan ada dulu
-Baru lewat satu bulan
-Kemarin ulang tahunku, tak ada pesan darimu
-Tak apa, mungkin kau lupa
-Atau sudah ada hati yang harus kaujaga
-Sudah adakah yang gantikanku?
-Yang kauantar jemput setiap Sabtu
-Yang s'lalu ingatkan untuk pakai sabuk pengamanmu
-Kalau bisa, jangan buru-buru
-Sudah adakah yang gantikanku?
-Yang khawatirkanmu setiap waktu
-Yang cerita tentang apa pun sampai hal-hal tak perlu
-Kalau bisa, jangan buru-buru
-Kalau bisa, jangan ada dulu
-Hu, hu-uh
-Hu-uh
+    return """Kini serahkan semua ujungnya pada takdir
+Jika beruntung maka kisah ini tak akan berakhir
+Untuk sejenak kumohon berhenti perdebatkan yang tak penting
+Kita berdamai berjabat tangan
+Tertawakan yang tak bisa dibenahi
+Anggap saja besok ini semua hilang
+C'rita s'perti apa yang mau kau kenang
+Kita buat menyenangkan
+Di sisa waktu yang ada
+Jika ada yang salah jika kau kecewa
+Tolong maafkan
+Kita buat menyenangkan
+Takkan tahu sampai kapan
+Selagiku masih bisa
+Kita buat menyenangkan
+Tiada yang tahu pasti
+Mungkin dalam hitungan hari semua berhenti
+Dan bisa jadi kita tak ada lagi
+S'belum terlambat kuucapkan banyak terima kasih
+Karena mengenalmu buatku jadi
+Aku yang s'perti ini
+Anggap saja besok ini semua hilang
+S'moga yang kau ingat hanya yang baiknya
+Kita buat menyenangkan
+Di sisa waktu yang ada
+Jika ada yang salah jika kau kecewa
+Tolong maafkan
+Kita buat menyenangkan
+Takkan tahu sampai kapan
+Selagiku masih bisa
+Kita buat menyenangkan
+Kita buat menyenangkan
+Di sisa waktu yang ada
+Jika ada yang salah jika kau kecewa
+Tolong maafkan
+Kita buat menyenangkan
+Takkan tahu sampai kapan
+Selagiku masih bisa
+Kita buat menyenangkan
+Selagiku masih bisa
+Kita buat menyenangkan
 """
 
 
