@@ -92,6 +92,23 @@ class TestQwenASRModel:
         assert isinstance(lang, str)
         assert len(lang) == 2  # 2 letter ISO 639-1 ``Country Name``
 
+    @pytest.mark.parametrize(
+        ("text", "expected"),
+        [
+            ("jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan takut jangan",
+             "jangan takut"),
+            ("jangan takut " * 102, "jangan takut"),
+            ("Jangan Takut, " * 50, "Jangan Takut,"),
+            ("apa kabar halo kabar baik", "apa kabar halo kabar baik"),
+            ("aku aku", "aku aku"),
+            ("aku " * 50, "aku"),
+            ("Hallo ada kabar apa, kabar aku baik, bagaimana kabar kamu", "Hallo ada kabar apa, kabar aku baik, bagaimana kabar kamu")
+        ]
+    )
+    def test_qwen_fix_repeat(self, use_model_qwen, text, expected):
+        final_text = self.model.fix_word_repetation(text)
+        assert final_text == expected
+
 
 class TestMMSASRModel:
     """
@@ -146,7 +163,6 @@ class TestMMSASRModel:
         languages = ["eng", None, "eng"]
 
         audio_groups = self.model.group_by_language(wavs, languages)
-        print(audio_groups)
         assert len(audio_groups["eng"]) == 2
         assert len(audio_groups[None]) == 1
 
@@ -156,5 +172,5 @@ if __name__ == "__main__":
     sys.exit(pytest.main([
         '-v', '-s',
         '--log-cli-level=DEBUG',
-        __file__ + "::TestMMSASRModel::test_group_by_language"
+        __file__ + "::TestQwenASRModel::test_qwen_fix_repeat"
     ]))

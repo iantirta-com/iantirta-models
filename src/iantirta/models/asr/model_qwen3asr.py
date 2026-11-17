@@ -61,7 +61,87 @@ class Qwen3ASRModel(BaseASRModelMixin):
                 device=self.device
             )
         return self._force_aligner
-    
+
+    def fix_word_repetation(
+        self,
+        text: str,
+        threshold: int = 3,
+        max_words: int = 10,
+        *,
+        logger: logging.Logger | None = None,
+    ) -> str:
+        """
+        Detects and collapses consecutive repeated words or multi-word phrases
+        while preserving legitimate non-consecutive word reuse.
+        """
+        words = text.split()
+        n = len(words)
+        if n < threshold:
+            return text
+        norm = [w.lower() for w in words]
+        result = []
+        i = 0
+        collapse_events = 0
+
+        while i < n:
+            found = False
+            for k in range(1, max_words + 1):
+                if i + k * threshold > n:
+                    break
+
+                pattern = norm[i : i + k]
+                if all(norm[i + rep * k : i + (rep + 1) * k] == pattern for rep in range(1, threshold)):
+                    # Keep the first occurrence with original casing
+                    kept_tokens = words[i : i + k]
+                    result.extend(kept_tokens)
+
+                    # Skip all full consecutive repetitions
+                    occurrences = threshold
+                    end_idx = i + threshold * k
+                    while end_idx + k <= n and norm[end_idx : end_idx + k] == pattern:
+                        end_idx += k
+                        occurrences += 1
+
+                    # Consume incomplete trailing cut-off at the very end of the text
+                    # e.g. "... jangan takut jangan" -> stops cleanly at "jangan takut"
+                    rem = n - end_idx
+                    trailing_tokens = []
+                    if 0 < rem < k and norm[end_idx:] == pattern[:rem]:
+                        trailing_tokens = words[end_idx:]
+                        end_idx = n
+
+                    collapse_events += 1
+                    phrase = " ".join(kept_tokens)
+                    skipped_repeats = occurrences - 1
+                    dropped_tokens = (end_idx - i) - k
+                    (logger or self.logger).debug(
+                        "Collapse #%d at word index %d..%d | phrase=%r (%d-gram) | "
+                        "total_occurrences=%d (kept=1, skipped_repeats=%d, trailing_cutoff=%r, dropped_tokens=%d)",
+                        collapse_events,
+                        i,
+                        end_idx - 1,
+                        phrase,
+                        k,
+                        occurrences,
+                        skipped_repeats,
+                        " ".join(trailing_tokens) if trailing_tokens else None,
+                        dropped_tokens,
+                    )
+
+                    i = end_idx
+                    found = True
+                    break
+
+            if not found:
+                result.append(words[i])
+                i += 1
+
+        (logger or self.logger).debug(
+            "Repetition cleanup finished: %d collapse(s) | words %d -> %d",
+            collapse_events, n, len(result),
+        )
+        return " ".join(result)
+
     # ------------------
     # Inference Method
     # ------------------
@@ -145,6 +225,7 @@ class Qwen3ASRModel(BaseASRModelMixin):
 
         results: list[TextTiming] = []
         for text, lang in zip(outs, languages):
+            text = self.fix_word_repetation(text, logger=logger)
             words = []
             for word in text.split():
                 words.append(WordTiming(
