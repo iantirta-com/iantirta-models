@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import logging
+import re
 from abc import abstractmethod
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-import re
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from iantirta.audio import AudioSegment, slice_audio
@@ -166,6 +166,7 @@ class ASRResult:
             )
 
         return self
+
 
 class BaseASRModelMixin(BaseModelMixin):
     """

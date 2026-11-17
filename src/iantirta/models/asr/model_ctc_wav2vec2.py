@@ -119,8 +119,13 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
             f"{emissions.size(0)} == {len(references)}"
         )
 
+        (logger or self.logger).debug(
+            "Aligining emissions: shape=%r, references=%r",
+            emissions.shape, references
+        )
+
         # Mms model dictionary token is in lower char
-        norm_func = str.lower if "mms" in self.model.name_or_path else str.upper
+        norm_func = str.lower if "mms" in self.model_name_or_path else str.upper
         norm_refs = [
             norm_func(ref)
             for ref in references
@@ -220,9 +225,11 @@ class Wav2Vec2CTCModel(BaseASRModelMixin):
                 emissions = logits.log_softmax(dim=-1)
 
                 (logger or self.logger).debug(
-                    f"Alignment aligning, {lang} of audio length, "
-                    f"{len(sub_references)}"
+                    "Aligning lang=%s, sub_refs=%d, wav_length=%s",
+                    lang, len(sub_references), len(sub_wavs)
                 )
+                assert len(sub_references) == len(sub_wavs)
+
                 group_results = self._align_emissions(
                     emissions=emissions,
                     references=sub_references,

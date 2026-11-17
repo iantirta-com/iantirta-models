@@ -1,6 +1,7 @@
 
 from unittest.mock import patch
 
+import numpy as np
 import pytest
 
 from iantirta.models import BaseASRModelMixin, Qwen3ASRModel, Wav2Vec2CTCModel
@@ -105,7 +106,6 @@ class TestMMSASRModel:
             )
             yield
 
-    
     @pytest.mark.parametrize("lyric_fname", lyrics())
     def test_mms_detect_language_iso639_3(self, use_model_mms, lyric_fname, request):
         """
@@ -117,7 +117,6 @@ class TestMMSASRModel:
         assert isinstance(lang, str)
         assert len(lang) >= 3  # 3 letter
 
-    
     @pytest.mark.parametrize(
         ("lang", "expected"), [
             ('zh', 'cmn-script_simplified'),
@@ -140,6 +139,16 @@ class TestMMSASRModel:
             assert isinstance(new_lang, str)
             assert len(new_lang) >= 3 # 3 letter
 
+    def test_group_by_language(self, use_model_mms):
+        wav1 = np.arange(1000)
+        wav2 = np.arange(2000)
+        wavs = [wav1, wav2, wav1]
+        languages = ["eng", None, "eng"]
+
+        audio_groups = self.model.group_by_language(wavs, languages)
+        print(audio_groups)
+        assert len(audio_groups["eng"]) == 2
+        assert len(audio_groups[None]) == 1
 
 
 if __name__ == "__main__":
@@ -147,5 +156,5 @@ if __name__ == "__main__":
     sys.exit(pytest.main([
         '-v', '-s',
         '--log-cli-level=DEBUG',
-        __file__
+        __file__ + "::TestMMSASRModel::test_group_by_language"
     ]))
