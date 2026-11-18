@@ -167,13 +167,7 @@ class ASRResult:
                 dur_cs = w_end_cs - cursor_cs
                 cursor_cs = w_end_cs
 
-                if dur_start_cs > 0:
-                    gap_token = f"{{\\kf{dur_start_cs}}} "
-                else:
-                    gap_token = "" if j == 0 else " "
-
-                word_token = f"{{\\kf{dur_cs}}}{word.word.strip()}"
-                tokens = gap_token + word_token
+                tokens = f"{{\\kf{dur_start_cs}}}{{\\kf{dur_cs}}}{word.word.strip()} "
                 total_dur = dur_start_cs + dur_cs
 
                 if j == len(text.words) - 1:

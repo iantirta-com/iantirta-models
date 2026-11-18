@@ -5,8 +5,13 @@ from iantirta.models import ASRResult
 
 
 def test_populate_ass(fa_res: ASRResult, indo_lyric: str):
-    fa_res.to_line_idx(indo_lyric)
-    fa_res.populate_ass()
+    (
+        fa_res
+        .to_line_idx(indo_lyric)
+        .populate_ass()
+    )
+    for text in fa_res.texts:
+        print(text.ass_event)
 
 
 if __name__ == "__main__":
