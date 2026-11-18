@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, TypeVar
 
 from iantirta.audio import AudioSegment, slice_audio
-
+from iantirta.text.romanize import _is_han, _is_japanese
 from iantirta.models import BaseModelMixin, TextTiming
 
 if TYPE_CHECKING:
@@ -148,7 +148,7 @@ class ASRResult:
             fade_out_ms = max(0, min(300, int((padded_end - text.end) * 1000))) # 300ms max to hide text before next word
 
             # TODO: Find better way
-            is_cjk = bool(RE_CJK.search(text.text))
+            is_cjk = any(_is_japanese(char) or _is_han(char) for char in text.text)
             style = "CJK_Duet" if is_cjk else "Lat_Duet"
 
             # Karaoke Content
@@ -167,7 +167,13 @@ class ASRResult:
                 dur_cs = w_end_cs - cursor_cs
                 cursor_cs = w_end_cs
 
-                tokens = f"{{\\kf{dur_start_cs}}}{{\\kf{dur_cs}}}{word.word.strip()} "
+                if dur_start_cs > 0:
+                    gap_token = f"{{\\kf{dur_start_cs}}} "
+                else:
+                    gap_token = "" if j == 0 else " "
+
+                word_token = f"{{\\kf{dur_cs}}}{word.word.strip()}"
+                tokens = gap_token + word_token
                 total_dur = dur_start_cs + dur_cs
 
                 if j == len(text.words) - 1:
