@@ -104,33 +104,44 @@ class ASRResult:
 
         self.normalize_rounding_ass()
 
-        # Text Gap
+        # Get the gaps between each of the text segment
+        # 0..1..2..3
         gaps = []
         for i in range(n_segments - 1):
-            next_start = float(round(self.texts[i+1].start, 2))
-            current_end = float(round(self.texts[i].end, 2))
+            next_start = self.texts[i+1].start
+            current_end = self.texts[i].end
             gap = round(next_start - current_end, 2)
             gaps.append(gap)
         assert len(gaps) == n_segments - 1
 
-        # Populating Gaps
+        # Populating gaps that will be used later to add fade
+        # on start and end of a text segment
+        # start * 0.3, end * 0.7
         sliced_gaps = []
         for gap in gaps:
             start_gap = round(gap * 0.3, 2)
             end_gap = round(gap - start_gap, 2)
+            assert round(start_gap + end_gap, 2) == gap, (
+                f"Gap={gap}, start_gap={start_gap}, end_gap={end_gap}"
+            )
             sliced_gaps.append((start_gap, end_gap))
-        
+
+        # Iterate text over to populate ass into it.
         for i, text in enumerate(self.texts):
+
             if i == n_segments - 1:
                 pad_end = 1.0 # just add 1.0s
             else:
                 pad_end = min(sliced_gaps[i][0], 1.0)
             padded_end = round(text.end + pad_end, 2)
+
             if i == 0:
                 pad_start = 0.8
             else:
                 pad_start = min(sliced_gaps[i-1][1], 0.8)
             padded_start = max(0.0, round(text.start - pad_start, 2))
+
+            padded_dur = round(padded_end - padded_start, 2)
 
             # Effect
             fade_in_ms = max(0, min(300, int((text.start - padded_start) * 1000))) # 300ms max to show text before highlighting
@@ -139,33 +150,38 @@ class ASRResult:
             # TODO: Find better way
             is_cjk = bool(RE_CJK.search(text.text))
             style = "CJK_Duet" if is_cjk else "Lat_Duet"
-            
+
             # Karaoke Content
             k_tokens = []
             total_word_dur = 0
+            
+            target_total_cs = round(padded_dur * 100)
+            cursor_cs = round(padded_start * 100)
+            end_cs = cursor_cs + target_total_cs
             for j, word in enumerate(text.words):
-                dur_cs = max(0.0, round(word.duration * 100))
-                tokens = f"{{\\kf{dur_cs}}}{word.word.strip()} "
-                if j == 0:
-                    prev_gap = word.start - padded_start
-                else:
-                    prev_gap = word.start - text.words[j-1].end
+                w_start_cs = min(end_cs, max(cursor_cs, round(word.start * 100)))
+                dur_start_cs = w_start_cs - cursor_cs
+                cursor_cs = w_start_cs
 
-                dur_start_cs = max(0.0, round(prev_gap * 100))
-                tokens = f"{{\\kf{dur_start_cs}}}" + tokens
-                total_dur = dur_cs + dur_start_cs
+                w_end_cs = min(end_cs, max(cursor_cs, round(word.end * 100)))
+                dur_cs = w_end_cs - cursor_cs
+                cursor_cs = w_end_cs
+
+                tokens = f"{{\\kf{dur_start_cs}}}{{\\kf{dur_cs}}}{word.word.strip()} "
+                total_dur = dur_start_cs + dur_cs
 
                 if j == len(text.words) - 1:
-                    next_gap = padded_end - word.end
-                    dur_end_cs = max(0.0, round(next_gap * 100))
-                    tokens = tokens + f"{{\\kf{dur_end_cs}}}"
+                    dur_end_cs = end_cs - cursor_cs
+                    cursor_cs = end_cs
+                    tokens += f"{{\\kf{dur_end_cs}}}"
                     total_dur += dur_end_cs
                 
                 k_tokens.append(tokens)
                 total_word_dur += total_dur
-            assert total_word_dur == round((padded_end - padded_start) * 100), (
-                "Total word dur different: dur=%d, res=%d"
-                % (total_word_dur, round((padded_end - padded_start) * 100))
+
+            assert total_word_dur == round(padded_dur * 100), (
+                "Total word dur different: "
+                f"word_dur_cs={total_word_dur}, padded_dur_cs={round(padded_dur * 100)}, padded_dur={padded_dur}"
             )
 
             karaoke_content = "".join(k_tokens)
@@ -175,6 +191,7 @@ class ASRResult:
                 f"{{\\fad({fade_in_ms},{fade_out_ms})}}"
                 f"{{\\an2}}{karaoke_content}"
             )
+
 
         return self
 
