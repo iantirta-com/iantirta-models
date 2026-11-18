@@ -93,8 +93,16 @@ class ASRResult:
         self.texts = new_group_texts
         return self
 
+    def normalize_rounding_ass(self):
+        for text in self.texts:
+            for w in text.words:
+                w.start = round(w.start, 2)
+                w.end = round(w.end, 2)
+
     def populate_ass(self):
         n_segments = len(self.texts)
+
+        self.normalize_rounding_ass()
 
         # Text Gap
         gaps = []
@@ -155,7 +163,10 @@ class ASRResult:
                 
                 k_tokens.append(tokens)
                 total_word_dur += total_dur
-            assert total_word_dur == round((padded_end - padded_start) * 100)
+            assert total_word_dur == round((padded_end - padded_start) * 100), (
+                "Total word dur different: dur=%d, res=%d"
+                % (total_word_dur, round((padded_end - padded_start) * 100))
+            )
 
             karaoke_content = "".join(k_tokens)
             text.ass_event = (
