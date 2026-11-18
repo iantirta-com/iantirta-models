@@ -1,5 +1,5 @@
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from iantirta.audio import HumanTiming, TimingMixin
 import iantirta.text as text_utils
@@ -24,7 +24,7 @@ class WordTiming(TimingMixin):
 
     language: str | None = None
 
-    _clean: str | None = None
+    _clean: str | None = field(default=None, repr=False)
 
     @property
     def clean(self) -> str:
@@ -44,8 +44,8 @@ class TextTiming(HumanTiming):
     language: str | None = None
     ass_event: str | None = None
 
-    _clean: str | None = None
-    _text: str | None = None
+    _clean: str | None = field(default=None, repr=False)
+    _text: str | None = field(default=None, repr=False)
 
     @property
     def start(self) -> float:
